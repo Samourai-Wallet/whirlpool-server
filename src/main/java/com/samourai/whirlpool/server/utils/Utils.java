@@ -1,0 +1,96 @@
+package com.samourai.whirlpool.server.utils;
+
+import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.wallet.segwit.bech32.Bech32Segwit;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.CharacterPredicates;
+import org.apache.commons.text.RandomStringGenerator;
+import org.bitcoinj.core.*;
+import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.script.Script;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
+import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class Utils {
+
+    private static final SecureRandom secureRandom = new SecureRandom();
+
+    public static String getRandomString(int length) {
+        RandomStringGenerator randomStringGenerator =
+                new RandomStringGenerator.Builder()
+                        .filteredBy(CharacterPredicates.ASCII_ALPHA_NUMERALS)
+                        .build();
+        return randomStringGenerator.generate(length);
+    }
+
+    public static boolean listEqualsIgnoreOrder(List first, List second) {
+        return (first.size() == second.size() &&
+                first.containsAll(second) && second.containsAll(first));
+    }
+
+    public static AsymmetricCipherKeyPair generateKeyPair() {
+        // Generate a 2048-bit RSA key pair.
+        RSAKeyPairGenerator generator = new RSAKeyPairGenerator();
+        /*new RsaKeyGenerationParameters(
+                RSA_F4,
+                secureRandom,
+                2048,
+                100)
+                */
+        generator.init(new RSAKeyGenerationParameters(new BigInteger("10001", 16), secureRandom, 2048, 80));
+        return generator.generateKeyPair();
+    }
+
+    public static String sha512Hex(byte[] data) {
+        return org.bitcoinj.core.Utils.HEX.encode(DigestUtils.getSha512Digest().digest(data));
+    }
+
+    public static Integer findTxInput(Transaction tx, String hash, long index) {
+        for (int i=0; i<tx.getInputs().size(); i++) {
+            TransactionInput input = tx.getInput(i);
+            TransactionOutPoint outPoint = input.getOutpoint();
+            if (outPoint.getHash().toString().equals(hash) && outPoint.getIndex() == index) {
+                return i;
+            }
+        }
+        return null;
+    }
+
+    public static TransactionWitness witnessUnserialize(byte[][] serialized) {
+        TransactionWitness witness = new TransactionWitness(serialized.length);
+        for (int i=0; i<serialized.length; i++) {
+            witness.setPush(i, serialized[i]);
+        }
+        return witness;
+    }
+
+    public static <K,V extends Comparable<? super V>> Map<K,V> sortMapByValue(Map<K,V> map) {
+        Comparator<Map.Entry<K,V>> comparator = Map.Entry.comparingByValue();
+        Map<K,V> sortedMap = map.entrySet().stream()
+                        .sorted(comparator)
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        return sortedMap;
+    }
+
+    public static <K,V> Map.Entry<K,V> getRandomEntry(Map<K,V> map) {
+        Object entries[] = map.entrySet().toArray();
+        return (Map.Entry<K,V>) entries[secureRandom.nextInt(entries.length)];
+    }
+
+    public static String computeInputId(TxOutPoint outPoint) {
+        return outPoint.getHash()+":"+outPoint.getIndex();
+    }
+}
