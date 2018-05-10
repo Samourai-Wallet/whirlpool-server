@@ -21,6 +21,8 @@ public class WhirlpoolServerConfig {
     private RegisterOutputConfig registerOutput;
     private SigningConfig signing;
     private BanConfig ban;
+    private RoundConfig round;
+
 
     public SamouraiFeeConfig getSamouraiFees() {
         return samouraiFees;
@@ -86,6 +88,14 @@ public class WhirlpoolServerConfig {
         this.ban = ban;
     }
 
+    public RoundConfig getRound() {
+        return round;
+    }
+
+    public void setRound(RoundConfig round) {
+        this.round = round;
+    }
+
     public static class RegisterInputConfig {
         private int minConfirmations;
 
@@ -131,6 +141,63 @@ public class WhirlpoolServerConfig {
 
         public void setBlames(int blames) {
             this.blames = blames;
+        }
+    }
+
+    public static class RoundConfig {
+        private long denomination;
+        private long minerFees;
+        private int targetMustMix;
+        private int minMustMix;
+        private long mustMixAdjustTimeout;
+        private float liquidityRatio;
+
+        public long getDenomination() {
+            return denomination;
+        }
+
+        public void setDenomination(long denomination) {
+            this.denomination = denomination;
+        }
+
+        public long getMinerFees() {
+            return minerFees;
+        }
+
+        public void setMinerFees(long minerFees) {
+            this.minerFees = minerFees;
+        }
+
+        public int getTargetMustMix() {
+            return targetMustMix;
+        }
+
+        public void setTargetMustMix(int targetMustMix) {
+            this.targetMustMix = targetMustMix;
+        }
+
+        public int getMinMustMix() {
+            return minMustMix;
+        }
+
+        public void setMinMustMix(int minMustMix) {
+            this.minMustMix = minMustMix;
+        }
+
+        public long getMustMixAdjustTimeout() {
+            return mustMixAdjustTimeout;
+        }
+
+        public void setMustMixAdjustTimeout(long mustMixAdjustTimeout) {
+            this.mustMixAdjustTimeout = mustMixAdjustTimeout;
+        }
+
+        public float getLiquidityRatio() {
+            return liquidityRatio;
+        }
+
+        public void setLiquidityRatio(float liquidityRatio) {
+            this.liquidityRatio = liquidityRatio;
         }
     }
 

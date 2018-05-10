@@ -51,14 +51,14 @@ public class RoundService {
         this.roundLimitsManager = new RoundLimitsManager(this, blameService, whirlpoolServerConfig);
         this.deterministPaymentCodeMatching = false;
 
-        // TODO real settings
+        WhirlpoolServerConfig.RoundConfig roundConfig = whirlpoolServerConfig.getRound();
         String roundId = generateRoundId();
-        long denomination = 100000000;
-        long fees = 10000;
-        int targetMustMix = 5;
-        int minMustMix = 3;
-        long mustMixAdjustTimeout = 10 * 60; // 10 minutes
-        float liquidityRatio = 1; // 1 liquidity for 1 mustMix
+        long denomination = whirlpoolServerConfig.getRound().getDenomination();
+        long fees = roundConfig.getMinerFees();
+        int targetMustMix = roundConfig.getTargetMustMix();
+        int minMustMix = roundConfig.getMinMustMix();
+        long mustMixAdjustTimeout = roundConfig.getMustMixAdjustTimeout();
+        float liquidityRatio = roundConfig.getLiquidityRatio();
         Round round = new Round(roundId, denomination, fees, targetMustMix, minMustMix, mustMixAdjustTimeout, liquidityRatio);
         this.__reset(round);
     }
