@@ -65,7 +65,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
                 BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
                 String paymentCode = bip47Wallet.getAccount(0).getPaymentCode();
                 ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(ecKey, bip47Wallet);
-                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, computeSpendAmount(round, liquidity), liquidity);
+                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, liquidity);
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);

@@ -54,7 +54,7 @@ public class RoundService {
         WhirlpoolServerConfig.RoundConfig roundConfig = whirlpoolServerConfig.getRound();
         String roundId = generateRoundId();
         long denomination = whirlpoolServerConfig.getRound().getDenomination();
-        long fees = roundConfig.getMinerFees();
+        long fees = roundConfig.getMinerFee();
         int targetMustMix = roundConfig.getTargetMustMix();
         int minMustMix = roundConfig.getMinMustMix();
         long mustMixAdjustTimeout = roundConfig.getMustMixAdjustTimeout();

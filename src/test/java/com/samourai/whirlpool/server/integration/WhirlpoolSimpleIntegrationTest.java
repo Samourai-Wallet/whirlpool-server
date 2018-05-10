@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.wallet.bip47.BIP47Util;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip47.rpc.PaymentAddress;
 import com.samourai.wallet.bip47.rpc.PaymentCode;
@@ -93,7 +92,7 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
         BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
         ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(utxoKey, bip47Wallet);
-        whirlpoolClients[0].whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, computeSpendAmount(round, false), false);
+        whirlpoolClients[0].whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, false);
         Thread.sleep(3000);
 
         // register inputs...

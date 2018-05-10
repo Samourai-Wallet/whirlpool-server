@@ -146,7 +146,7 @@ public class WhirlpoolServerConfig {
 
     public static class RoundConfig {
         private long denomination;
-        private long minerFees;
+        private long minerFee;
         private int targetMustMix;
         private int minMustMix;
         private long mustMixAdjustTimeout;
@@ -160,12 +160,12 @@ public class WhirlpoolServerConfig {
             this.denomination = denomination;
         }
 
-        public long getMinerFees() {
-            return minerFees;
+        public long getMinerFee() {
+            return minerFee;
         }
 
-        public void setMinerFees(long minerFees) {
-            this.minerFees = minerFees;
+        public void setMinerFee(long minerFee) {
+            this.minerFee = minerFee;
         }
 
         public int getTargetMustMix() {

@@ -68,7 +68,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
                 BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
                 String paymentCode = bip47Wallet.getAccount(0).getPaymentCode();
                 ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(ecKey, bip47Wallet);
-                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, computeSpendAmount(round, false), false);
+                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, false);
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);

@@ -272,7 +272,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 final BIP47Wallet bip47Wallet = premixer.bip47Wallets.get(paymentCode);
 
                 ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(utxoKey, bip47Wallet);
-                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, computeSpendAmount(round, false), false);
+                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, false);
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);
