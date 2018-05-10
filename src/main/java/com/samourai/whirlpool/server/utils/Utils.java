@@ -1,16 +1,13 @@
 package com.samourai.whirlpool.server.utils;
 
-import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.wallet.segwit.bech32.Bech32Segwit;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.script.Script;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionInput;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.core.TransactionWitness;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;

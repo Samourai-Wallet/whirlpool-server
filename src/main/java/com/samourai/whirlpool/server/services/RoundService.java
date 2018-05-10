@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.google.common.primitives.Longs;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
@@ -53,7 +52,7 @@ public class RoundService {
         this.deterministPaymentCodeMatching = false;
 
         // TODO real settings
-        String roundId = Utils.sha512Hex(Longs.toByteArray(System.currentTimeMillis()));
+        String roundId = generateRoundId();
         long denomination = 100000000;
         long fees = 10000;
         int targetMustMix = 5;
@@ -62,6 +61,10 @@ public class RoundService {
         float liquidityRatio = 1; // 1 liquidity for 1 mustMix
         Round round = new Round(roundId, denomination, fees, targetMustMix, minMustMix, mustMixAdjustTimeout, liquidityRatio);
         this.__reset(round);
+    }
+
+    private String generateRoundId() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     public synchronized void registerInput(String roundId, String username, TxOutPoint input, byte[] pubkey, String paymentCode, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, RoundException {
@@ -460,7 +463,7 @@ public class RoundService {
     }
 
     public void __nextRound() {
-        String roundId = Utils.sha512Hex(Longs.toByteArray(System.currentTimeMillis()));
+        String roundId = generateRoundId();
         __reset(roundId);
     }
 

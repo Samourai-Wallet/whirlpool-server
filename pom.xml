@@ -38,12 +38,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<version>2.18.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>wf.bitcoin</groupId>
 			<artifactId>JavaBitcoindRpcClient</artifactId>
 			<version>0.9.17</version>
@@ -54,12 +48,36 @@
 			<groupId>com.samouraiwallet</groupId>
 			<artifactId>whirlpool-client</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>compile</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<version>1.5.12.RELEASE</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.vaadin.external.google</groupId>
+					<artifactId>android-json</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>2.18.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+			<version>1.2.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.2.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

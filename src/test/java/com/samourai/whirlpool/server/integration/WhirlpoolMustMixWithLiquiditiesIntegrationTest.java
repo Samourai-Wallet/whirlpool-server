@@ -34,7 +34,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         whirlpoolClients = createClients(NB_ALL_CONNECTING);
 
         // start round
-        String roundId = com.samourai.whirlpool.server.utils.Utils.sha512Hex(Longs.toByteArray(System.currentTimeMillis()));
+        String roundId = "foo";
         long denomination = 200000000;
         long fees = 100000;
         long mustMixAdjustTimeout = 10 * 60; // 10 minutes

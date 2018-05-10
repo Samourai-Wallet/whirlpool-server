@@ -239,7 +239,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         whirlpoolClients = createClients(NB_CLIENTS);
 
         // start round
-        String roundId = com.samourai.whirlpool.server.utils.Utils.sha512Hex(Longs.toByteArray(System.currentTimeMillis()));
+        String roundId = "foo";
         long denomination = premixer.biUnitReceiveAmount.longValue();
         long fees = mixFee;
         int targetMustMix = NB_CLIENTS;

@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.config;
 import com.samourai.wallet.bip47.BIP47Util;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.wallet.util.FormatsUtil;
-import com.samourai.whirlpool.client.services.ClientCryptoService;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.services.CryptoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +20,6 @@ public class ServicesConfig {
     @Bean
     CryptoService cryptoService() {
         return new CryptoService(whirlpoolServerConfig.getKeyPair(), whirlpoolServerConfig.getNetworkParameters());
-    }
-
-    @Bean
-    ClientCryptoService clientCryptoService() {
-        return new ClientCryptoService(whirlpoolServerConfig.getNetworkParameters());
     }
 
     @Bean
