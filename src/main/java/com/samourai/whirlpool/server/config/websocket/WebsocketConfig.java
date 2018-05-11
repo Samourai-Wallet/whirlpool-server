@@ -42,7 +42,6 @@ public class WebsocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 "/", // connection endpoint
                 WhirlpoolProtocol.ENDPOINT_ROUND_STATUS,
                 whirlpoolProtocol.ENDPOINT_REGISTER_INPUT,
-                WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT,
                 WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT,
                 WhirlpoolProtocol.ENDPOINT_SIGNING)
             // assign a random username as principal for each websocket client

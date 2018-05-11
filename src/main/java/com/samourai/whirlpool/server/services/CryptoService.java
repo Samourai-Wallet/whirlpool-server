@@ -10,19 +10,31 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.signers.PSSSigner;
 import org.springframework.stereotype.Service;
 
+import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.SignatureException;
+import java.security.spec.RSAPublicKeySpec;
 
 @Service
 public class CryptoService {
     private AsymmetricCipherKeyPair keyPair;
+    private PublicKey publicKey;
     private NetworkParameters networkParameters;
 
-    public CryptoService(AsymmetricCipherKeyPair keyPair, NetworkParameters networkParameters) {
+    public CryptoService(AsymmetricCipherKeyPair keyPair, NetworkParameters networkParameters) throws Exception {
         this.keyPair = keyPair;
+        this.publicKey = computePublicKey((RSAKeyParameters)keyPair.getPublic());
+
         this.networkParameters = networkParameters;
 
         // initialize bitcoinj context
         new Context(networkParameters);
+    }
+
+    private PublicKey computePublicKey(RSAKeyParameters pubKey) throws Exception {
+        RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(pubKey.getModulus(), pubKey.getExponent());
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePublic(rsaPublicKeySpec);
     }
 
     public boolean verifyMessageSignature(byte[] pubkeyHex, String message, String signatureBase64) {
@@ -56,8 +68,8 @@ public class CryptoService {
         return signer.verifySignature(unblindedSignedBordereau);
     }
 
-    public RSAKeyParameters getPublicKey() {
-        return (RSAKeyParameters)keyPair.getPublic();
+    public PublicKey getPublicKey() throws Exception {
+        return publicKey;
     }
 
     public NetworkParameters getNetworkParameters() {

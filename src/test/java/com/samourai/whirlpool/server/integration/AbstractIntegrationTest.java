@@ -39,13 +39,9 @@ public abstract class AbstractIntegrationTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Autowired
-    protected WhirlpoolProtocol whirlpoolProtocol;
-
-    @Autowired
     protected CryptoService cryptoService;
 
-    @Autowired
-    protected ClientCryptoService clientCryptoService;
+    protected ClientCryptoService clientCryptoService = new ClientCryptoService();
 
     @Autowired
     protected DbService dbService;
@@ -111,8 +107,7 @@ public abstract class AbstractIntegrationTest {
 
     protected WhirlpoolClient createClient() {
         String wsUrl = "ws://127.0.0.1:" + port;
-        String registerOutputUrl = "http://127.0.0.1:" + port + whirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT;
-        return new WhirlpoolClient(wsUrl, registerOutputUrl, clientCryptoService, whirlpoolProtocol, cryptoService.getPublicKey());
+        return new WhirlpoolClient(wsUrl, cryptoService.getNetworkParameters());
     }
 
     protected WhirlpoolClient[] createClients(int nbClients) {

@@ -18,7 +18,7 @@ public class ServicesConfig {
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
     @Bean
-    CryptoService cryptoService() {
+    CryptoService cryptoService() throws Exception {
         return new CryptoService(whirlpoolServerConfig.getKeyPair(), whirlpoolServerConfig.getNetworkParameters());
     }
 

@@ -110,6 +110,7 @@ public class WhirlpoolServerConfig {
 
     public static class RegisterOutputConfig {
         private int timeout;
+        private String url;
 
         public int getTimeout() {
             return timeout;
@@ -117,6 +118,14 @@ public class WhirlpoolServerConfig {
 
         public void setTimeout(int timeout) {
             this.timeout = timeout;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
         }
     }
 

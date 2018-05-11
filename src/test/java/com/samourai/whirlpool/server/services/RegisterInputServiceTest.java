@@ -1,7 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.whirlpool.client.services.ClientCryptoService;
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Round;
@@ -28,17 +27,15 @@ import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.util.function.Function;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = DEFINED_PORT)
 public class RegisterInputServiceTest extends AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Autowired
     private RegisterInputService registerInputService;
-    @Autowired
-    private ClientCryptoService clientCryptoService;
 
     @Before
     public void setUp() throws Exception {

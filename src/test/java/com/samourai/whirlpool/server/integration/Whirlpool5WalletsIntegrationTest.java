@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.google.common.primitives.Longs;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
@@ -30,10 +29,10 @@ import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.function.IntFunction;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = DEFINED_PORT)
 public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -49,7 +48,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     long unitReceiveAmount = 10000000L;
     // net miner's fee for premix
     long premixFee = 900L;
-    // net miner's fee for mix
+    // net miner's fee for cryptomix
     long mixFee = 1000L;
     // mixable amount plus own fee
     long unitSpendAmount = unitReceiveAmount + mixFee; //10001000L;

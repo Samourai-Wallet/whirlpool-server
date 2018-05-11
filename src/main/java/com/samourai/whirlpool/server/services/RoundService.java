@@ -8,16 +8,21 @@ import com.samourai.whirlpool.protocol.v1.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.v1.notifications.*;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.controllers.v1.RegisterOutputController;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.RoundException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 
@@ -347,10 +352,17 @@ public class RoundService {
         RoundStatusNotification roundStatusNotification = null;
         switch(round.getRoundStatus()) {
             case REGISTER_INPUT:
-                roundStatusNotification = new RegisterInputRoundStatusNotification(roundId);
+                try {
+                    byte[] publicKey = cryptoService.getPublicKey().getEncoded();
+                    roundStatusNotification = new RegisterInputRoundStatusNotification(roundId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), round.getDenomination(), round.getFees());
+                }
+                catch(Exception e) {
+                    throw new RoundException("unexpected error"); // TODO
+                }
                 break;
             case REGISTER_OUTPUT:
-                roundStatusNotification = new RegisterOutputRoundStatusNotification(roundId);
+                String registerOutputUrl = computeRegisterOutputUrl();
+                roundStatusNotification = new RegisterOutputRoundStatusNotification(roundId, registerOutputUrl);
                 break;
             case REVEAL_OUTPUT_OR_BLAME:
                 roundStatusNotification = new RevealOutputOrBlameRoundStatusNotification(roundId);
@@ -366,6 +378,11 @@ public class RoundService {
                 break;
         }
         return roundStatusNotification;
+    }
+
+    private String computeRegisterOutputUrl() {
+        String registerOutputUrl = whirlpoolServerConfig.getRegisterOutput().getUrl() + RegisterOutputController.ENDPOINT;
+        return registerOutputUrl;
     }
 
     private Round getRound(String roundId) throws RoundException {

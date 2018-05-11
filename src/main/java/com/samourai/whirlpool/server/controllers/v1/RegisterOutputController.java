@@ -16,6 +16,7 @@ import java.lang.invoke.MethodHandles;
 @RestController
 public class RegisterOutputController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String ENDPOINT = "/registerOutput";
 
   private RegisterOutputService registerOutputService;
 
@@ -24,7 +25,7 @@ public class RegisterOutputController {
     this.registerOutputService = registerOutputService;
   }
 
-  @RequestMapping(value = WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT, method = RequestMethod.POST)
+  @RequestMapping(value = ENDPOINT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
     log.info("/registerOutput: payload="+payload);
 

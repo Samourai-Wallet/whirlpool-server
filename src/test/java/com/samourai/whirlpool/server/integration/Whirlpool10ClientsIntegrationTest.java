@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.google.common.primitives.Longs;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
@@ -21,10 +20,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.lang.invoke.MethodHandles;
 import java.util.function.IntFunction;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = DEFINED_PORT)
 public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
