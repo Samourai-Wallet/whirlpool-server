@@ -2,18 +2,15 @@
 Whirlpool server
 
 ## Usage
-- edit server configuration:
+- create local server configuration:
 ```
-application.properties
+cd whirlpool-server
+cp src/main/resources/application.properties ./custom.properties
 ```
-
-- run from IDE:
-```
-com.samourai.whirlpool.server.Application
-```
+Settings from custom.properties will override default settings (src/main/resources/application.properties)
 
 - run from commandline:
 ```
 mvn clean install -Dmaven.test.skip=true
-java -jar target/whirlpool-server-0.0.1-SNAPSHOT.jar
+java -jar target/whirlpool-server-0.0.1-SNAPSHOT.jar --spring.config.location=./custom.properties [--debug]
 ```
