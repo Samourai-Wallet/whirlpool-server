@@ -174,10 +174,14 @@ public class RoundService {
     }
 
     public void checkRegisterInputReady(Round round) {
-        log.info(round.getNbInputsMustMix()+"/"+round.getTargetMustMix()+" mustMix, "+round.getNbInputsLiquidities()+"/"+round.computeLiquiditiesExpected()+" liquidities");
+        logRoundStatus(round);
         if (isRegisterInputReady(round)) {
             changeRoundStatus(round.getRoundId(), RoundStatus.REGISTER_OUTPUT);
         }
+    }
+
+    private void logRoundStatus(Round round) {
+        log.info(round.getNbInputsMustMix()+"/"+round.getTargetMustMix()+" mustMix, "+round.getNbInputsLiquidities()+"/"+round.computeLiquiditiesExpected()+" liquidities");
     }
 
     protected void validateOutputs(Round round) throws Exception {
@@ -493,10 +497,12 @@ public class RoundService {
     }
 
     public void __reset(Round round) {
-        log.info("[NEW ROUND "+round.getRoundId()+"]");
         if (this.currentRound != null) {
             roundLimitsManager.unmanage(round);
         }
+
+        log.info("[NEW ROUND "+round.getRoundId()+"]");
+        logRoundStatus(round);
         this.currentRound = round;
         // TODO disconnect all clients (except liquidities?)
         roundLimitsManager.manage(round);

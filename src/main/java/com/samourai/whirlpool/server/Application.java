@@ -13,6 +13,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Application implements ApplicationRunner {
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+	private static final String ARG_DEBUG = "debug";
+
 	private ApplicationArguments args;
 
 	public static void main(String[] args) {
@@ -23,7 +25,7 @@ public class Application implements ApplicationRunner {
 	public void run(ApplicationArguments args) {
 		this.args = args;
 
-		if (args.containsOption("debug")) {
+		if (args.containsOption(ARG_DEBUG)) {
 			// enable debug logs
 			LogbackUtils.setLogLevel("com.samourai.whirlpool.server", Level.DEBUG.toString());
 		}
