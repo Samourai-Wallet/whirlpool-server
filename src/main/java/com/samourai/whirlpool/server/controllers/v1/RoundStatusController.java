@@ -28,7 +28,9 @@ public class RoundStatusController {
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_ROUND_STATUS)
   public void roundStatus(Principal principal) throws Exception {
     String username = principal.getName();
-    log.info("/roundStatus: username="+username);
+    if (log.isDebugEnabled()) {
+      log.info("[controller] /roundStatus: username=" + username);
+    }
 
     // return roundStatus
     try {

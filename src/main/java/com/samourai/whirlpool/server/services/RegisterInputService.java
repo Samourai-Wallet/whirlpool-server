@@ -79,7 +79,9 @@ public class RegisterInputService {
     }
 
     private void checkInputSignature(String roundId, byte[] pubkeyHex, String signature) throws IllegalInputException {
-        log.info("Verifying signature: " + signature + "\n  for pubkey: " + Utils.HEX.encode(pubkeyHex) + "\n  for roundId: " + roundId);
+        if (log.isDebugEnabled()) {
+            log.debug("Verifying signature: " + signature + "\n  for pubkey: " + Utils.HEX.encode(pubkeyHex) + "\n  for roundId: " + roundId);
+        }
 
         // verify signature of 'roundId' for pubkey
         if (!cryptoService.verifyMessageSignature(pubkeyHex, roundId, signature)) {

@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.text.CharacterPredicates;
@@ -11,7 +12,10 @@ import org.bitcoinj.core.TransactionWitness;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Comparator;
@@ -21,8 +25,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Utils {
-
+    private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final SecureRandom secureRandom = new SecureRandom();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static String getRandomString(int length) {
         RandomStringGenerator randomStringGenerator =
@@ -89,5 +94,15 @@ public class Utils {
 
     public static String computeInputId(TxOutPoint outPoint) {
         return outPoint.getHash()+":"+outPoint.getIndex();
+    }
+
+    public static String toJsonString(Object o) {
+        try {
+            return objectMapper.writeValueAsString(o);
+        }
+        catch(Exception e) {
+            log.error("", e);
+        }
+        return null;
     }
 }

@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.controllers.v1;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.v1.messages.SigningRequest;
 import com.samourai.whirlpool.server.services.SigningService;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,9 @@ public class SigningController {
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_SIGNING)
   public void signing(@Payload SigningRequest payload, Principal principal) throws Exception {
     String username = principal.getName();
-    log.info("/signing: username="+username+", payload="+payload);
+    if (log.isDebugEnabled()) {
+      log.debug("[controller] /signing: username=" + username + ", payload=" + Utils.toJsonString(payload));
+    }
 
     // signing
     signingService.signing(payload.roundId, username, payload.witness);

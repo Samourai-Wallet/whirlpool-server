@@ -14,22 +14,17 @@ import com.samourai.whirlpool.server.exceptions.RoundException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.StringWriter;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 @Service
 public class RoundService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    //private Map<String,Round> rounds;
     private WebSocketService webSocketService;
     private CryptoService cryptoService;
     private BlameService blameService;
@@ -73,10 +68,12 @@ public class RoundService {
     }
 
     public synchronized void registerInput(String roundId, String username, TxOutPoint input, byte[] pubkey, String paymentCode, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, RoundException {
-        log.info("registerInput "+roundId+" : "+username+" : "+input);
+        if (log.isDebugEnabled()) {
+            log.debug("registerInput "+roundId+" : "+username+" : "+input);
+        }
         Round round = getRound(roundId, RoundStatus.REGISTER_INPUT);
         if (!checkInputBalance(input, round, liquidity)) {
-            throw new IllegalInputException("Input balance should match denomination+fees");
+            throw new IllegalInputException("Invalid input balance (expected: "+computeSpendAmount(round, liquidity)+", actual:"+input.getValue()+")");
         }
 
         RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, paymentCode, liquidity);
@@ -98,6 +95,7 @@ public class RoundService {
             // queue liquidity for later
             RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
             liquidityPool.registerLiquidity(registeredInputQueued);
+            log.info(" • queued liquidity: "+registeredInputQueued.getRegisteredInput().getInput()+" ("+liquidityPool.getNbLiquidities()+" liquidities in pool)");
         }
 
     }
@@ -106,12 +104,15 @@ public class RoundService {
         TxOutPoint input = registeredInput.getInput();
         String username = registeredInput.getUsername();
 
-        int inputsLimit = round.getTargetMustMix();
         if (isLiquidity) {
-            inputsLimit += round.computeLiquiditiesExpected();
+            if (round.getNbInputsLiquidities() >= round.computeLiquiditiesExpected()) {
+                throw new RoundException("Round inputs are full, please wait for next round");
+            }
         }
-        if (round.getNbInputs() >= inputsLimit) {
-            throw new RoundException("Round inputs are full, please wait for next round");
+        else {
+            if (round.getNbInputsMustMix() >= round.getTargetMustMix()) {
+                throw new RoundException("Round inputs are full, please wait for next round");
+            }
         }
         if (round.hasInput(input)) {
             throw new IllegalInputException("Input already registered for this round");
@@ -119,6 +120,7 @@ public class RoundService {
 
         // add immediately to round inputs
         round.registerInput(registeredInput);
+        log.info(" • registered "+(isLiquidity ? "liquidity" : "mustMix")+": " + registeredInput.getInput());
         roundLimitsManager.onInputRegistered(round);
 
         // response
@@ -126,10 +128,7 @@ public class RoundService {
         registerInputResponse.signedBordereau = signedBordereauToReply;
         webSocketService.sendPrivate(username, registerInputResponse);
 
-
-        if (isRegisterInputReady(round)) {
-            changeRoundStatus(round.getRoundId(), RoundStatus.REGISTER_OUTPUT);
-        }
+        checkRegisterInputReady(round);
     }
 
     public void addLiquidity(Round round, RegisteredLiquidity randomLiquidity) throws Exception {
@@ -154,26 +153,30 @@ public class RoundService {
         if (round.getNbInputs() == 0) {
             return false;
         }
-        if (!isRegisterInputReadyNbInputs(round.getNbInputs(), round.getTargetMustMix(), round.computeLiquiditiesExpected())) {
+        if (round.getNbInputsMustMix() != round.getTargetMustMix() || round.getNbInputsLiquidities() != round.computeLiquiditiesExpected()) {
             return false;
         }
         return true;
     }
 
-    protected synchronized boolean isRegisterInputReadyNbInputs(int nbInputs, int targetMustMix, int nbLiquiditiesExpected) {
-        int nbInputsExpected = targetMustMix; // mustMix
-        nbInputsExpected += nbLiquiditiesExpected;
-        return nbInputs == nbInputsExpected;
-    }
-
     public synchronized void registerOutput(String roundId, String sendAddress, String receiveAddress, String bordereau) throws Exception {
-        log.info("addOutput "+roundId+" : "+sendAddress+" "+receiveAddress);
+        log.info(" • registered output: " + receiveAddress);
+        if (log.isDebugEnabled()) {
+            log.debug("sendAddress="+sendAddress);
+        }
         Round round = getRound(roundId, RoundStatus.REGISTER_OUTPUT);
         round.registerOutput(sendAddress, receiveAddress, bordereau);
 
         if (isRegisterOutputReady(round)) {
             validateOutputs(round);
             changeRoundStatus(roundId, RoundStatus.SIGNING);
+        }
+    }
+
+    public void checkRegisterInputReady(Round round) {
+        log.info(round.getNbInputsMustMix()+"/"+round.getTargetMustMix()+" mustMix, "+round.getNbInputsLiquidities()+"/"+round.computeLiquiditiesExpected()+" liquidities");
+        if (isRegisterInputReady(round)) {
+            changeRoundStatus(round.getRoundId(), RoundStatus.REGISTER_OUTPUT);
         }
     }
 
@@ -194,7 +197,6 @@ public class RoundService {
     }
 
     public synchronized void revealOutput(String roundId, String username, String bordereau) throws RoundException, IllegalInputException {
-        log.info("revealOutput "+roundId+" : "+bordereau);
         Round round = getRound(roundId, RoundStatus.REVEAL_OUTPUT_OR_BLAME);
 
         // verify an output was registered with this bordereau
@@ -207,6 +209,7 @@ public class RoundService {
             throw new IllegalInputException("Bordereau already revealed");
         }
         round.addRevealedOutputUser(username);
+        log.info(" • revealed output: username=" + username);
 
         if (isRevealOutputOrBlameReady(round)) {
             roundLimitsManager.blameForRevealOutputAndResetRound(round);
@@ -218,7 +221,7 @@ public class RoundService {
     }
 
     public synchronized void registerSignature(String roundId, String username, byte[][] witness) throws Exception {
-        log.info("setSignaturesByUsername "+roundId+" : "+username);
+        log.info(" • registered signature: username=" + username);
         Round round = getRound(roundId, RoundStatus.SIGNING);
         Signature signature = new Signature(witness);
         round.setSignatureByUsername(username, signature);
@@ -227,7 +230,7 @@ public class RoundService {
             Transaction tx = round.getTx();
             signTransaction(tx, round); // updates Transaction object itself
 
-            log.info("Signed tx: "+tx+"\nraw: " + org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
+            log.info("Tx to broadcast: \n" + tx + "\nRaw: " + org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
             try {
                 blockchainDataService.broadcastTransaction(tx);
             }
@@ -255,18 +258,22 @@ public class RoundService {
     }
 
     public void changeRoundStatus(String roundId, RoundStatus roundStatus) {
-        log.info("### changeRoundStatus "+roundId+" ==> "+roundStatus);
+        log.info("[ROUND "+roundId+"] => "+roundStatus);
         try {
             Round round = getRound(roundId);
 
             if (roundStatus == RoundStatus.REGISTER_OUTPUT) {
                 transmitPaymentCodes(round);
-            } else if (roundStatus == RoundStatus.SIGNING) {
+            }
+            else if (roundStatus == RoundStatus.SIGNING) {
                 try {
                     Transaction tx = computeTransaction(round);
                     round.setTx(tx);
 
-                    log.info("Tx to sign: "+tx+"\nraw: " + org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
+                    log.info("Txid: "+tx.getHashAsString());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Tx to sign: \n" + tx + "\nRaw: " + org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
+                    }
                 } catch (Exception e) {
                     log.error("Unexpected exception on buildTransaction() for signing", e);
                     throw new RoundException("System error");
@@ -466,6 +473,7 @@ public class RoundService {
     }
 
     public void goRevealOutputOrBlame(String roundId) {
+        log.info(" • REGISTER_OUTPUT time over (round failed, blaming users who didn't register output...)");
         changeRoundStatus(roundId, RoundStatus.REVEAL_OUTPUT_OR_BLAME);
     }
 
@@ -485,7 +493,7 @@ public class RoundService {
     }
 
     public void __reset(Round round) {
-        log.info("New round ==> "+round.getRoundId());
+        log.info("[NEW ROUND "+round.getRoundId()+"]");
         if (this.currentRound != null) {
             roundLimitsManager.unmanage(round);
         }

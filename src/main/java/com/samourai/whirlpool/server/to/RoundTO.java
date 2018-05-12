@@ -11,8 +11,8 @@ public class RoundTO {
 
     public RoundTO(Round round, RoundResult roundResult) {
         this.roundId = round.getRoundId();
-        this.nbMustMix = round.getNbInputs() - this.nbLiquidities;
-        this.nbLiquidities = (int)round.getInputs().parallelStream().filter(input -> input.isLiquidity()).count();
+        this.nbMustMix = round.getNbInputsMustMix();
+        this.nbLiquidities = round.getNbInputsLiquidities();
         this.roundResult = roundResult;
     }
 

@@ -110,6 +110,14 @@ public class Round {
         return inputsById.size();
     }
 
+    public int getNbInputsMustMix() {
+        return (int)getInputs().parallelStream().filter(input -> !input.isLiquidity()).count();
+    }
+
+    public int getNbInputsLiquidities() {
+        return (int)getInputs().parallelStream().filter(input -> input.isLiquidity()).count();
+    }
+
     public synchronized void registerInput(RegisteredInput registeredInput) throws RoundException {
         String inputId = Utils.computeInputId(registeredInput.getInput());
         if (inputsById.containsKey(inputId)) {

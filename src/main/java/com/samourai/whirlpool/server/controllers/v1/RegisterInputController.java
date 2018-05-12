@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.controllers.v1;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.v1.messages.RegisterInputRequest;
 import com.samourai.whirlpool.server.services.RegisterInputService;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,9 @@ public class RegisterInputController {
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT)
   public void registerInputs(@Payload RegisterInputRequest payload, Principal principal) throws Exception {
     String username = principal.getName();
-    log.info("/registerInput: username="+username+", payload="+payload);
+    if (log.isDebugEnabled()) {
+      log.debug("[controller] /registerInput: username=" + username + ", payload=" + Utils.toJsonString(payload));
+    }
 
     // register inputs and send back signed bordereau
     registerInputService.registerInput(payload.roundId, username, payload.pubkey, payload.signature, payload.blindedBordereau,  payload.utxoHash, payload.utxoIndex, payload.paymentCode, payload.liquidity);

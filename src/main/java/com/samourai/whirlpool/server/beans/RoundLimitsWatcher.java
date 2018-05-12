@@ -37,17 +37,15 @@ public class RoundLimitsWatcher implements Runnable {
                 // timer expired => notify
                 roundLimitsManager.onRoundWatcherTimeout(round, this);
             }
-
-            if (running) {
-
-                // sleep until next adjustment
-                timeToWait = roundLimitsManager.computeRoundWatcherTimeToWait(waitSince, round);
-                log.info(timeToWait+"ms to wait before next check.");
+            else {
+                if (log.isDebugEnabled()) {
+                    log.debug(timeToWait + "ms to wait before next check.");
+                }
                 try {
                     Thread.sleep(timeToWait);
                 }
                 catch(InterruptedException e) {
-                    log.error("", e);
+                    // normal
                 }
             }
         }

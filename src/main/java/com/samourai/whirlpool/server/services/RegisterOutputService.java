@@ -40,7 +40,9 @@ public class RegisterOutputService {
 
     private void validate(byte[] unblindedSignedBordereau, String bordereau, String sendAddress, String receiveAddress) throws Exception {
         // verify bordereau
-        log.info("Verifying bordereau: "+bordereau+" : "+Base64.encodeBase64String(unblindedSignedBordereau));
+        if (log.isDebugEnabled()) {
+            log.debug("Verifying bordereau: " + bordereau + " : " + Base64.encodeBase64String(unblindedSignedBordereau));
+        }
         if (!cryptoService.verifyUnblindedSignedBordereau(bordereau, unblindedSignedBordereau)) {
             throw new Exception("Invalid unblindedBordereau");
         }

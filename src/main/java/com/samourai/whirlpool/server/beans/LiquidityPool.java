@@ -40,4 +40,8 @@ public class LiquidityPool {
     public boolean hasLiquidity() {
         return !liquiditiesById.isEmpty();
     }
+
+    public int getNbLiquidities() {
+        return liquiditiesById.size();
+    }
 }

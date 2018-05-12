@@ -71,16 +71,22 @@ public class WebsocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
 
     @EventListener
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
-        log.info("<==> handleSubscribeEvent: username="+event.getUser().getName()+", event="+event);
+        if (log.isDebugEnabled()) {
+            log.debug("[event] subscribe: username="+event.getUser().getName()+", event="+event);
+        }
     }
 
     @EventListener
     public void handleConnectEvent(SessionConnectEvent event) {
-        log.info("===> handleConnectEvent: username="+event.getUser().getName()+", event="+event);
+        if (log.isDebugEnabled()) {
+            log.debug("[event] connect: username="+event.getUser().getName()+", event="+event);
+        }
     }
 
     @EventListener
     public void handleDisconnectEvent(SessionDisconnectEvent event) {
-        log.info("<=== handleDisconnectEvent: username="+event.getUser().getName()+", event="+event);
+        if (log.isDebugEnabled()) {
+            log.debug("[event] disconnect: username="+event.getUser().getName()+", event="+event);
+        }
     }
 }

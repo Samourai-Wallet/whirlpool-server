@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.controllers.v1;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.v1.messages.RegisterOutputRequest;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,9 @@ public class RegisterOutputController {
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
-    log.info("/registerOutput: payload="+payload);
+    if (log.isDebugEnabled()) {
+      log.debug("[controller] /registerInput: payload=" + Utils.toJsonString(payload));
+    }
 
     // register output
     registerOutputService.registerOutput(payload.roundId, payload.unblindedSignedBordereau, payload.bordereau, payload.sendAddress, payload.receiveAddress);

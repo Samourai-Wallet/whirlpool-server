@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,16 @@ public class WebSocketService {
     }
 
     public void broadcast(Object payload){
-        //log.info("(broadcast) --> "+payload);
+        if (log.isDebugEnabled()) {
+            log.debug("(broadcast) --> "+ Utils.toJsonString(payload));
+        }
         taskExecutor.execute(() -> messagingTemplate.convertAndSend(whirlpoolProtocol.SOCKET_SUBSCRIBE_QUEUE, payload, buildHeaders(payload)));
     }
 
     public void sendPrivate(String username, Object payload){
-        //log.info("(sendPrivate:"+username+") --> "+payload);
+        if (log.isDebugEnabled()) {
+            log.debug("(private) --> "+ Utils.toJsonString(payload));
+        }
         taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, buildHeaders(payload)));
     }
 

@@ -31,4 +31,8 @@ public class TxOutPoint {
         }
         return super.equals(obj);
     }
+
+    public String toString() {
+        return hash+"-"+index+" ("+value+"sats)";
+    }
 }

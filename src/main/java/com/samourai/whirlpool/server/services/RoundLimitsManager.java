@@ -126,7 +126,9 @@ public class RoundLimitsManager {
         }
 
         // adjust mustMix
-        round.setTargetMustMix(round.getTargetMustMix() - 1);
+        int nextTargetMustMix = round.getTargetMustMix() - 1;
+        log.info(" • must-mix-adjust-timeout over, adjusting targetMustMix: "+nextTargetMustMix);
+        round.setTargetMustMix(nextTargetMustMix);
         roundLimitsWatcher.resetTimeout();
 
         checkAddLiquidity(round);
@@ -167,16 +169,23 @@ public class RoundLimitsManager {
         LiquidityPool liquidityPool = getLiquidityPool(round);
         int liquiditiesAdded = 0;
         int liquiditiesToAdd = round.computeLiquiditiesExpected();
-        while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
-            log.info("Registering liquidity "+(liquiditiesAdded+1)+"/"+liquiditiesToAdd);
-            RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
-            try {
-                roundService.addLiquidity(round, randomLiquidity);
-                liquiditiesAdded++;
-            } catch (Exception e) {
-                log.error("registerInput error when adding more liquidity", e);
-                // ignore the error and continue with more liquidity
+        if (liquiditiesToAdd > 0) {
+            // round needs liquidities
+            while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
+                log.info("Registering liquidity " + (liquiditiesAdded + 1) + "/" + liquiditiesToAdd);
+                RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
+                try {
+                    roundService.addLiquidity(round, randomLiquidity);
+                    liquiditiesAdded++;
+                } catch (Exception e) {
+                    log.error("registerInput error when adding more liquidity", e);
+                    // ignore the error and continue with more liquidity
+                }
             }
+        }
+        else {
+            // round is ready
+            roundService.checkRegisterInputReady(round);
         }
 
         int missingLiquidities = liquiditiesToAdd - liquiditiesAdded;
@@ -197,6 +206,7 @@ public class RoundLimitsManager {
     }
 
     public void blameForSigningAndResetRound(Round round) {
+        log.info(" • SIGNING time over (round failed, blaming users who didn't sign...)");
         String roundId = round.getRoundId();
 
         // blame users who didn't sign
