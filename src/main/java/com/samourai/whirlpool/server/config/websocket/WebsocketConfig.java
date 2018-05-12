@@ -46,7 +46,8 @@ public class WebsocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
                 WhirlpoolProtocol.ENDPOINT_SIGNING)
             // assign a random username as principal for each websocket client
             // this is needed to be able to communicate with a specific client
-            .setHandshakeHandler(new AssignPrincipalWebsocketHandler());
+            .setHandshakeHandler(new AssignPrincipalWebsocketHandler())
+            .setAllowedOrigins("*");
     }
 
     @Override
