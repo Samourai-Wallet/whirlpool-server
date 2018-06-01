@@ -1,11 +1,12 @@
 package com.samourai.whirlpool.server.controllers.v1;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.services.RoundService;
+import com.samourai.whirlpool.server.services.WebSocketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
@@ -39,6 +40,12 @@ public class RoundStatusController {
     catch(Exception e) {
       log.error("", e);
     }
+  }
+
+  @MessageExceptionHandler
+  public void handleException(Exception exception, Principal principal) {
+    String username = principal.getName();
+    webSocketService.sendPrivateError(username, exception);
   }
 
 }

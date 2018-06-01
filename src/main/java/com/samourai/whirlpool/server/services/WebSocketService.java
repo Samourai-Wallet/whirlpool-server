@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.v1.messages.ErrorResponse;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,14 @@ public class WebSocketService {
             log.debug("(private) --> "+ Utils.toJsonString(payload));
         }
         taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, buildHeaders(payload)));
+    }
+
+    public void sendPrivateError(String username, Exception exception) {
+        String message = exception.getMessage();
+        log.warn("sendPrivateError (-> " + username+"): " + message);
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.message = message;
+        sendPrivate(username, errorResponse);
     }
 
     private Map<String,Object> buildHeaders(Object payload) {

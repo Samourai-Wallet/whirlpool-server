@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.controllers.v1;
 
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.v1.messages.RegisterOutputRequest;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
 import com.samourai.whirlpool.server.utils.Utils;
