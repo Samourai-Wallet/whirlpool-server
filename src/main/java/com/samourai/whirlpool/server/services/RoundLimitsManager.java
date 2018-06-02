@@ -131,7 +131,10 @@ public class RoundLimitsManager {
         round.setTargetMustMix(nextTargetMustMix);
         roundLimitsWatcher.resetTimeout();
 
-        checkAddLiquidity(round);
+        if (!checkAddLiquidity(round)) {
+            // no liquidities needed => round is ready
+            roundService.checkRegisterInputReady(round);
+        }
     }
 
     public LiquidityPool getLiquidityPool(Round round) throws RoundException {
@@ -155,37 +158,36 @@ public class RoundLimitsManager {
         checkAddLiquidity(round);
     }
 
-    private void checkAddLiquidity(Round round) {
+    private boolean checkAddLiquidity(Round round) {
+        boolean liquiditiesAdded = false;
         if (round.getNbInputs() == round.getTargetMustMix()) {
             try {
-                addLiquidities(round);
+                int liquiditiesToAdd = round.computeLiquiditiesExpected();
+                if (liquiditiesToAdd > 0) {
+                    addLiquidities(round, liquiditiesToAdd);
+                    liquiditiesAdded = true;
+                }
             } catch (Exception e) {
                 log.error("addLiquiditiesFailed", e);
             }
         }
+        return liquiditiesAdded;
     }
 
-    private void addLiquidities(Round round) throws RoundException {
+    private void addLiquidities(Round round, int liquiditiesToAdd) throws RoundException {
         LiquidityPool liquidityPool = getLiquidityPool(round);
         int liquiditiesAdded = 0;
-        int liquiditiesToAdd = round.computeLiquiditiesExpected();
-        if (liquiditiesToAdd > 0) {
-            // round needs liquidities
-            while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
-                log.info("Registering liquidity " + (liquiditiesAdded + 1) + "/" + liquiditiesToAdd);
-                RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
-                try {
-                    roundService.addLiquidity(round, randomLiquidity);
-                    liquiditiesAdded++;
-                } catch (Exception e) {
-                    log.error("registerInput error when adding more liquidity", e);
-                    // ignore the error and continue with more liquidity
-                }
+        // round needs liquidities
+        while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
+            log.info("Registering liquidity " + (liquiditiesAdded + 1) + "/" + liquiditiesToAdd);
+            RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
+            try {
+                roundService.addLiquidity(round, randomLiquidity);
+                liquiditiesAdded++;
+            } catch (Exception e) {
+                log.error("registerInput error when adding more liquidity", e);
+                // ignore the error and continue with more liquidity
             }
-        }
-        else {
-            // round is ready
-            roundService.checkRegisterInputReady(round);
         }
 
         int missingLiquidities = liquiditiesToAdd - liquiditiesAdded;

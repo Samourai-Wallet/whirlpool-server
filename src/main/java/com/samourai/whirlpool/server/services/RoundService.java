@@ -265,6 +265,11 @@ public class RoundService {
         log.info("[ROUND "+roundId+"] => "+roundStatus);
         try {
             Round round = getRound(roundId);
+            if (roundStatus.equals(round.getRoundStatus())) {
+                // just in case...
+                log.error("roundStatus inconsistency detected! (already "+roundStatus+")", new IllegalStateException());
+                return;
+            }
 
             if (roundStatus == RoundStatus.REGISTER_OUTPUT) {
                 transmitPaymentCodes(round);
