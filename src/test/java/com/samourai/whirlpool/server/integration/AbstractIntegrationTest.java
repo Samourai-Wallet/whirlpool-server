@@ -6,6 +6,7 @@ import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.services.ClientCryptoService;
+import com.samourai.whirlpool.client.utils.WhirlpoolClientConfig;
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.services.*;
@@ -106,7 +107,8 @@ public abstract class AbstractIntegrationTest {
 
     protected WhirlpoolClient createClient() {
         String wsUrl = "ws://127.0.0.1:" + port;
-        return new WhirlpoolClient(wsUrl, cryptoService.getNetworkParameters());
+        WhirlpoolClientConfig config = new WhirlpoolClientConfig(wsUrl, cryptoService.getNetworkParameters());
+        return new WhirlpoolClient(config);
     }
 
     protected WhirlpoolClient[] createClients(int nbClients) {
