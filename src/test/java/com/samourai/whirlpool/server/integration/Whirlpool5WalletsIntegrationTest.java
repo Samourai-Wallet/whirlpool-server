@@ -2,15 +2,12 @@ package com.samourai.whirlpool.server.integration;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.whirlpool.client.WhirlpoolClient;
-import com.samourai.whirlpool.client.simple.ISimpleWhirlpoolClient;
-import com.samourai.whirlpool.client.simple.SimpleWhirlpoolClient;
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.integration.manual.ManualMixer;
 import com.samourai.whirlpool.server.integration.manual.ManualPremixer;
+import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
@@ -235,7 +232,6 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         mixers.addAll(firstMixables.values());
 
         final int NB_CLIENTS = nbMixes;
-        whirlpoolClients = createClients(NB_CLIENTS);
 
         // start round
         String roundId = "foo";
@@ -248,10 +244,10 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         Round round = new Round(roundId, denomination, fees, targetMustMix, minMustMix, mustMixAdjustTimeout, liquidityRatio);
         roundService.__reset(round);
 
+        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, round);
+
         // prepare inputs & outputs
         final IntFunction connectClient = (int i) -> {
-            WhirlpoolClient whirlpoolClient = whirlpoolClients[i];
-
             try {
                 // send from address
                 final String fromAddress = mix.get(i);
@@ -264,14 +260,11 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 String[] utxoHashSplit = toUtxo.split("-");
                 String utxoHash = utxoHashSplit[0];
                 int utxoIndex = Integer.parseInt(utxoHashSplit[1]);
-                long amount = computeSpendAmount(round, false);
-                TxOutPoint utxo = createAndMockTxOutPoint(segwitAddress, amount, 1000, utxoHash, utxoIndex);
 
                 final String paymentCode = mixers.get(i);
                 final BIP47Wallet bip47Wallet = premixer.bip47Wallets.get(paymentCode);
 
-                ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(utxoKey, bip47Wallet);
-                whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, false);
+                multiClientManager.connect(i, false, segwitAddress, bip47Wallet, 1000, utxoHash, utxoIndex);
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);
@@ -281,7 +274,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
 
         // connect all clients except one, to stay in REGISTER_INPUTS
         log.info("# Connect first clients...");
-        for (int i=0; i<whirlpoolClients.length-1; i++) {
+        for (int i=0; i<NB_CLIENTS-1; i++) {
             final int clientIndice = i;
             taskExecutor.execute(() -> connectClient.apply(clientIndice));
         }
@@ -295,7 +288,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         // connect last client
         Thread.sleep(500);
         log.info("# Connect last client...");
-        taskExecutor.execute(() -> connectClient.apply(whirlpoolClients.length-1));
+        taskExecutor.execute(() -> connectClient.apply(NB_CLIENTS-1));
         Thread.sleep(5000);
 
         // all clients should have registered their inputs
@@ -313,8 +306,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         //assertStatusRegisterInput(round, NB_CLIENTS, false);
 
         // all clients should have signed
-        assertStatusSuccess(round, NB_CLIENTS, false);
-        assertClientsSuccess();
+        multiClientManager.assertRoundStatusSuccess(NB_CLIENTS, false);
 
         // print transactions
         //Transaction unsignedTx = round.getTx(); // TODO

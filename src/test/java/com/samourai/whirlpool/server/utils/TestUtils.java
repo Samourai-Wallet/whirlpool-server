@@ -3,23 +3,36 @@ package com.samourai.whirlpool.server.utils;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.RpcOut;
+import com.samourai.whirlpool.server.beans.RpcTransaction;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
+import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
 import org.bouncycastle.util.encoders.Hex;
+import org.mockito.Mockito;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 @Service
 public class TestUtils {
     private CryptoService cryptoService;
+    protected Bech32Util bech32Util;
+    protected BlockchainDataService blockchainDataService;
 
-    public TestUtils(CryptoService cryptoService) {
+    public TestUtils(CryptoService cryptoService, Bech32Util bech32Util, BlockchainDataService blockchainDataService) {
         this.cryptoService = cryptoService;
+        this.bech32Util = bech32Util;
+        this.blockchainDataService = blockchainDataService;
     }
 
     public SegwitAddress createSegwitAddress() throws Exception {
@@ -60,6 +73,55 @@ public class TestUtils {
         random.nextBytes(seed);
 
         return generateWallet(purpose, seed, "test");
+    }
+
+    public long computeSpendAmount(Round round, boolean liquidity) {
+        if (liquidity) {
+            // no minerFees for liquidities
+            return round.getDenomination();
+        }
+        return round.getDenomination() + round.getFees();
+    }
+
+    public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount) throws Exception {
+        return createAndMockTxOutPoint(address, amount, null, null, null);
+    }
+
+    public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, int nbConfirmations) throws Exception {
+        return createAndMockTxOutPoint(address, amount, nbConfirmations, null, null);
+    }
+
+    public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception{
+        // generate transaction with bitcoinj
+        Transaction transaction = new Transaction(cryptoService.getNetworkParameters());
+
+        if (nbConfirmations == null) {
+            nbConfirmations = 1000;
+        }
+
+        if (utxoHash != null) {
+            transaction = Mockito.spy(transaction);
+            Mockito.doReturn(new Sha256Hash(Hex.decode(utxoHash))).when(transaction).getHash();
+        }
+
+        if (utxoIndex != null) {
+            for (int i=0; i<utxoIndex; i++) {
+                transaction.addOutput(Coin.valueOf(amount), createSegwitAddress().getAddress());
+            }
+        }
+        String addressBech32 = address.getBech32AsString();
+        TransactionOutput transactionOutput = bech32Util.getTransactionOutput(addressBech32, amount, cryptoService.getNetworkParameters());
+        transaction.addOutput(transactionOutput);
+        TransactionOutPoint outPoint = transactionOutput.getOutPointFor();
+
+        // mock at rpc level
+        RpcTransaction rpcTransaction = new RpcTransaction(transaction.getHashAsString(), nbConfirmations);
+        RpcOut rpcOut = new RpcOut(outPoint.getIndex(), amount, outPoint.getConnectedPubKeyScript(), Arrays.asList(addressBech32));
+        rpcTransaction.addRpcOut(rpcOut);
+        blockchainDataService.__mock(rpcTransaction);
+
+        TxOutPoint txOutPoint = new TxOutPoint(rpcTransaction.getHash(), rpcOut.getIndex(), rpcOut.getValue());
+        return txOutPoint;
     }
 
 }

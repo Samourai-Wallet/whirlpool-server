@@ -1,17 +1,13 @@
 package com.samourai.whirlpool.server.integration;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
-import com.samourai.wallet.bip47.rpc.PaymentAddress;
 import com.samourai.wallet.bip47.rpc.PaymentCode;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.whirlpool.client.WhirlpoolClient;
-import com.samourai.whirlpool.client.simple.ISimpleWhirlpoolClient;
-import com.samourai.whirlpool.client.simple.SimpleWhirlpoolClient;
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.utils.BIP47WalletAndHDWallet;
+import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.junit.Assert;
@@ -63,41 +59,15 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
         SegwitAddress inputP2SH_P2WPKH = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
 
-        String message = "Signed using utxo address.:" + inputP2SH_P2WPKH;
-        String signature = utxoKey.signMessage(message);
-        System.out.println("input address:" + inputP2SH_P2WPKH);
-        System.out.println("signature:" + signature);
-
-        // sender calculates address with receiver's payment code
-        PaymentAddress sendAddress = bip47Util.getSendAddress(bip47InputWallet, outputPCode, 0, params);
-        // receiver calculates address with sender's payment code
-        PaymentAddress receiveAddress = bip47Util.getReceiveAddress(bip47OutputWallet, inputPCode, 0, params);
-
-        // sender calculates from pubkey
-        SegwitAddress addressFromSender = new SegwitAddress(sendAddress.getSendECKey().getPubKey(), cryptoService.getNetworkParameters());
-        // receiver can calculate from privkey
-        SegwitAddress addressToReceiver = new SegwitAddress(receiveAddress.getReceiveECKey(), cryptoService.getNetworkParameters());
-        String outputAddress = addressToReceiver.getAddressAsString();
-        Assert.assertEquals(addressFromSender.getAddressAsString(), addressToReceiver.getAddressAsString());
-        System.out.println("sender calculates from pubkey:" + addressFromSender.getAddressAsString());
-        System.out.println("receiver calculates from privkey:" + addressToReceiver.getAddressAsString());
 
         Round round = roundService.__getCurrentRound();
 
-        // mock TransactionOutPoint
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint utxo = createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
-
-        whirlpoolClients = new WhirlpoolClient[]{createClient()};
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-        BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
-        ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(utxoKey, bip47Wallet);
-        whirlpoolClients[0].whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, false);
+        MultiClientManager multiClientManager = multiClientManager(1, round);
+        multiClientManager.connect(0, false);
         Thread.sleep(3000);
 
         // register inputs...
-        assertStatusRegisterInput(round, 1, false);
-        Assert.assertTrue(round.hasInput(utxo));
+        multiClientManager.assertRoundStatusRegisterInput(1, false);
         //Assert.assertEquals(utxoHash, round.getInputsByUsername(username).get(0).getHash());
 
         // register outputs...
@@ -117,8 +87,7 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         // success...
         roundService.changeRoundStatus(round.getRoundId(), RoundStatus.SUCCESS);
         Thread.sleep(500);
-        assertStatusSuccess(round, 1, false);
-        assertClientsSuccess();
+        multiClientManager.assertRoundStatusSuccess(1, false);
     }
 
 }

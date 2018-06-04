@@ -62,8 +62,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             validBlindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
             Round round = roundService.__getCurrentRound();
-            long inputBalance = computeSpendAmount(round, liquidity);
-            txOutPoint = createAndMockTxOutPoint(new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance);
+            long inputBalance = testUtils.computeSpendAmount(round, liquidity);
+            txOutPoint = testUtils.createAndMockTxOutPoint(new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance);
 
             // TEST
             registerInputService.registerInput(roundId, username, pubkey, signature, validBlindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, liquidity);
@@ -135,8 +135,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
@@ -166,8 +166,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(RoundException.class);
@@ -196,8 +196,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         // all roundStatus != REGISTER_INPUTS
@@ -233,8 +233,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
@@ -264,8 +264,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
@@ -294,8 +294,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         registerInputService.registerInput(roundId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
@@ -326,8 +326,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau2 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBZ", blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         registerInputService.registerInput(roundId, username, pubkey, signature, blindedBordereau1, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
@@ -359,8 +359,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false)-1; // BALANCE TOO LOW
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false)-1; // BALANCE TOO LOW
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
         thrown.expect(IllegalInputException.class);
         registerInputService.registerInput(roundId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
 
@@ -386,8 +386,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false)+1; // BALANCE TOO HIGH
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance);
+        long inputBalance = testUtils.computeSpendAmount(round, false)+1; // BALANCE TOO HIGH
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
         thrown.expect(IllegalInputException.class);
         registerInputService.registerInput(roundId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
 
@@ -413,9 +413,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
         // mock input with 0 confirmations
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance, 0);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, 0);
 
         // TEST
         thrown.expect(IllegalInputException.class);
@@ -447,9 +447,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
         Round round = roundService.__getCurrentRound();
-        long inputBalance = computeSpendAmount(round, false);
+        long inputBalance = testUtils.computeSpendAmount(round, false);
         // mock input with 2000 confirmations
-        TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance, 2000);
+        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, 2000);
 
         // TEST
         registerInputService.registerInput(roundId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
