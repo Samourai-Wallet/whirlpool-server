@@ -48,6 +48,10 @@ public class WhirlpoolServerConfig {
         this.testnet = testnet;
     }
 
+    public boolean isTestnet() {
+        return testnet;
+    }
+
     public RpcClientConfig getRpcClient() {
         return rpcClient;
     }
