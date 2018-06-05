@@ -1,9 +1,7 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -42,23 +40,16 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             final int clientIndice = i;
             taskExecutor.execute(() -> multiClientManager.connectOrFail(clientIndice, false));
         }
-        Thread.sleep(5000);
 
         // connected clients should have registered their inputs...
-        Assert.assertEquals(RoundStatus.REGISTER_INPUT, round.getRoundStatus());
-        Assert.assertEquals(NB_CLIENTS-1, round.getInputs().size());
+        multiClientManager.assertRoundStatusRegisterInput(NB_CLIENTS-1, false);
 
         // connect last client
-        Thread.sleep(500);
         log.info("# Connect last client...");
         taskExecutor.execute(() -> multiClientManager.connectOrFail(NB_CLIENTS-1, false));
-        Thread.sleep(7000);
 
         // all clients should have registered their inputs
-        //assertStatusRegisterInput(round, NB_CLIENTS, false);
-
         // round automatically switches to REGISTER_OUTPUTS, then SIGNING
-        Thread.sleep(4000);
 
         // all clients should have registered their outputs and signed
         multiClientManager.assertRoundStatusSuccess(NB_CLIENTS, false);

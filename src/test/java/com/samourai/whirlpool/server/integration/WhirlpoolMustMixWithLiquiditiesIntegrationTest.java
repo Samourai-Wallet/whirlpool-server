@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
@@ -45,14 +44,10 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
             final int clientIndice = i;
             taskExecutor.execute(() -> multiClientManager.connectOrFail(clientIndice, true));
         }
-        Thread.sleep(5000);
 
         // liquidities should be placed on queue...
-        Thread.sleep(1500);
-        Assert.assertEquals(RoundStatus.REGISTER_INPUT, round.getRoundStatus());
-        Assert.assertEquals(0, round.getNbInputs());
-        Assert.assertTrue(liquidityPool.hasLiquidity());
         multiClientManager.waitLiquiditiesInPool(NB_LIQUIDITIES_CONNECTING);
+        multiClientManager.assertRoundStatusRegisterInput(0, true);
 
         // connect clients wanting to mix
         log.info("# Begin connecting "+NB_MUSTMIX_CONNECTING+" mustMix...");
@@ -131,19 +126,18 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
 
         // TEST
         MultiClientManager multiClientManager = runMustmixWithliquidities(targetMustMix, minMustMix, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
-        Round round = multiClientManager.getRound();
 
         // VERIFY
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
-        simulateRoundNextTargetMustMixAdjustment(round, targetMustMix - 1);
+        multiClientManager.roundNextTargetMustMixAdjustment();
 
         // unchanged
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
-        simulateRoundNextTargetMustMixAdjustment(round, targetMustMix - 2);
+        multiClientManager.roundNextTargetMustMixAdjustment();
 
         // liquidities should have been registered
         multiClientManager.assertRoundStatusSuccess(NB_ALL_REGISTERED_EXPECTED, false);
@@ -181,19 +175,18 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         MultiClientManager multiClientManager = runMustmixWithliquidities(targetMustMix, minMustMix, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
-        Round round = multiClientManager.getRound();
 
         // clients should be registered, not liquidities yet
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
-        simulateRoundNextTargetMustMixAdjustment(round, targetMustMix - 1);
+        multiClientManager.roundNextTargetMustMixAdjustment();
 
         // unchanged
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
-        simulateRoundNextTargetMustMixAdjustment(round, targetMustMix - 2);
+        multiClientManager.roundNextTargetMustMixAdjustment();
 
         // mustMix + liquidities should have been registered
         multiClientManager.assertRoundStatusRegisterInput(NB_ALL_REGISTERED_EXPECTED, false); // no more liquidity
@@ -233,19 +226,18 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         MultiClientManager multiClientManager = runMustmixWithliquidities(targetMustMix, minMustMix, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
-        Round round = multiClientManager.getRound();
 
         // clients should be registered, not liquidities yet
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
-        simulateRoundNextTargetMustMixAdjustment(round, targetMustMix - 1);
+        multiClientManager.roundNextTargetMustMixAdjustment();
 
         // unchanged
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
-        simulateRoundNextTargetMustMixAdjustment(round, targetMustMix - 2);
+        multiClientManager.roundNextTargetMustMixAdjustment();
 
         // mustMix + liquidities should have been registered
         multiClientManager.assertRoundStatusSuccess(NB_MUSTMIX_EXPECTED, true); // still liquidity

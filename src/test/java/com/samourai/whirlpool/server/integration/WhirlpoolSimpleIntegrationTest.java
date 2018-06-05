@@ -6,6 +6,7 @@ import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.utils.BIP47WalletAndHDWallet;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.bitcoinj.core.ECKey;
@@ -59,12 +60,14 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
         SegwitAddress inputP2SH_P2WPKH = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
 
-
         Round round = roundService.__getCurrentRound();
 
+        // mock TransactionOutPoint
+        long inputBalance = testUtils.computeSpendAmount(round, false);
+        TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
+
         MultiClientManager multiClientManager = multiClientManager(1, round);
-        multiClientManager.connect(0, false);
-        Thread.sleep(3000);
+        multiClientManager.connect(0, false, inputP2SH_P2WPKH, bip47OutputWallet, 1000, utxo.getHash(), (int)utxo.getIndex());
 
         // register inputs...
         multiClientManager.assertRoundStatusRegisterInput(1, false);
@@ -86,7 +89,6 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
 
         // success...
         roundService.changeRoundStatus(round.getRoundId(), RoundStatus.SUCCESS);
-        Thread.sleep(500);
         multiClientManager.assertRoundStatusSuccess(1, false);
     }
 

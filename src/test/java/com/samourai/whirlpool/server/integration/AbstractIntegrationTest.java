@@ -67,7 +67,7 @@ public abstract class AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         // enable debug
-        LogbackUtils.setLogLevel("com.samourai.whirlpool.server", Level.DEBUG.toString());
+        LogbackUtils.setLogLevel("com.samourai.whirlpool", Level.DEBUG.toString());
 
         Assert.assertTrue(blockchainDataService.testConnectivity());
 
@@ -91,20 +91,6 @@ public abstract class AbstractIntegrationTest {
     protected MultiClientManager multiClientManager(int nbClients, Round round) {
         multiClientManager = new MultiClientManager(nbClients, round, testUtils, cryptoService, roundLimitsManager, port);
         return multiClientManager;
-    }
-
-    protected void simulateRoundNextTargetMustMixAdjustment(Round round, int targetMustMixExpected) throws Exception {
-        // round targetMustMix should be unchanged
-        Assert.assertEquals(targetMustMixExpected + 1, round.getTargetMustMix());
-
-        // simulate 9min58 elapsed... round targetMustMix should remain unchanged
-        roundLimitsManager.__simulateElapsedTime(round, round.getMustMixAdjustTimeout()-2);
-        Thread.sleep(500);
-        Assert.assertEquals(targetMustMixExpected + 1, round.getTargetMustMix());
-
-        // a few seconds more, round targetMustMix should be decreased
-        Thread.sleep(2000);
-        Assert.assertEquals(targetMustMixExpected, round.getTargetMustMix());
     }
 
 }

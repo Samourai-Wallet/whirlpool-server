@@ -62,6 +62,8 @@ public class MultiClientManager {
 
     private void prepareClient(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
         whirlpoolClients[i] = createClient();
+        whirlpoolClients[i].setLogPrefix("multiClient#"+i);
+
         // prepare input & output and mock input
         long amount = testUtils.computeSpendAmount(round, liquidity);
         inputs[i] = testUtils.createAndMockTxOutPoint(inputAddress, amount, nbConfirmations, utxoHash, utxoIndex);
@@ -118,7 +120,11 @@ public class MultiClientManager {
             }
         }
 
+        // debug on failure
         log.info("# (LAST) Waiting for registered inputs: "+round.getNbInputs()+" vs "+nbInputsExpected);
+        if (round.getNbInputs() != nbInputsExpected) {
+            debugClients();
+        }
         Assert.assertEquals(nbInputsExpected, round.getNbInputs());
     }
 
@@ -139,11 +145,15 @@ public class MultiClientManager {
             }
         }
 
+        // debug on failure
         log.info("# (LAST) Waiting for liquidities in pool: " + liquidityPool.getNbLiquidities() + " vs " + nbLiquiditiesInPoolExpected);
+        if (liquidityPool.getNbLiquidities() != nbLiquiditiesInPoolExpected) {
+            debugClients();
+        }
         Assert.assertEquals(nbLiquiditiesInPoolExpected, liquidityPool.getNbLiquidities());
     }
 
-    private void waitRoundStatus(RoundStatus roundStatusExpected) throws Exception {
+    public void waitRoundStatus(RoundStatus roundStatusExpected) throws Exception {
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
         for (int i=0; i<MAX_WAITS; i++) {
@@ -179,7 +189,7 @@ public class MultiClientManager {
         // wait inputs to register
         waitRegisteredInputs(nbAllRegisteredExpected);
 
-        Thread.sleep(5000);
+        Thread.sleep(2000);
 
         // round automatically switches to REGISTER_OUTPUTS, then SIGNING, then SUCCESS
         waitRoundStatus(RoundStatus.SUCCESS);
@@ -209,6 +219,24 @@ public class MultiClientManager {
         }
     }
 
+    public void roundNextTargetMustMixAdjustment() throws Exception {
+        int targetMustMixExpected = round.getTargetMustMix() - 1;
+        if (targetMustMixExpected < round.getMinMustMix()) {
+            throw new Exception("targetMustMixExpected < minMustMix");
+        }
+
+        log.info("roundNextTargetMustMixAdjustment: "+ (targetMustMixExpected+1) + " -> " + targetMustMixExpected);
+
+        // simulate 9min58 elapsed... round targetMustMix should remain unchanged
+        roundLimitsManager.__simulateElapsedTime(round, round.getMustMixAdjustTimeout()-2);
+        Thread.sleep(500);
+        Assert.assertEquals(targetMustMixExpected + 1, round.getTargetMustMix());
+
+        // a few seconds more, round targetMustMix should be decreased
+        Thread.sleep(1500);
+        Assert.assertEquals(targetMustMixExpected, round.getTargetMustMix());
+    }
+
     public Round getRound() {
         return round;
     }
@@ -216,6 +244,15 @@ public class MultiClientManager {
     public void disconnect() {
         for (WhirlpoolClient client : whirlpoolClients) {
             client.disconnect();
+        }
+    }
+
+    private void debugClients() {
+        if (log.isDebugEnabled()) {
+            log.debug("%%% debugging clients states... %%%");
+            for (WhirlpoolClient client : whirlpoolClients) {
+                client.debugState();
+            }
         }
     }
 }
