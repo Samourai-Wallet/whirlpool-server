@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
 import java.lang.invoke.MethodHandles;
@@ -26,15 +26,16 @@ public class RoundStatusController {
     this.webSocketService = webSocketService;
   }
 
-  @MessageMapping(WhirlpoolProtocol.ENDPOINT_ROUND_STATUS)
-  public void roundStatus(Principal principal) throws Exception {
+  @SubscribeMapping(WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY)
+  public void roundStatusOnSubscribe(Principal principal) {
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.info("[controller] /roundStatus: username=" + username);
+      log.info("[controller] /roundStatusOnSubscribe: username=" + username);
     }
 
     // return roundStatus
     try {
+      Thread.sleep(1000); // wait to make sure client subscription is ready
       this.webSocketService.sendPrivate(username, roundService.computeRoundStatusNotification());
     }
     catch(Exception e) {

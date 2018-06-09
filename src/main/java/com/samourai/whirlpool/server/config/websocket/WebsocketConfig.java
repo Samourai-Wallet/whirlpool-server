@@ -40,7 +40,6 @@ public class WebsocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint(
                 "/", // connection endpoint
-                WhirlpoolProtocol.ENDPOINT_ROUND_STATUS,
                 whirlpoolProtocol.ENDPOINT_REGISTER_INPUT,
                 WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT,
                 WhirlpoolProtocol.ENDPOINT_SIGNING)
