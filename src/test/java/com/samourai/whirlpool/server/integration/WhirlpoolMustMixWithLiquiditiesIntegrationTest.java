@@ -122,7 +122,6 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         int minMustMix = 5;
 
         int NB_MUSTMIX_EXPECTED = 4;
-        final int NB_ALL_REGISTERED_EXPECTED = NB_MUSTMIX_EXPECTED * 2;
 
         // TEST
         MultiClientManager multiClientManager = runMustmixWithliquidities(targetMustMix, minMustMix, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
@@ -132,15 +131,17 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
 
         // ...targetMustMix lowered
         multiClientManager.roundNextTargetMustMixAdjustment();
+        Thread.sleep(1000);
 
         // unchanged
         multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
 
         // ...targetMustMix lowered
         multiClientManager.roundNextTargetMustMixAdjustment();
+        Thread.sleep(1000);
 
         // liquidities should have been registered
-        multiClientManager.assertRoundStatusSuccess(NB_ALL_REGISTERED_EXPECTED, false);
+        multiClientManager.assertRoundStatusRegisterInput(NB_MUSTMIX_EXPECTED, true);
     }
 
     @Test
@@ -240,7 +241,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         multiClientManager.roundNextTargetMustMixAdjustment();
 
         // mustMix + liquidities should have been registered
-        multiClientManager.assertRoundStatusSuccess(NB_MUSTMIX_EXPECTED, true); // still liquidity
+        multiClientManager.assertRoundStatusSuccess(NB_ALL_REGISTERED_EXPECTED, true); // still liquidity
     }
 
 }

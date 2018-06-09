@@ -39,7 +39,7 @@ public class WebSocketService {
 
     public void sendPrivate(String username, Object payload){
         if (log.isDebugEnabled()) {
-            log.debug("(private) --> "+ Utils.toJsonString(payload));
+            log.debug("(--> "+ username + ") : " + Utils.toJsonString(payload));
         }
         taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, buildHeaders(payload)));
     }

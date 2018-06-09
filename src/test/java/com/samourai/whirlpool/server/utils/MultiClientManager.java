@@ -229,11 +229,29 @@ public class MultiClientManager {
 
         // simulate 9min58 elapsed... round targetMustMix should remain unchanged
         roundLimitsManager.__simulateElapsedTime(round, round.getMustMixAdjustTimeout()-2);
-        Thread.sleep(500);
+        Thread.sleep(1000);
         Assert.assertEquals(targetMustMixExpected + 1, round.getTargetMustMix());
 
         // a few seconds more, round targetMustMix should be decreased
-        Thread.sleep(1500);
+        waitRoundTargetMustMix(targetMustMixExpected);
+    }
+
+    public void waitRoundTargetMustMix(int targetMustMixExpected) throws Exception {
+        int MAX_WAITS = 5;
+        int WAIT_DURATION = 1000;
+        for (int i=0; i<MAX_WAITS; i++) {
+            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for roundTargetMustMix: " + round.getTargetMustMix() + " vs " + targetMustMixExpected;
+            if (round.getTargetMustMix() != targetMustMixExpected) {
+                log.info(msg + " : waiting longer...");
+                Thread.sleep(WAIT_DURATION);
+            }
+            else {
+                log.info(msg + " : success");
+                return;
+            }
+        }
+
+        log.info("# (LAST) Waiting for roundTargetMustMix: " + round.getTargetMustMix() + " vs " + targetMustMixExpected);
         Assert.assertEquals(targetMustMixExpected, round.getTargetMustMix());
     }
 
@@ -243,7 +261,9 @@ public class MultiClientManager {
 
     public void disconnect() {
         for (WhirlpoolClient client : whirlpoolClients) {
-            client.disconnect();
+            if (client != null) {
+                client.disconnect();
+            }
         }
     }
 
@@ -251,7 +271,9 @@ public class MultiClientManager {
         if (log.isDebugEnabled()) {
             log.debug("%%% debugging clients states... %%%");
             for (WhirlpoolClient client : whirlpoolClients) {
-                client.debugState();
+                if (client != null) {
+                    client.debugState();
+                }
             }
         }
     }
