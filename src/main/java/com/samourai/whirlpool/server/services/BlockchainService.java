@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.whirlpool.server.beans.RpcIn;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
@@ -36,7 +37,7 @@ public class BlockchainService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, int minConfirmations, long samouraiFeesMin) throws IllegalInputException {
+    public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, int minConfirmations, long samouraiFeesMin, boolean liquidity) throws IllegalInputException {
         RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(utxoHash);
         if (rpcTransaction == null) {
             log.error("UTXO transaction not found: "+utxoHash);
@@ -56,9 +57,7 @@ public class BlockchainService {
         checkInputConfirmations(rpcTransaction, minConfirmations);
 
         // verify paid fees
-        if (samouraiFeesMin > 0) {
-            checkInputPaidFees(rpcTransaction, utxoIndex, samouraiFeesMin);
-        }
+        checkPremixInput(rpcOut, rpcTransaction, samouraiFeesMin, liquidity);
 
         TxOutPoint txOutPoint = new TxOutPoint(utxoHash, utxoIndex, rpcOut.getValue());
         return txOutPoint;
@@ -86,37 +85,93 @@ public class BlockchainService {
         }
     }
 
-    protected void checkInputPaidFees(RpcTransaction rpcTransaction, long utxoIndex, long minFees) throws IllegalInputException {
-        if (!isSamouraiFeesPaid(rpcTransaction, utxoIndex, minFees)) {
-            throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet");
+    protected boolean checkPremixInput(RpcOut rpcOut, RpcTransaction rpcTransaction, long samouraiFeesMin, Boolean liquidity) throws IllegalInputException {
+        boolean isLiquidity;
+
+        if (samouraiFeesMin == 0) {
+            // skip fees payment verification
+            log.warn("checkPremixInput disabled by configuration");
+            return liquidity;
         }
+
+        // is it a tx0?
+        Integer x = findSamouraiFeesXpubIndiceFromTx0(rpcTransaction);
+        if (x != null) {
+            // this is a tx0 => mustMix
+            isLiquidity = false;
+            if (liquidity != null && liquidity) {
+                throw new IllegalArgumentException("Input not recognized as a liquidity");
+            }
+
+            // check fees paid
+            checkTx0PaidFees(rpcTransaction, rpcOut.getIndex(), samouraiFeesMin, x);
+        }
+        else {
+            // this is not a tx0 => liquidity (coming from a previous whirlpool tx)
+            isLiquidity = true;
+            if (liquidity != null && !liquidity) {
+                throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+rpcTransaction.getHash()+":"+rpcOut.getIndex()+", x=unknown)");
+            }
+
+            // check valid whirlpool tx
+            long denomination = rpcOut.getValue();
+            checkWhirlpoolTx(rpcTransaction, samouraiFeesMin, denomination);
+        }
+        return isLiquidity;
     }
 
-    private boolean isSamouraiFeesPaid(RpcTransaction rpcTransaction, long utxoIndex, long minFees) {
-        Integer x = findSamouraiFeesXpubIndiceFromPremixTx(rpcTransaction);
-        if (x == null) {
-            log.error("no samouraiFeesXpubIndiceFromPremixTx found for txid="+rpcTransaction.getHash());
-            return false;
+    protected void checkWhirlpoolTx(RpcTransaction rpcTransaction, long samouraiFeesMin, long denomination) throws IllegalInputException {
+        // tx should have same number of inputs-outputs > 1
+        if (rpcTransaction.getIns().size() != rpcTransaction.getOuts().size() || rpcTransaction.getIns().size() < 2) {
+            throw new IllegalInputException(rpcTransaction.getHash()+" is not a valid whirlpool tx, inputs/outputs count mismatch");
         }
 
+        // each output should match the denomination
+        for (RpcOut out : rpcTransaction.getOuts()) {
+            if (out.getValue() != denomination) {
+                throw new IllegalInputException(rpcTransaction.getHash()+" is not a valid whirlpool tx, output denomination mismatch");
+            }
+        }
+
+        // each input should match the denomination
+        for (RpcIn in : rpcTransaction.getIns()) {
+            RpcOut fromOut = in.getFromOut();
+            RpcTransaction fromTx = in.getFromTx();
+
+            if (fromOut.getValue() != denomination) {
+                throw new IllegalInputException(rpcTransaction.getHash()+" is not a valid whirlpool tx, input denomination mismatch for "+fromOut.getIndex()+"/"+fromTx.getHash());
+            }
+        }
+
+        // recursively check each input validity: should come from a valid tx0 or from another whirlpool tx)
+        for (RpcIn in : rpcTransaction.getIns()) {
+            RpcOut fromOut = in.getFromOut();
+            RpcTransaction fromTx = in.getFromTx();
+
+            checkPremixInput(fromOut, fromTx, samouraiFeesMin, null);
+        }
+
+        // OK, this is a valid whirlpool TX
+    }
+
+    protected void checkTx0PaidFees(RpcTransaction tx0, long utxoIndexNotFee, long minFees, int x) throws IllegalInputException {
         // find samourai payment address from xpub indice in tx payload
         String feesAddressBech32 = computeSamouraiFeesAddress(x);
 
         // make sure tx contains an output to samourai fees
-        for (RpcOut rpcOut : rpcTransaction.getOuts()) {
-            if (rpcOut.getIndex() != utxoIndex) {
+        for (RpcOut rpcOut : tx0.getOuts()) {
+            if (rpcOut.getIndex() != utxoIndexNotFee) {
                 if (rpcOut.getValue() >= minFees) {
                     // is this the fees payment output?
                     String rpcOutToAddress = rpcOut.getToAddressSingle();
                     if (rpcOutToAddress != null && feesAddressBech32.equals(rpcOutToAddress)) {
                         // ok, this is the fees payment output
-                        return true;
+                        return;
                     }
                 }
             }
         }
-        log.error("isSamouraiFeesPaid: fees payment for x="+x+" : not found for utxo "+rpcTransaction.getHash()+":"+utxoIndex);
-        return false;
+        throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+tx0.getHash()+":"+utxoIndexNotFee+", x="+x+")");
     }
 
     private String computeSamouraiFeesAddress(int x) {
@@ -128,7 +183,7 @@ public class BlockchainService {
         return feeAddressBech32;
     }
 
-    private Integer findSamouraiFeesXpubIndiceFromPremixTx(RpcTransaction rpcTransaction)  {
+    protected Integer findSamouraiFeesXpubIndiceFromTx0(RpcTransaction rpcTransaction)  {
         for (RpcOut rpcOut : rpcTransaction.getOuts()) {
             if (rpcOut.getValue() == 0) {
                 try {
@@ -150,7 +205,9 @@ public class BlockchainService {
                         }
                     }
                 }
-                catch(Exception e) {e.printStackTrace();}
+                catch(Exception e) {
+                    log.error("", e);
+                }
             }
         }
         return null;

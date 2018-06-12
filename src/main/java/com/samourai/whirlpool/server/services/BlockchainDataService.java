@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.server.beans.RpcIn;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
@@ -40,6 +41,12 @@ public class BlockchainDataService {
     private RpcTransaction newRpcTransaction(BitcoindRpcClient.RawTransaction rawTransaction) {
         RpcTransaction rpcTransaction = new RpcTransaction(rawTransaction.hash(), rawTransaction.confirmations());
 
+        for (BitcoindRpcClient.RawTransaction.In in : rawTransaction.vIn()) {
+            BitcoindRpcClient.RawTransaction.Out out = in.getTransactionOutput();
+            RpcOut fromOut = new RpcOut(out.n(), (long)(out.value()*100000000), Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
+            RpcIn rpcIn = new RpcIn(fromOut, rpcTransaction);
+            rpcTransaction.addRpcIn(rpcIn);
+        }
         for (BitcoindRpcClient.RawTransaction.Out out : rawTransaction.vOut()) {
             RpcOut rpcOut = new RpcOut(out.n(), (long)(out.value()*100000000), Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             rpcTransaction.addRpcOut(rpcOut);

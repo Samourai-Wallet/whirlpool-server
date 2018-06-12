@@ -61,9 +61,9 @@ public class RegisterInputService {
         }
 
         // validate input
-        long samouraiFees = (liquidity ? 0 : whirlpoolServerConfig.getSamouraiFees().getAmount()); // no samouraiFees for liquidities
+        long samouraiFees = whirlpoolServerConfig.getSamouraiFees().getAmount();
         int inputMinConfirmations = whirlpoolServerConfig.getRegisterInput().getMinConfirmations();
-        TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, inputMinConfirmations, samouraiFees);
+        TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, inputMinConfirmations, samouraiFees, liquidity);
 
         // verify signature
         checkInputSignature(roundId, pubkey, signature);

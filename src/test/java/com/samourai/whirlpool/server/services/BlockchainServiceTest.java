@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.beans.RpcTransaction;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +39,10 @@ public class BlockchainServiceTest {
     public void checkInputPaidFees() throws Exception {
         RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction("cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187");
 
-        blockchainService.checkInputPaidFees(rpcTransaction, 3, 1);
+        Integer x = blockchainService.findSamouraiFeesXpubIndiceFromTx0(rpcTransaction);
+        Assert.assertNotNull(x);
+
+        blockchainService.checkTx0PaidFees(rpcTransaction, 3, 1, x);
     }
 
     /*
