@@ -13,27 +13,19 @@ import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class BlockchainDataService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private BitcoinJSONRPCClient rpcClient;
     private WhirlpoolServerConfig whirlpoolServerConfig;
-    private Map<String,RpcTransaction> mockTransactions;
 
     public BlockchainDataService(BitcoinJSONRPCClient rpcClient, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.rpcClient = rpcClient;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
-        this.mockTransactions = new HashMap<>();
     }
 
     protected RpcTransaction getRpcTransaction(String hash) {
-        RpcTransaction rpcTransaction = mockTransactions.get(hash);
-        if (rpcTransaction != null) {
-            return rpcTransaction;
-        }
         BitcoindRpcClient.RawTransaction rawTransaction = rpcClient.getRawTransaction(hash);
         return newRpcTransaction(rawTransaction);
     }
@@ -55,15 +47,7 @@ public class BlockchainDataService {
     }
 
     public void broadcastTransaction(Transaction tx) throws Exception {
-        // TODO implement
-    }
-
-    public void __mock(RpcTransaction rpcTransaction) {
-        this.mockTransactions.put(rpcTransaction.getHash(), rpcTransaction);
-    }
-
-    public void __reset() {
-        this.mockTransactions = new HashMap<>();
+        // TODO broadcast tx
     }
 
     public boolean testConnectivity() {

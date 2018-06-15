@@ -76,7 +76,7 @@ public abstract class AbstractIntegrationTest {
         dbService.__reset();
         roundService.__nextRound();
         roundService.__setUseDeterministPaymentCodeMatching(true);
-        blockchainDataService.__reset();
+        ((TestBlockchainDataService)blockchainDataService).resetMock();
 
         roundLimitsManager = roundService.__getRoundLimitsManager();
     }
@@ -84,12 +84,12 @@ public abstract class AbstractIntegrationTest {
     @After
     public void tearDown() {
         if (multiClientManager != null) {
-            multiClientManager.disconnect();
+            multiClientManager.exit();
         }
     }
 
     protected MultiClientManager multiClientManager(int nbClients, Round round) {
-        multiClientManager = new MultiClientManager(nbClients, round, testUtils, cryptoService, roundLimitsManager, port);
+        multiClientManager = new MultiClientManager(nbClients, round, testUtils, cryptoService, blockchainDataService, roundLimitsManager, port);
         return multiClientManager;
     }
 

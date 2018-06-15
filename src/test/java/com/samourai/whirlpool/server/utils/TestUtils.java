@@ -4,12 +4,10 @@ import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
-import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.beans.RpcOut;
-import com.samourai.whirlpool.server.beans.RpcTransaction;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
+import com.samourai.whirlpool.server.services.TestBlockchainDataService;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
@@ -118,7 +116,7 @@ public class TestUtils {
         RpcTransaction rpcTransaction = new RpcTransaction(transaction.getHashAsString(), nbConfirmations);
         RpcOut rpcOut = new RpcOut(outPoint.getIndex(), amount, outPoint.getConnectedPubKeyScript(), Arrays.asList(addressBech32));
         rpcTransaction.addRpcOut(rpcOut);
-        blockchainDataService.__mock(rpcTransaction);
+        ((TestBlockchainDataService)blockchainDataService).mock(rpcTransaction);
 
         TxOutPoint txOutPoint = new TxOutPoint(rpcTransaction.getHash(), rpcOut.getIndex(), rpcOut.getValue());
         return txOutPoint;
