@@ -1,34 +1,37 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.whirlpool.server.beans.RpcIn;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutPoint;
-import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class TestBlockchainDataService extends BlockchainDataService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private CryptoService cryptoService;
+    private Bech32Util bech32Util;
     private Map<String,RpcTransaction> mockTransactions;
 
-    public TestBlockchainDataService(BitcoinJSONRPCClient rpcClient, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public TestBlockchainDataService(BitcoinJSONRPCClient rpcClient, CryptoService cryptoService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig) {
         super(rpcClient, whirlpoolServerConfig);
+        this.cryptoService = cryptoService;
+        this.bech32Util = bech32Util;
         this.mockTransactions = new HashMap<>();
     }
 
     @Override
-    protected RpcTransaction getRpcTransaction(String hash) {
+    public RpcTransaction getRpcTransaction(String hash) {
         RpcTransaction rpcTransaction = mockTransactions.get(hash);
         if (rpcTransaction != null) {
             return rpcTransaction;
@@ -44,8 +47,22 @@ public class TestBlockchainDataService extends BlockchainDataService {
         mock(rpcTransaction);
     }
 
-    private RpcTransaction newRpcTransaction(Transaction tx, int nbConfirmations) {
-        //NetworkParameters params = cryptoService.getNetworkParameters();
+    public void mock(RpcTransaction rpcTransaction) {
+        log.info("mock tx: " + rpcTransaction.getHash());
+        this.mockTransactions.put(rpcTransaction.getHash(), rpcTransaction);
+    }
+
+    public void mock(Transaction tx, int nbConfirmations) throws Exception {
+        RpcTransaction rpcTransaction = newRpcTransaction(tx, nbConfirmations);
+        mock(rpcTransaction);
+    }
+
+    public void resetMock() {
+        this.mockTransactions = new HashMap<>();
+    }
+
+    private RpcTransaction newRpcTransaction(Transaction tx, int nbConfirmations) throws Exception {
+        NetworkParameters params = cryptoService.getNetworkParameters();
 
         RpcTransaction rpcTransaction = new RpcTransaction(tx.getHashAsString(), nbConfirmations);
         for (TransactionInput in : tx.getInputs()) {
@@ -55,20 +72,11 @@ public class TestBlockchainDataService extends BlockchainDataService {
             rpcTransaction.addRpcIn(rpcIn);
         }
         for (TransactionOutput out : tx.getOutputs()) {
-            //String toAddressBech32 = new SegwitAddress(out.getScriptPubKey().getPubKey(), params).getBech32AsString();
-            RpcOut rpcOut = new RpcOut(out.getIndex(), out.getValue().getValue(), null/*out.getScriptPubKey().getPubKey()*/, null/*Arrays.asList(toAddressBech32)*/); // TODO toAdresses & pubkey
+            String toAddressBech32 = bech32Util.getAddressFromScript(out.getScriptPubKey(), params);
+            RpcOut rpcOut = new RpcOut(out.getIndex(), out.getValue().getValue(), out.getScriptPubKey().getProgram(), Arrays.asList(toAddressBech32));
             rpcTransaction.addRpcOut(rpcOut);
         }
         return rpcTransaction;
-    }
-
-    public void mock(RpcTransaction rpcTransaction) {
-        log.info("mock tx: " + rpcTransaction.getHash());
-        this.mockTransactions.put(rpcTransaction.getHash(), rpcTransaction);
-    }
-
-    public void resetMock() {
-        this.mockTransactions = new HashMap<>();
     }
 
 }

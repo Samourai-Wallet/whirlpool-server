@@ -181,7 +181,14 @@ public class RoundService {
     }
 
     private void logRoundStatus(Round round) {
-        log.info(round.getNbInputsMustMix()+"/"+round.getTargetMustMix()+" mustMix, "+round.getNbInputsLiquidities()+"/"+round.computeLiquiditiesExpected()+" liquidities");
+        int liquiditiesInPool = 0;
+        try {
+            LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+            liquiditiesInPool = liquidityPool.getNbLiquidities();
+        } catch(Exception e) {
+            // no liquidityPool instanciated yet
+        }
+        log.info(round.getNbInputsMustMix()+"/"+round.getTargetMustMix()+" mustMix, "+round.getNbInputsLiquidities()+"/"+round.computeLiquiditiesExpected()+" liquidities, "+liquiditiesInPool+" liquidities in pool");
     }
 
     protected void validateOutputs(Round round) throws Exception {
@@ -239,6 +246,7 @@ public class RoundService {
                 blockchainDataService.broadcastTransaction(tx);
             }
             catch(Exception e) {
+                log.error("Unable to broadcast tx", e);
                 dbService.saveRound(round, RoundResult.FAIL_BROADCAST);
             }
 

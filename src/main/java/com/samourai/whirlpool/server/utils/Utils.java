@@ -1,6 +1,8 @@
 package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samourai.whirlpool.server.beans.RpcOut;
+import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.text.CharacterPredicates;
@@ -65,6 +67,15 @@ public class Utils {
             TransactionOutPoint outPoint = input.getOutpoint();
             if (outPoint.getHash().toString().equals(hash) && outPoint.getIndex() == index) {
                 return i;
+            }
+        }
+        return null;
+    }
+
+    public static RpcOut findTxOutput(RpcTransaction rpcTransaction, long utxoIndex) {
+        for (RpcOut rpcOut : rpcTransaction.getOuts()) {
+            if (rpcOut.getIndex() == utxoIndex) {
+                return rpcOut;
             }
         }
         return null;

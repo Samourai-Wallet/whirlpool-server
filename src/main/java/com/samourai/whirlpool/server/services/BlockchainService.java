@@ -8,6 +8,7 @@ import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.crypto.ChildNumber;
 import org.bitcoinj.crypto.DeterministicKey;
@@ -44,7 +45,7 @@ public class BlockchainService {
             throw new IllegalInputException("UTXO not found");
         }
 
-        RpcOut rpcOut = findOut(rpcTransaction, utxoIndex);
+        RpcOut rpcOut = Utils.findTxOutput(rpcTransaction, utxoIndex);
         if (rpcOut == null) {
             log.error("UTXO not found: "+utxoHash+":"+utxoIndex);
             throw new IllegalInputException("UTXO not found");
@@ -208,15 +209,6 @@ public class BlockchainService {
                 catch(Exception e) {
                     log.error("", e);
                 }
-            }
-        }
-        return null;
-    }
-
-    private RpcOut findOut(RpcTransaction rpcTransaction, long utxoIndex) {
-        for (RpcOut rpcOut : rpcTransaction.getOuts()) {
-            if (rpcOut.getIndex() == utxoIndex) {
-                return rpcOut;
             }
         }
         return null;

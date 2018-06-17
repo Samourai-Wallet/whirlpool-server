@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.controllers.v1;
 
 import com.samourai.whirlpool.protocol.v1.messages.RegisterOutputRequest;
+import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
@@ -31,8 +32,16 @@ public class RegisterOutputController {
       log.debug("[controller] /registerInput: payload=" + Utils.toJsonString(payload));
     }
 
+    validate(payload);
+
     // register output
     registerOutputService.registerOutput(payload.roundId, payload.unblindedSignedBordereau, payload.bordereau, payload.sendAddress, payload.receiveAddress);
+  }
+
+  private void validate(RegisterOutputRequest registerOutputRequest) throws IllegalInputException {
+    if (registerOutputRequest.sendAddress.equals(registerOutputRequest.receiveAddress)) {
+      throw new IllegalInputException("receiveAddress should be different than sendAddress");
+    }
   }
 
 }

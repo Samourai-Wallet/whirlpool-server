@@ -4,22 +4,25 @@ import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
-import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.RpcOut;
+import com.samourai.whirlpool.server.beans.RpcTransaction;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.TestBlockchainDataService;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
+import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
 import org.bouncycastle.util.encoders.Hex;
-import org.mockito.Mockito;
+import org.junit.Assert;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 @Service
 public class TestUtils {
@@ -90,16 +93,16 @@ public class TestUtils {
     }
 
     public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception{
+        NetworkParameters params = cryptoService.getNetworkParameters();
         // generate transaction with bitcoinj
-        Transaction transaction = new Transaction(cryptoService.getNetworkParameters());
+        Transaction transaction = new Transaction(params);
 
         if (nbConfirmations == null) {
             nbConfirmations = 1000;
         }
 
         if (utxoHash != null) {
-            transaction = Mockito.spy(transaction);
-            Mockito.doReturn(new Sha256Hash(Hex.decode(utxoHash))).when(transaction).getHash();
+            transaction.setHash(new Sha256Hash(Hex.decode(utxoHash)));
         }
 
         if (utxoIndex != null) {
@@ -108,17 +111,24 @@ public class TestUtils {
             }
         }
         String addressBech32 = address.getBech32AsString();
-        TransactionOutput transactionOutput = bech32Util.getTransactionOutput(addressBech32, amount, cryptoService.getNetworkParameters());
+        TransactionOutput transactionOutput = bech32Util.getTransactionOutput(addressBech32, amount, params);
         transaction.addOutput(transactionOutput);
-        TransactionOutPoint outPoint = transactionOutput.getOutPointFor();
+        if (utxoIndex == null) {
+            utxoIndex = transactionOutput.getIndex();
+        }
+        else {
+            Assert.assertEquals((long)utxoIndex, transactionOutput.getIndex());
+        }
 
-        // mock at rpc level
-        RpcTransaction rpcTransaction = new RpcTransaction(transaction.getHashAsString(), nbConfirmations);
-        RpcOut rpcOut = new RpcOut(outPoint.getIndex(), amount, outPoint.getConnectedPubKeyScript(), Arrays.asList(addressBech32));
-        rpcTransaction.addRpcOut(rpcOut);
-        ((TestBlockchainDataService)blockchainDataService).mock(rpcTransaction);
+        // mock tx
+        ((TestBlockchainDataService)blockchainDataService).mock(transaction, nbConfirmations);
 
-        TxOutPoint txOutPoint = new TxOutPoint(rpcTransaction.getHash(), rpcOut.getIndex(), rpcOut.getValue());
+        // verify mock
+        RpcTransaction rpcTransaction = ((TestBlockchainDataService) blockchainDataService).getRpcTransaction(transaction.getHashAsString());
+        RpcOut rpcOut = Utils.findTxOutput(rpcTransaction, utxoIndex);
+        Assert.assertEquals(addressBech32, bech32Util.getAddressFromScript(new Script(rpcOut.getScriptPubKey()), params));
+
+        TxOutPoint txOutPoint = new TxOutPoint(rpcTransaction.getHash(), rpcOut.getIndex(), amount);
         return txOutPoint;
     }
 

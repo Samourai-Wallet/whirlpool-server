@@ -89,7 +89,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected MultiClientManager multiClientManager(int nbClients, Round round) {
-        multiClientManager = new MultiClientManager(nbClients, round, testUtils, cryptoService, blockchainDataService, roundLimitsManager, port);
+        multiClientManager = new MultiClientManager(nbClients, round, roundService, testUtils, cryptoService, blockchainDataService, roundLimitsManager, port);
         return multiClientManager;
     }
 

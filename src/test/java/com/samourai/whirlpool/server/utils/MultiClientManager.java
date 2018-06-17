@@ -2,7 +2,10 @@ package com.samourai.whirlpool.server.utils;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.whirlpool.client.RoundParams;
 import com.samourai.whirlpool.client.WhirlpoolClient;
+import com.samourai.whirlpool.client.WhirlpoolMultiRoundClient;
+import com.samourai.whirlpool.client.WhirlpoolMultiRoundClientListener;
 import com.samourai.whirlpool.client.simple.ISimpleWhirlpoolClient;
 import com.samourai.whirlpool.client.simple.SimpleWhirlpoolClient;
 import com.samourai.whirlpool.client.utils.WhirlpoolClientConfig;
@@ -10,8 +13,10 @@ import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.RoundLimitsManager;
+import com.samourai.whirlpool.server.services.RoundService;
 import org.bitcoinj.core.ECKey;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -22,8 +27,10 @@ import java.lang.invoke.MethodHandles;
 public class MultiClientManager {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+    private RoundService roundService;
     private TestUtils testUtils;
     private CryptoService cryptoService;
+    private BlockchainDataService blockchainDataService;
     private RoundLimitsManager roundLimitsManager;
     private int port;
 
@@ -32,25 +39,30 @@ public class MultiClientManager {
     private TxOutPoint[] inputs;
     private ECKey[] inputKeys;
     private BIP47Wallet[] bip47Wallets;
-    private WhirlpoolClient[] whirlpoolClients;
+    private WhirlpoolMultiRoundClient[] multiRoundClients;
+    private WhirlpoolMultiRoundClientListener[] listeners;
 
-    public MultiClientManager(int nbClients, Round round, TestUtils testUtils, CryptoService cryptoService, RoundLimitsManager roundLimitsManager, int port) {
+
+    public MultiClientManager(int nbClients, Round round, RoundService roundService, TestUtils testUtils, CryptoService cryptoService, BlockchainDataService blockchainDataService, RoundLimitsManager roundLimitsManager, int port) {
         this.round = round;
+        this.roundService = roundService;
         this.testUtils = testUtils;
         this.cryptoService = cryptoService;
+        this.blockchainDataService = blockchainDataService;
         this.roundLimitsManager = roundLimitsManager;
         this.port = port;
 
         inputs = new TxOutPoint[nbClients];
         inputKeys = new ECKey[nbClients];
         bip47Wallets = new BIP47Wallet[nbClients];
-        whirlpoolClients = new WhirlpoolClient[nbClients];
+        multiRoundClients = new WhirlpoolMultiRoundClient[nbClients];
+        listeners = new WhirlpoolMultiRoundClientListener[nbClients];
     }
 
-    private WhirlpoolClient createClient() {
+    private WhirlpoolMultiRoundClient createClient() {
         String wsUrl = "ws://127.0.0.1:" + port;
         WhirlpoolClientConfig config = new WhirlpoolClientConfig(wsUrl, cryptoService.getNetworkParameters());
-        return new WhirlpoolClient(config);
+        return new WhirlpoolMultiRoundClient(config);
     }
 
     private void prepareClient(int i, boolean liquidity) throws Exception {
@@ -61,8 +73,8 @@ public class MultiClientManager {
     }
 
     private void prepareClient(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
-        whirlpoolClients[i] = createClient();
-        whirlpoolClients[i].setLogPrefix("multiClient#"+i);
+        multiRoundClients[i] = createClient();
+        multiRoundClients[i].setLogPrefix("multiClient#"+i);
 
         // prepare input & output and mock input
         long amount = testUtils.computeSpendAmount(round, liquidity);
@@ -72,9 +84,9 @@ public class MultiClientManager {
         bip47Wallets[i] = bip47Wallet;
     }
 
-    public void connectOrFail(int i, boolean liquidity) {
+    public void connectOrFail(int i, boolean liquidity, int rounds) {
         try {
-            connect(i, liquidity);
+            connect(i, liquidity, rounds);
         }
         catch(Exception e) {
             log.error("", e);
@@ -82,19 +94,19 @@ public class MultiClientManager {
         }
     }
 
-    public void connect(int i, boolean liquidity) throws Exception {
+    public void connect(int i, boolean liquidity, int rounds) throws Exception {
         prepareClient(i, liquidity);
-        whirlpool(i, liquidity);
+        whirlpool(i, liquidity, rounds);
     }
 
-    public void connect(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
+    public void connect(int i, boolean liquidity, int rounds, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
         prepareClient(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex);
-        whirlpool(i, liquidity);
+        whirlpool(i, liquidity, rounds);
     }
 
-    private void whirlpool(int i, boolean liquidity) throws Exception {
+    private void whirlpool(int i, boolean liquidity, int rounds) {
 
-        WhirlpoolClient whirlpoolClient = whirlpoolClients[i];
+        WhirlpoolMultiRoundClient multiRoundClient = multiRoundClients[i];
         TxOutPoint utxo = inputs[i];
         ECKey ecKey = inputKeys[i];
 
@@ -102,7 +114,33 @@ public class MultiClientManager {
         String paymentCode = bip47Wallet.getAccount(0).getPaymentCode();
 
         ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(ecKey, bip47Wallet);
-        whirlpoolClient.whirlpool(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, liquidity);
+
+        RoundParams roundParams = new RoundParams(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, liquidity);
+        WhirlpoolMultiRoundClientListener listener = computeListener();
+        multiRoundClient.whirlpool(roundParams, rounds, listener);
+    }
+
+    private WhirlpoolMultiRoundClientListener computeListener() {
+        WhirlpoolMultiRoundClientListener listener = new WhirlpoolMultiRoundClientListener() {
+            @Override
+            public void success(int nbRounds) {
+            }
+
+            @Override
+            public void fail(int currentRound, int nbRounds) {
+
+            }
+
+            @Override
+            public void roundSuccess(int currentRound, int nbRounds) {
+            }
+
+            @Override
+            public void progress(int currentRound, int nbRounds, RoundStatus roundStatus, int currentStep, int nbSteps) {
+
+            }
+        };
+        return listener;
     }
 
     private void waitRegisteredInputs(int nbInputsExpected) throws Exception {
@@ -172,6 +210,13 @@ public class MultiClientManager {
         Assert.assertEquals(roundStatusExpected, round.getRoundStatus());
     }
 
+    public void setRoundNext() {
+        Round nextRound = roundService.__getCurrentRound();
+        Assert.assertNotEquals(round, nextRound);
+        setRound(nextRound);
+        log.info("============= NEW ROUND DETECTED: " + nextRound.getRoundId() + " =============");
+    }
+
     public void assertRoundStatusRegisterInput(int nbInputsExpected, boolean hasLiquidityExpected) throws Exception {
         // wait inputs to register
         waitRegisteredInputs(nbInputsExpected);
@@ -186,6 +231,10 @@ public class MultiClientManager {
     }
 
     public void assertRoundStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected) throws Exception {
+        assertRoundStatusSuccess(nbAllRegisteredExpected, hasLiquidityExpected, 1);
+    }
+
+    public void assertRoundStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected, int numRound) throws Exception {
         // wait inputs to register
         waitRegisteredInputs(nbAllRegisteredExpected);
 
@@ -207,13 +256,14 @@ public class MultiClientManager {
         Assert.assertEquals(nbAllRegisteredExpected, round.getNbSignatures());
 
         // all clients should be SUCCESS
-        assertClientsSuccess();
+        assertClientsSuccess(nbAllRegisteredExpected, numRound);
     }
 
-    private void assertClientsSuccess() {
+    private void assertClientsSuccess(int nbAllRegisteredExpected, int numRound) {
         // all clients shoud have success status
-        for (int i=0; i<whirlpoolClients.length; i++) {
-            WhirlpoolClient whirlpoolClient = whirlpoolClients[i];
+        for (int i=0; i<nbAllRegisteredExpected; i++) {
+            WhirlpoolMultiRoundClient multiRoundClient = multiRoundClients[i];
+            WhirlpoolClient whirlpoolClient = multiRoundClient.getClient(numRound);
             Assert.assertEquals(RoundStatus.SUCCESS, whirlpoolClient.__getRoundStatusNotification().status);
             Assert.assertTrue(whirlpoolClient.isDone());
         }
@@ -259,10 +309,14 @@ public class MultiClientManager {
         return round;
     }
 
-    public void disconnect() {
-        for (WhirlpoolClient client : whirlpoolClients) {
-            if (client != null) {
-                client.disconnect();
+    public void setRound(Round round) {
+        this.round = round;
+    }
+
+    public void exit() {
+        for (WhirlpoolMultiRoundClient multiRoundClient : multiRoundClients) {
+            if (multiRoundClient != null) {
+                multiRoundClient.exit();
             }
         }
     }
@@ -270,9 +324,9 @@ public class MultiClientManager {
     private void debugClients() {
         if (log.isDebugEnabled()) {
             log.debug("%%% debugging clients states... %%%");
-            for (WhirlpoolClient client : whirlpoolClients) {
-                if (client != null) {
-                    client.debugState();
+            for (WhirlpoolMultiRoundClient multiRoundClient : multiRoundClients) {
+                if (multiRoundClient != null) {
+                    multiRoundClient.debugState();
                 }
             }
         }
