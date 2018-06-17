@@ -65,28 +65,32 @@ public class MultiClientManager {
         return new WhirlpoolMultiRoundClient(config);
     }
 
-    private void prepareClient(int i, boolean liquidity) throws Exception {
+    private void prepareClientWithMock(int i, boolean liquidity) throws Exception {
         SegwitAddress inputAddress = testUtils.createSegwitAddress();
         BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
-
-        prepareClient(i, liquidity, inputAddress, bip47Wallet, null, null, null);
+        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, null, null, null);
     }
 
-    private void prepareClient(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
-        multiRoundClients[i] = createClient();
-        multiRoundClients[i].setLogPrefix("multiClient#"+i);
-
+    private void prepareClientWithMock(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
         // prepare input & output and mock input
         long amount = testUtils.computeSpendAmount(round, liquidity);
-        inputs[i] = testUtils.createAndMockTxOutPoint(inputAddress, amount, nbConfirmations, utxoHash, utxoIndex);
-        inputKeys[i] = inputAddress.getECKey();
+        TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, amount, nbConfirmations, utxoHash, utxoIndex);
+        ECKey utxoKey = inputAddress.getECKey();
 
-        bip47Wallets[i] = bip47Wallet;
+        prepareClient(i, utxo, utxoKey, bip47Wallet);
     }
 
-    public void connectOrFail(int i, boolean liquidity, int rounds) {
+    private void prepareClient(int i, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
+        multiRoundClients[i] = createClient();
+        multiRoundClients[i].setLogPrefix("multiClient#"+i);
+        bip47Wallets[i] = bip47Wallet;
+        inputs[i] = utxo;
+        inputKeys[i] = utxoKey;
+    }
+
+    public void connectWithMockOrFail(int i, boolean liquidity, int rounds) {
         try {
-            connect(i, liquidity, rounds);
+            connectWithMock(i, liquidity, rounds);
         }
         catch(Exception e) {
             log.error("", e);
@@ -94,13 +98,18 @@ public class MultiClientManager {
         }
     }
 
-    public void connect(int i, boolean liquidity, int rounds) throws Exception {
-        prepareClient(i, liquidity);
+    public void connectWithMock(int i, boolean liquidity, int rounds) throws Exception {
+        prepareClientWithMock(i, liquidity);
         whirlpool(i, liquidity, rounds);
     }
 
-    public void connect(int i, boolean liquidity, int rounds, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
-        prepareClient(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex);
+    public void connectWithMock(int i, boolean liquidity, int rounds, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
+        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex);
+        whirlpool(i, liquidity, rounds);
+    }
+
+    public void connect(int i, boolean liquidity, int rounds, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
+        prepareClient(i, utxo, utxoKey, bip47Wallet);
         whirlpool(i, liquidity, rounds);
     }
 

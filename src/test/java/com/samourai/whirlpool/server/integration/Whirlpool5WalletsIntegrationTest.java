@@ -264,7 +264,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 final String paymentCode = mixers.get(i);
                 final BIP47Wallet bip47Wallet = premixer.bip47Wallets.get(paymentCode);
 
-                multiClientManager.connect(i, false, 1, segwitAddress, bip47Wallet, 1000, utxoHash, utxoIndex);
+                multiClientManager.connectWithMock(i, false, 1, segwitAddress, bip47Wallet, 1000, utxoHash, utxoIndex);
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);

@@ -67,29 +67,10 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
 
         MultiClientManager multiClientManager = multiClientManager(1, round);
-        multiClientManager.connect(0, false, 1, inputP2SH_P2WPKH, bip47OutputWallet, 1000, utxo.getHash(), (int)utxo.getIndex());
+        multiClientManager.connectWithMock(0, false, 1, inputP2SH_P2WPKH, bip47OutputWallet, 1000, utxo.getHash(), (int)utxo.getIndex());
 
         // register inputs...
         multiClientManager.assertRoundStatusRegisterInput(1, false);
-        //Assert.assertEquals(utxoHash, round.getInputsByUsername(username).get(0).getHash());
-
-        // register outputs...
-        roundService.changeRoundStatus(round.getRoundId(), RoundStatus.REGISTER_OUTPUT);
-        Thread.sleep(2000);
-        Assert.assertEquals(RoundStatus.REGISTER_OUTPUT, round.getRoundStatus());
-        Assert.assertEquals(1, round.getSendAddresses().size());
-        Assert.assertEquals(1, round.getReceiveAddresses().size());
-        //Assert.assertEquals(outputAddress, round.getOutputs().get(0));
-
-        // signing...
-        roundService.changeRoundStatus(round.getRoundId(), RoundStatus.SIGNING);
-        Thread.sleep(2000);
-        Assert.assertEquals(RoundStatus.SIGNING, round.getRoundStatus());
-        Assert.assertEquals(1, round.getNbSignatures());
-
-        // success...
-        roundService.changeRoundStatus(round.getRoundId(), RoundStatus.SUCCESS);
-        multiClientManager.assertRoundStatusSuccess(1, false);
     }
 
 }

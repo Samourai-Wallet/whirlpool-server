@@ -40,7 +40,7 @@ public class WhirlpoolMultiRoundsIntegrationTest extends AbstractIntegrationTest
         log.info("# Connect 2 clients for first round...");
         for (int i=0; i<NB_CLIENTS_FIRST_ROUND; i++) {
             final int clientIndice = i;
-            taskExecutor.execute(() -> multiClientManager.connectOrFail(clientIndice, false, 2)); // stay for 2 rounds
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 2)); // stay for 2 rounds
         }
 
         // all clients should have registered their outputs and signed
@@ -54,7 +54,7 @@ public class WhirlpoolMultiRoundsIntegrationTest extends AbstractIntegrationTest
         multiClientManager.waitLiquiditiesInPool(NB_CLIENTS_FIRST_ROUND);
 
         log.info("# Connect 1 mustMix for second round...");
-        taskExecutor.execute(() -> multiClientManager.connectOrFail(2, false, 1));
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(2, false, 1));
 
         // we have 1 mustMix + 2 liquidities
         multiClientManager.assertRoundStatusRegisterInput(1, true);

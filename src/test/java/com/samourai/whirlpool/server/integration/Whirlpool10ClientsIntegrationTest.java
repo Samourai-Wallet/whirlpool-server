@@ -38,7 +38,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         log.info("# Connect first clients...");
         for (int i=0; i<NB_CLIENTS-1; i++) {
             final int clientIndice = i;
-            taskExecutor.execute(() -> multiClientManager.connectOrFail(clientIndice, false, 1));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 1));
         }
 
         // connected clients should have registered their inputs...
@@ -46,7 +46,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
         // connect last client
         log.info("# Connect last client...");
-        taskExecutor.execute(() -> multiClientManager.connectOrFail(NB_CLIENTS-1, false, 1));
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(NB_CLIENTS-1, false, 1));
 
         // all clients should have registered their inputs
         // round automatically switches to REGISTER_OUTPUTS, then SIGNING
