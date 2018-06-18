@@ -1,23 +1,20 @@
-package com.samourai.whirlpool.server.beans;
+package com.samourai.whirlpool.server.utils.timeout;
 
-import com.samourai.whirlpool.server.services.RoundLimitsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 
-public class RoundLimitsWatcher implements Runnable {
+public class TimeoutWatcher implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private Round round;
-    private RoundLimitsManager roundLimitsManager;
+    private ITimeoutWatcherListener listener;
 
     private long waitSince;
     private boolean running;
     private Thread thread;
 
-    public RoundLimitsWatcher(Round round, RoundLimitsManager roundLimitsManager) {
-        this.round = round;
-        this.roundLimitsManager = roundLimitsManager;
+    public TimeoutWatcher(ITimeoutWatcherListener listener) {
+        this.listener = listener;
 
         this.waitSince = System.currentTimeMillis();
         this.running = true;
@@ -32,10 +29,12 @@ public class RoundLimitsWatcher implements Runnable {
         while(running) {
 
             // did we wait enough?
-            long timeToWait = roundLimitsManager.computeRoundWatcherTimeToWait(waitSince, round);
+            long timeToWait = listener.computeTimeToWait(this);
             if (timeToWait <= 0) {
                 // timer expired => notify
-                roundLimitsManager.onRoundWatcherTimeout(round, this);
+                listener.onTimeout(this);
+                // reset timer
+                waitSince = System.currentTimeMillis();
             }
             else {
                 if (log.isDebugEnabled()) {
@@ -72,8 +71,13 @@ public class RoundLimitsWatcher implements Runnable {
 
     public void __simulateElapsedTime(long elapsedTimeSeconds) {
         this.waitSince = (System.currentTimeMillis() - (elapsedTimeSeconds * 1000));
-        long timeToWait = roundLimitsManager.computeRoundWatcherTimeToWait(waitSince, round);
+        long timeToWait = listener.computeTimeToWait(this);
         log.info("__simulateElapsedTime: "+waitSince+" (" + timeToWait + "ms to wait)");
         resumeThread();
+    }
+
+    public long computeElapsedTime() {
+        long elapsedTime = System.currentTimeMillis() - waitSince;
+        return elapsedTime;
     }
 }
