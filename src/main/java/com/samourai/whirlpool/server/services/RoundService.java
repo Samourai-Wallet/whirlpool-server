@@ -55,11 +55,13 @@ public class RoundService {
         String roundId = generateRoundId();
         long denomination = whirlpoolServerConfig.getRound().getDenomination();
         long fees = roundConfig.getMinerFee();
-        int targetMustMix = roundConfig.getTargetMustMix();
-        int minMustMix = roundConfig.getMinMustMix();
-        long mustMixAdjustTimeout = roundConfig.getMustMixAdjustTimeout();
-        float liquidityRatio = roundConfig.getLiquidityRatio();
-        Round round = new Round(roundId, denomination, fees, targetMustMix, minMustMix, mustMixAdjustTimeout, liquidityRatio);
+        int minMustMix = roundConfig.getMustMixMin();
+        int targetAnonymitySet = roundConfig.getAnonymitySetTarget();
+        int minAnonymitySet = roundConfig.getAnonymitySetMin();
+        int maxAnonymitySet = roundConfig.getAnonymitySetMax();
+        long mustMixAdjustTimeout = roundConfig.getAnonymitySetAdjustTimeout();
+        long liquidityTimeout = roundConfig.getLiquidityTimeout();
+        Round round = new Round(roundId, denomination, fees, minMustMix, targetAnonymitySet, minAnonymitySet, maxAnonymitySet, mustMixAdjustTimeout, liquidityTimeout);
         this.__reset(round);
     }
 
@@ -77,42 +79,50 @@ public class RoundService {
         }
 
         RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, paymentCode, liquidity);
-        if (!liquidity) {
+        if (liquidity) {
+            if (!isRegisterLiquiditiesOpen(round) || isRoundFull(round)) {
+                // place liquidity on queue instead of rejecting it
+                queueLiquidity(round, registeredInput, signedBordereauToReply);
+            }
+            else {
+                // register liquidity if round opened to liquidities and not full
+                registerInput(round, registeredInput, signedBordereauToReply, true);
+            }
+        }
+        else {
             /*
              * user wants to mix
              */
             registerInput(round, registeredInput, signedBordereauToReply, false);
         }
-        else {
-            /*
-             * user is providing liquidity
-             */
-            LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
-            if (liquidityPool.hasLiquidity(input)) {
-                throw new IllegalInputException("Liquidity already registered for this round");
-            }
+    }
 
-            // queue liquidity for later
-            RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
-            liquidityPool.registerLiquidity(registeredInputQueued);
-            log.info(" • queued liquidity: "+registeredInputQueued.getRegisteredInput().getInput()+" ("+liquidityPool.getNbLiquidities()+" liquidities in pool)");
+    private void queueLiquidity(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply) throws IllegalInputException, RoundException {
+        /*
+         * liquidity placed in waiting pool
+         */
+        LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+        if (liquidityPool.hasLiquidity(registeredInput.getInput())) {
+            throw new IllegalInputException("Liquidity already registered for this round");
         }
 
+        // queue liquidity for later
+        RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
+        liquidityPool.registerLiquidity(registeredInputQueued);
+        log.info(" • queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
     }
 
     private synchronized void registerInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException {
         TxOutPoint input = registeredInput.getInput();
         String username = registeredInput.getUsername();
 
-        if (isLiquidity) {
-            if (round.getNbInputsLiquidities() >= round.computeLiquiditiesExpected()) {
-                throw new RoundException("Round inputs are full, please wait for next round");
-            }
+        if (isRoundFull(round)) {
+            throw new RoundException("Round is full, please wait for next round");
         }
-        else {
-            if (round.getNbInputsMustMix() >= round.getTargetMustMix()) {
-                throw new RoundException("Round inputs are full, please wait for next round");
-            }
+        if (isLiquidity && !isRegisterLiquiditiesOpen(round)) {
+            // should never go here...
+            log.error("Unexpected exception: round is not opened to liquidities yet, but liquidity entered registerInput");
+            throw new RoundException("system error");
         }
         if (round.hasInput(input)) {
             throw new IllegalInputException("Input already registered for this round");
@@ -135,6 +145,21 @@ public class RoundService {
         registerInput(round, randomLiquidity.getRegisteredInput(), randomLiquidity.getSignedBordereau(), true);
     }
 
+    private boolean isRegisterLiquiditiesOpen(Round round) {
+        if (!round.hasMinMustMixReached()) {
+            // wait to get enough mustMix before accepting liquidities
+            return false;
+        }
+        if (round.isAcceptLiquidities()) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isRoundFull(Round round) {
+        return (round.getNbInputs() >= round.getMaxAnonymitySet());
+    }
+
     private long computeSpendAmount(Round round, boolean liquidity) {
         if (liquidity) {
             // no minersFees for liquidities
@@ -153,7 +178,10 @@ public class RoundService {
         if (round.getNbInputs() == 0) {
             return false;
         }
-        if (round.getNbInputsMustMix() != round.getTargetMustMix() || round.getNbInputsLiquidities() != round.computeLiquiditiesExpected()) {
+        if (!round.hasMinMustMixReached()) {
+            return false;
+        }
+        if (round.getNbInputs() < round.getTargetAnonymitySet()) {
             return false;
         }
         return true;
@@ -188,7 +216,7 @@ public class RoundService {
         } catch(Exception e) {
             // no liquidityPool instanciated yet
         }
-        log.info(round.getNbInputsMustMix()+"/"+round.getTargetMustMix()+" mustMix, "+round.getNbInputsLiquidities()+"/"+round.computeLiquiditiesExpected()+" liquidities, "+liquiditiesInPool+" liquidities in pool");
+        log.info(round.getNbInputsMustMix()+"/"+round.getMinMustMix()+" mustMix, "+round.getNbInputs()+"/"+round.getTargetAnonymitySet()+" anonymitySet, "+liquiditiesInPool+" liquidities in pool");
     }
 
     protected void validateOutputs(Round round) throws Exception {

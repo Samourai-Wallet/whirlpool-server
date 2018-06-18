@@ -3,6 +3,8 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.RoundException;
+import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
+import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +21,7 @@ public class RoundLimitsManager {
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
     private Map<String, LiquidityPool> liquidityPools;
-    private Map<String, RoundLimitsWatcher> roundWatchers;
+    private Map<String, TimeoutWatcher> roundWatchers;
 
     public RoundLimitsManager(RoundService roundService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.roundService = roundService;
@@ -30,7 +32,7 @@ public class RoundLimitsManager {
         this.roundWatchers = new HashMap<>();
     }
 
-    private RoundLimitsWatcher getRoundLimitsWatcher(Round round) {
+    private TimeoutWatcher getRoundLimitsWatcher(Round round) {
         String roundId = round.getRoundId();
         return roundWatchers.get(roundId);
     }
@@ -47,94 +49,118 @@ public class RoundLimitsManager {
         LiquidityPool liquidityPool = new LiquidityPool();
         liquidityPools.put(roundId, liquidityPool);
 
-        // create roundWatcher
-        RoundLimitsWatcher roundLimitsWatcher = new RoundLimitsWatcher(round, this);
-        this.roundWatchers.put(roundId, roundLimitsWatcher);
+        // wait first input registered before instanciating roundWatcher
     }
 
     public void unmanage(Round round) {
         String roundId = round.getRoundId();
         liquidityPools.remove(roundId);
 
-        RoundLimitsWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
+        TimeoutWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
         if (roundLimitsWatcher != null) {
             roundLimitsWatcher.stop();
             roundWatchers.remove(roundId);
         }
     }
 
-    public long computeRoundWatcherTimeToWait(long waitSince, Round round) {
-        long elapsedTime = System.currentTimeMillis() - waitSince;
-
-        long timeToWait;
-        switch(round.getRoundStatus()) {
-            case REGISTER_INPUT:
-                // timeout before next targetMustMix adjustment
-                timeToWait = round.getMustMixAdjustTimeout()*1000 - elapsedTime;
-            break;
-
-            case REGISTER_OUTPUT:
-                timeToWait = whirlpoolServerConfig.getRegisterOutput().getTimeout() * 1000;
-            break;
-
-            case SIGNING:
-                timeToWait = whirlpoolServerConfig.getSigning().getTimeout() * 1000;
-                break;
-
-            default:
-                // should never use this default value
-                timeToWait = 10000;
-                break;
-        }
-        return timeToWait;
-    }
-
     public void onRoundStatusChange(Round round) {
-        RoundLimitsWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
+        TimeoutWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
 
         // reset timeout for new roundStatus
         roundLimitsWatcher.resetTimeout();
     }
 
-    public void onRoundWatcherTimeout(Round round, RoundLimitsWatcher roundLimitsWatcher) {
-        switch(round.getRoundStatus()) {
-            case REGISTER_INPUT:
-                adjustTargetMustMix(round, roundLimitsWatcher);
-                break;
+    public TimeoutWatcher computeRoundLimitsWatcher(Round round) {
+        ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
+            private long computeTimeToWaitAcceptLiquidities(long elapsedTime) {
+                long timeToWaitAcceptLiquidities = round.getLiquidityTimeout()*1000 - elapsedTime;
+                return timeToWaitAcceptLiquidities;
+            }
 
-            case REGISTER_OUTPUT:
-                roundService.goRevealOutputOrBlame(round.getRoundId());
-                break;
+            @Override
+            public long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
+                long elapsedTime = timeoutWatcher.computeElapsedTime();
 
-            case SIGNING:
-                blameForSigningAndResetRound(round);
-                break;
-        }
+                long timeToWait;
+                switch(round.getRoundStatus()) {
+                    case REGISTER_INPUT:
+                        // timeout before next targetAnonymitySet adjustment
+                        long timeToWaitAnonymitySetAdjust = round.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
+                        // timeout before accepting liquidities
+                        if (!round.isAcceptLiquidities()) {
+                            long timeToWaitAcceptLiquidities = computeTimeToWaitAcceptLiquidities(elapsedTime);
+                            timeToWait = Math.min(timeToWaitAnonymitySetAdjust, timeToWaitAcceptLiquidities);
+                        }
+                        else {
+                            timeToWait = timeToWaitAnonymitySetAdjust;
+                        }
+                        break;
+
+                    case REGISTER_OUTPUT:
+                        timeToWait = whirlpoolServerConfig.getRegisterOutput().getTimeout() * 1000 - elapsedTime;
+                        break;
+
+                    case SIGNING:
+                        timeToWait = whirlpoolServerConfig.getSigning().getTimeout() * 1000 - elapsedTime;
+                        break;
+
+                    default:
+                        // should never use this default value
+                        timeToWait = 10000;
+                        break;
+                }
+                return timeToWait;
+            }
+
+            @Override
+            public void onTimeout(TimeoutWatcher timeoutWatcher) {
+                switch(round.getRoundStatus()) {
+                    case REGISTER_INPUT:
+                        long elapsedTime = timeoutWatcher.computeElapsedTime();
+                        if (!round.isAcceptLiquidities() && computeTimeToWaitAcceptLiquidities(elapsedTime) <= 0) {
+                            // accept liquidities
+                            round.setAcceptLiquidities(true);
+                            addLiquidities(round);
+                        }
+                        else {
+                            // adjust targetAnonymitySet
+                            adjustTargetAnonymitySet(round, timeoutWatcher);
+                        }
+                        break;
+
+                    case REGISTER_OUTPUT:
+                        roundService.goRevealOutputOrBlame(round.getRoundId());
+                        break;
+
+                    case SIGNING:
+                        blameForSigningAndResetRound(round);
+                        break;
+                }
+            }
+        };
+
+        TimeoutWatcher roundLimitsWatcher = new TimeoutWatcher(listener);
+        return roundLimitsWatcher;
     }
 
     // REGISTER_INPUTS
 
-    private void adjustTargetMustMix(Round round, RoundLimitsWatcher roundLimitsWatcher) {
+    private void adjustTargetAnonymitySet(Round round, TimeoutWatcher timeoutWatcher) {
         // no input registered yet => nothing to do
         if (round.getNbInputs() == 0) {
             return;
         }
 
         // round is ready => nothing to do
-        if (round.getNbInputs() >= round.getTargetMustMix() || round.getMinMustMix() >= round.getTargetMustMix()) {
+        if (round.getNbInputs() >= round.getTargetAnonymitySet() || round.getMinAnonymitySet() >= round.getTargetAnonymitySet()) {
             return;
         }
 
         // adjust mustMix
-        int nextTargetMustMix = round.getTargetMustMix() - 1;
-        log.info(" • must-mix-adjust-timeout over, adjusting targetMustMix: "+nextTargetMustMix);
-        round.setTargetMustMix(nextTargetMustMix);
-        roundLimitsWatcher.resetTimeout();
-
-        if (!checkAddLiquidity(round)) {
-            // no liquidities needed => round is ready
-            roundService.checkRegisterInputReady(round);
-        }
+        int nextTargetAnonymitySet = round.getTargetAnonymitySet() - 1;
+        log.info(" • must-mix-adjust-timeout over, adjusting targetAnonymitySet: "+nextTargetAnonymitySet);
+        round.setTargetAnonymitySet(nextTargetAnonymitySet);
+        timeoutWatcher.resetTimeout();
     }
 
     public LiquidityPool getLiquidityPool(Round round) throws RoundException {
@@ -147,52 +173,51 @@ public class RoundLimitsManager {
     }
 
     public synchronized void onInputRegistered(Round round) {
-        RoundLimitsWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
-
-        // first input registered => reset timeout for next targetMustMix adjustment
+        // first input registered => instanciate roundWatcher
         if (round.getNbInputs() == 1) {
-            roundLimitsWatcher.resetTimeout();
+            String roundId = round.getRoundId();
+            TimeoutWatcher roundLimitsWatcher = computeRoundLimitsWatcher(round);
+            this.roundWatchers.put(roundId, roundLimitsWatcher);
         }
 
-        // check if liquidity is needed
-        checkAddLiquidity(round);
+        if (round.isAcceptLiquidities() && round.getNbInputsLiquidities() == 0 && round.hasMinMustMixReached()) {
+            // we just reached minMustMix and acceptLiquidities was enabled earlier => add liquidities now
+            addLiquidities(round);
+        }
     }
 
-    private boolean checkAddLiquidity(Round round) {
-        boolean liquiditiesAdded = false;
-        if (round.getNbInputs() == round.getTargetMustMix()) {
+    private void addLiquidities(Round round) {
+        if (!round.hasMinMustMixReached()) {
+            // will retry to add on onInputRegistered
+            log.info("Cannot add liquidities yet, minMustMix not reached");
+            return;
+        }
+
+        int liquiditiesToAdd = round.getTargetAnonymitySet() - round.getNbInputs();
+        if (liquiditiesToAdd > 0) {
+            // round needs liquidities
             try {
-                int liquiditiesToAdd = round.computeLiquiditiesExpected();
-                if (liquiditiesToAdd > 0) {
-                    addLiquidities(round, liquiditiesToAdd);
-                    liquiditiesAdded = true;
+                LiquidityPool liquidityPool = getLiquidityPool(round);
+                int liquiditiesAdded = 0;
+                while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
+                    log.info("Adding liquidity " + (liquiditiesAdded + 1) + "/" + liquiditiesToAdd);
+                    RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
+                    try {
+                        roundService.addLiquidity(round, randomLiquidity);
+                        liquiditiesAdded++;
+                    } catch (Exception e) {
+                        log.error("registerInput error when adding liquidity", e);
+                        // ignore the error and continue with more liquidity
+                    }
                 }
-            } catch (Exception e) {
-                log.error("addLiquiditiesFailed", e);
+                int missingLiquidities = liquiditiesToAdd - liquiditiesAdded;
+                if (missingLiquidities > 0) {
+                    log.warn("Not enough liquidities to start the round now! " + missingLiquidities + " liquidities missing");
+                }
             }
-        }
-        return liquiditiesAdded;
-    }
-
-    private void addLiquidities(Round round, int liquiditiesToAdd) throws RoundException {
-        LiquidityPool liquidityPool = getLiquidityPool(round);
-        int liquiditiesAdded = 0;
-        // round needs liquidities
-        while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
-            log.info("Registering liquidity " + (liquiditiesAdded + 1) + "/" + liquiditiesToAdd);
-            RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
-            try {
-                roundService.addLiquidity(round, randomLiquidity);
-                liquiditiesAdded++;
-            } catch (Exception e) {
-                log.error("registerInput error when adding more liquidity", e);
-                // ignore the error and continue with more liquidity
+            catch(Exception e) {
+                log.error("Unexpected exception", e);
             }
-        }
-
-        int missingLiquidities = liquiditiesToAdd - liquiditiesAdded;
-        if (missingLiquidities > 0) {
-            log.warn("Not enough liquidities to start the round! "+missingLiquidities+" liquidities missing");
         }
     }
 
@@ -222,7 +247,7 @@ public class RoundLimitsManager {
     public void __simulateElapsedTime(Round round, long elapsedTimeSeconds) {
         String roundId = round.getRoundId();
         log.info("__simulateElapsedTime for roundId="+roundId);
-        RoundLimitsWatcher roundLimitsWatcher = roundWatchers.get(roundId);
+        TimeoutWatcher roundLimitsWatcher = roundWatchers.get(roundId);
         roundLimitsWatcher.__simulateElapsedTime(elapsedTimeSeconds);
     }
 }

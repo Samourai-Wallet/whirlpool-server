@@ -11,14 +11,16 @@ public class Round {
     private String roundId;
     private long denomination; // in satoshis
     private long fees; // in satoshis
-    private int targetMustMixInitial;
-    private int targetMustMix;
     private int minMustMix;
-    private long mustMixAdjustTimeout; // wait X seconds for decreasing targetMustMix
-    private float liquidityRatio; // 1 = 1 liquidity for 1 mustMix
+    private int targetAnonymitySetInitial;
+    private int targetAnonymitySet;
+    private int minAnonymitySet;
+    private int maxAnonymitySet;
+    private long timeoutAdjustAnonymitySet; // wait X seconds for decreasing anonymitySet
+    private boolean acceptLiquidities;
+    private long liquidityTimeout; // wait X seconds for accepting liquidities
 
     private RoundStatus roundStatus;
-    private long roundStatusTime;
     private Map<String,RegisteredInput> inputsById;
 
     private List<String> sendAddresses;
@@ -30,18 +32,20 @@ public class Round {
     private Transaction tx;
     private RoundResult failReason;
 
-    public Round(String roundId, long denomination, long fees, int targetMustMix, int minMustMix, long mustMixAdjustTimeout, float liquidityRatio) {
+    public Round(String roundId, long denomination, long fees, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
         this.roundId = roundId;
         this.denomination = denomination;
         this.fees = fees;
-        this.targetMustMixInitial = targetMustMix;
-        this.targetMustMix = targetMustMix;
         this.minMustMix = minMustMix;
-        this.mustMixAdjustTimeout = mustMixAdjustTimeout;
-        this.liquidityRatio = liquidityRatio;
+        this.targetAnonymitySetInitial = targetAnonymitySet;
+        this.targetAnonymitySet = targetAnonymitySet;
+        this.minAnonymitySet = minAnonymitySet;
+        this.maxAnonymitySet = maxAnonymitySet;
+        this.timeoutAdjustAnonymitySet = timeoutAdjustAnonymitySet;
+        this.acceptLiquidities = false;
+        this.liquidityTimeout = liquidityTimeout;
 
         this.roundStatus = RoundStatus.REGISTER_INPUT;
-        this.roundStatusTime = System.currentTimeMillis();
         this.inputsById = new HashMap<>();
 
         this.sendAddresses = new LinkedList<>();
@@ -55,7 +59,11 @@ public class Round {
     }
 
     public Round(String roundId, Round copyRound) {
-        this(roundId, copyRound.getDenomination(), copyRound.getFees(), copyRound.getTargetMustMixInitial(), copyRound.getMinMustMix(), copyRound.getMustMixAdjustTimeout(), copyRound.liquidityRatio);
+        this(roundId, copyRound.getDenomination(), copyRound.getFees(), copyRound.getMinMustMix(), copyRound.getTargetAnonymitySetInitial(), copyRound.getMinAnonymitySet(), copyRound.getMaxAnonymitySet(), copyRound.getTimeoutAdjustAnonymitySet(), copyRound.getLiquidityTimeout());
+    }
+
+    public boolean hasMinMustMixReached() {
+        return getNbInputsMustMix() >= getMinMustMix();
     }
 
     public String getRoundId() {
@@ -70,28 +78,44 @@ public class Round {
         return fees;
     }
 
-    public int getTargetMustMixInitial() {
-        return targetMustMixInitial;
-    }
-
-    public int getTargetMustMix() {
-        return targetMustMix;
-    }
-
-    public void setTargetMustMix(int targetMustMix) {
-        this.targetMustMix = targetMustMix;
-    }
-
     public int getMinMustMix() {
         return minMustMix;
     }
 
-    public long getMustMixAdjustTimeout() {
-        return mustMixAdjustTimeout;
+    public int getTargetAnonymitySetInitial() {
+        return targetAnonymitySetInitial;
     }
 
-    public int computeLiquiditiesExpected() {
-        return (int)Math.ceil(getTargetMustMix() * liquidityRatio);
+    public int getTargetAnonymitySet() {
+        return targetAnonymitySet;
+    }
+
+    public void setTargetAnonymitySet(int targetAnonymitySet) {
+        this.targetAnonymitySet = targetAnonymitySet;
+    }
+
+    public int getMinAnonymitySet() {
+        return minAnonymitySet;
+    }
+
+    public int getMaxAnonymitySet() {
+        return maxAnonymitySet;
+    }
+
+    public long getTimeoutAdjustAnonymitySet() {
+        return timeoutAdjustAnonymitySet;
+    }
+
+    public boolean isAcceptLiquidities() {
+        return acceptLiquidities;
+    }
+
+    public void setAcceptLiquidities(boolean acceptLiquidities) {
+        this.acceptLiquidities = acceptLiquidities;
+    }
+
+    public long getLiquidityTimeout() {
+        return liquidityTimeout;
     }
 
     public RoundStatus getRoundStatus() {

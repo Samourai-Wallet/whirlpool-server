@@ -36,16 +36,16 @@ UTXO for liquidities should be founded with *server.round.denomination*+*server.
 
 ### Round limits
 ```
-server.round.target-must-mix
-server.round.min-must-mix
-server.round.must-mix-adjust-timeout
-```
-Round will start after *server.round.target-must-mix* mustMix register.<br/>
-If this target is not met after *server.round.must-mix-adjust-timeout*, it will be gradually decreased to *server.round.min-must-mix*.
+server.round.anonymity-set-target = 10
+server.round.anonymity-set-min = 6
+server.round.anonymity-set-max = 20
+server.round.anonymity-set-adjust-timeout
 
-### Liquidities
+server.round.must-mix-min
+server.round.liquidity-timeout
 ```
-server.round.liquidity-ratio
-```
-If *server.round.liquidity-ratio=1*, server will use as many liquidities as mustMix.<br>
-If *server.round.liquidity-ratio=0*, no liquidity will be used.<br>
+Round will start when *server.round.anonymity-set-target* (mustMix + liquidities) are registered.<br/>
+If this target is not met after *server.round.anonymity-set-adjust-timeout*, it will be gradually decreased to *server.round.anonymity-set-min*.<br/>
+
+At the beginning of the round, only mustMix can register and liquidities are placed on a waiting pool.<br/>
+After *server.round.liquidity-timeout*, liquidities are added as soon as *server.round.must-mix-min* is reached, up to *server.round.anonymity-set-max* inputs (mustMix + liquidities).

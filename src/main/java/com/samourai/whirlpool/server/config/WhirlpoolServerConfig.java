@@ -160,10 +160,12 @@ public class WhirlpoolServerConfig {
     public static class RoundConfig {
         private long denomination;
         private long minerFee;
-        private int targetMustMix;
-        private int minMustMix;
-        private long mustMixAdjustTimeout;
-        private float liquidityRatio;
+        private int mustMixMin;
+        private int anonymitySetTarget;
+        private int anonymitySetMin;
+        private int anonymitySetMax;
+        private long anonymitySetAdjustTimeout;
+        private long liquidityTimeout;
 
         public long getDenomination() {
             return denomination;
@@ -181,36 +183,52 @@ public class WhirlpoolServerConfig {
             this.minerFee = minerFee;
         }
 
-        public int getTargetMustMix() {
-            return targetMustMix;
+        public int getMustMixMin() {
+            return mustMixMin;
         }
 
-        public void setTargetMustMix(int targetMustMix) {
-            this.targetMustMix = targetMustMix;
+        public void setMustMixMin(int mustMixMin) {
+            this.mustMixMin = mustMixMin;
         }
 
-        public int getMinMustMix() {
-            return minMustMix;
+        public int getAnonymitySetTarget() {
+            return anonymitySetTarget;
         }
 
-        public void setMinMustMix(int minMustMix) {
-            this.minMustMix = minMustMix;
+        public void setAnonymitySetTarget(int anonymitySetTarget) {
+            this.anonymitySetTarget = anonymitySetTarget;
         }
 
-        public long getMustMixAdjustTimeout() {
-            return mustMixAdjustTimeout;
+        public int getAnonymitySetMin() {
+            return anonymitySetMin;
         }
 
-        public void setMustMixAdjustTimeout(long mustMixAdjustTimeout) {
-            this.mustMixAdjustTimeout = mustMixAdjustTimeout;
+        public void setAnonymitySetMin(int anonymitySetMin) {
+            this.anonymitySetMin = anonymitySetMin;
         }
 
-        public float getLiquidityRatio() {
-            return liquidityRatio;
+        public int getAnonymitySetMax() {
+            return anonymitySetMax;
         }
 
-        public void setLiquidityRatio(float liquidityRatio) {
-            this.liquidityRatio = liquidityRatio;
+        public void setAnonymitySetMax(int anonymitySetMax) {
+            this.anonymitySetMax = anonymitySetMax;
+        }
+
+        public long getAnonymitySetAdjustTimeout() {
+            return anonymitySetAdjustTimeout;
+        }
+
+        public void setAnonymitySetAdjustTimeout(long anonymitySetAdjustTimeout) {
+            this.anonymitySetAdjustTimeout = anonymitySetAdjustTimeout;
+        }
+
+        public long getLiquidityTimeout() {
+            return liquidityTimeout;
+        }
+
+        public void setLiquidityTimeout(long liquidityTimeout) {
+            this.liquidityTimeout = liquidityTimeout;
         }
     }
 
