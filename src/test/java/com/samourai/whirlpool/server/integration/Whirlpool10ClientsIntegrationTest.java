@@ -25,11 +25,13 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         String roundId = "foo";
         long denomination = 200000000;
         long fees = 100000;
-        int targetMustMix = NB_CLIENTS;
         int minMustMix = NB_CLIENTS;
-        long mustMixAdjustTimeout = 10 * 60; // 10 minutes
-        float liquidityRatio = 0; // no liquidity for this test
-        Round round = new Round(roundId, denomination, fees, targetMustMix, minMustMix, mustMixAdjustTimeout, liquidityRatio);
+        int targetAnonymitySet = NB_CLIENTS;
+        int minAnonymitySet = NB_CLIENTS;
+        int maxAnonymitySet = NB_CLIENTS;
+        long timeoutAdjustAnonymitySet = 10 * 60; // 10 minutes
+        long timeoutAcceptLiquidities = 60;
+        Round round = new Round(roundId, denomination, fees, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
         roundService.__reset(round);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, round);

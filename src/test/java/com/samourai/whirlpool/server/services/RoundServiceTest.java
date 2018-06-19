@@ -44,8 +44,13 @@ public class RoundServiceTest {
     @Test
     public void isRegisterInputReady_noLiquidity() throws Exception {
         RoundService spyRoundService = Mockito.spy(roundService);
-        float liquidityRatio = 0; // no liquidity
-        Round round = new Round(null, 0, 0, 2, 2, 0, liquidityRatio);
+        int minMustMix = 1;
+        int targetAnonymitySet = 2;
+        int minAnonymitySet = 2;
+        int maxAnonymitySet = 2;
+        long timeoutAdjustAnonymitySet = 10 * 60;
+        long timeoutAcceptLiquidities = 60; // TODO no liquidity
+        Round round = new Round("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
 
         // 0 mustMix => false
         Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
@@ -62,8 +67,13 @@ public class RoundServiceTest {
     @Test
     public void isRegisterInputReady_withLiquidityBefore() throws Exception {
         RoundService spyRoundService = Mockito.spy(roundService);
-        float liquidityRatio = 1; // with liquidity
-        Round round = new Round(null, 0, 0, 2, 2, 0, liquidityRatio);
+        int minMustMix = 1;
+        int targetAnonymitySet = 2;
+        int minAnonymitySet = 2;
+        int maxAnonymitySet = 2;
+        long timeoutAdjustAnonymitySet = 10 * 60;
+        long timeoutAcceptLiquidities = 60; // TODO with liquidity
+        Round round = new Round("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
 
         // 0 liquidity => false
         Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
@@ -88,8 +98,13 @@ public class RoundServiceTest {
     @Test
     public void isRegisterInputReady_withLiquidityAfter() throws Exception {
         RoundService spyRoundService = Mockito.spy(roundService);
-        float liquidityRatio = 1; // with liquidity
-        Round round = new Round(null, 0, 0, 2, 2, 0, liquidityRatio);
+        int minMustMix = 1;
+        int targetAnonymitySet = 2;
+        int minAnonymitySet = 2;
+        int maxAnonymitySet = 2;
+        long timeoutAdjustAnonymitySet = 10 * 60;
+        long timeoutAcceptLiquidities = 60; // TODO with liquidity
+        Round round = new Round("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
 
         // 0 mustMix => false
         Assert.assertFalse(spyRoundService.isRegisterInputReady(round));

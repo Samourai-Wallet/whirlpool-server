@@ -278,29 +278,29 @@ public class MultiClientManager {
         }
     }
 
-    public void roundNextTargetMustMixAdjustment() throws Exception {
-        int targetMustMixExpected = round.getTargetMustMix() - 1;
-        if (targetMustMixExpected < round.getMinMustMix()) {
-            throw new Exception("targetMustMixExpected < minMustMix");
+    public void roundNextTargetAnonymitySetAdjustment() throws Exception {
+        int targetAnonymitySetExpected = round.getTargetAnonymitySet() - 1;
+        if (targetAnonymitySetExpected < round.getMinAnonymitySet()) {
+            throw new Exception("targetAnonymitySetExpected < minAnonymitySet");
         }
 
-        log.info("roundNextTargetMustMixAdjustment: "+ (targetMustMixExpected+1) + " -> " + targetMustMixExpected);
+        log.info("roundNextTargetAnonymitySetAdjustment: "+ (targetAnonymitySetExpected+1) + " -> " + targetAnonymitySetExpected);
 
-        // simulate 9min58 elapsed... round targetMustMix should remain unchanged
-        roundLimitsManager.__simulateElapsedTime(round, round.getMustMixAdjustTimeout()-2);
+        // simulate 9min58 elapsed... round targetAnonymitySet should remain unchanged
+        roundLimitsManager.__simulateElapsedTime(round, round.getTimeoutAdjustAnonymitySet()-2);
         Thread.sleep(1000);
-        Assert.assertEquals(targetMustMixExpected + 1, round.getTargetMustMix());
+        Assert.assertEquals(targetAnonymitySetExpected + 1, round.getTargetAnonymitySet());
 
-        // a few seconds more, round targetMustMix should be decreased
-        waitRoundTargetMustMix(targetMustMixExpected);
+        // a few seconds more, round targetAnonymitySet should be decreased
+        waitRoundTargetAnonymitySet(targetAnonymitySetExpected);
     }
 
-    public void waitRoundTargetMustMix(int targetMustMixExpected) throws Exception {
+    public void waitRoundTargetAnonymitySet(int targetAnonymitySetExpected) throws Exception {
         int MAX_WAITS = 5;
         int WAIT_DURATION = 1000;
         for (int i=0; i<MAX_WAITS; i++) {
-            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for roundTargetMustMix: " + round.getTargetMustMix() + " vs " + targetMustMixExpected;
-            if (round.getTargetMustMix() != targetMustMixExpected) {
+            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for roundTargetAnonymitySet: " + round.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected;
+            if (round.getTargetAnonymitySet() != targetAnonymitySetExpected) {
                 log.info(msg + " : waiting longer...");
                 Thread.sleep(WAIT_DURATION);
             }
@@ -310,8 +310,8 @@ public class MultiClientManager {
             }
         }
 
-        log.info("# (LAST) Waiting for roundTargetMustMix: " + round.getTargetMustMix() + " vs " + targetMustMixExpected);
-        Assert.assertEquals(targetMustMixExpected, round.getTargetMustMix());
+        log.info("# (LAST) Waiting for roundTargetAnonymitySet: " + round.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected);
+        Assert.assertEquals(targetAnonymitySetExpected, round.getTargetAnonymitySet());
     }
 
     public Round getRound() {

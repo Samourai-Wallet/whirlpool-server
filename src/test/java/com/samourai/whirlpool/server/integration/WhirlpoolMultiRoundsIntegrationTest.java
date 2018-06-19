@@ -27,11 +27,13 @@ public class WhirlpoolMultiRoundsIntegrationTest extends AbstractIntegrationTest
         String roundId = "foo";
         long denomination = 200000000;
         long fees = 100000;
-        int targetMustMix = NB_CLIENTS_FIRST_ROUND;
         int minMustMix = 1;
-        long mustMixAdjustTimeout = 10 * 60; // 10 minutes
-        float liquidityRatio = 0; // no liquidity for this test
-        Round round = new Round(roundId, denomination, fees, targetMustMix, minMustMix, mustMixAdjustTimeout, liquidityRatio);
+        int targetAnonymitySet = NB_CLIENTS_FIRST_ROUND;
+        int minAnonymitySet = 1;
+        int maxAnonymitySet = NB_CLIENTS_FIRST_ROUND;
+        long timeoutAdjustAnonymitySet = 10 * 60; // 10 minutes
+        long timeoutAcceptLiquidities = 60;
+        Round round = new Round(roundId, denomination, fees, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
         roundService.__reset(round);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, round);
@@ -59,7 +61,7 @@ public class WhirlpoolMultiRoundsIntegrationTest extends AbstractIntegrationTest
         // we have 1 mustMix + 2 liquidities
         multiClientManager.assertRoundStatusRegisterInput(1, true);
 
-        multiClientManager.roundNextTargetMustMixAdjustment();
+        multiClientManager.roundNextTargetAnonymitySetAdjustment();
 
         //multiClientManager.assertRoundStatusSuccess(2, true); // still one liquidity
     }
