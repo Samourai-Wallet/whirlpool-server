@@ -76,7 +76,7 @@ public abstract class AbstractIntegrationTest {
         dbService.__reset();
         roundService.__nextRound();
         roundService.__setUseDeterministPaymentCodeMatching(true);
-        ((TestBlockchainDataService)blockchainDataService).resetMock();
+        ((MockBlockchainDataService)blockchainDataService).resetMock();
 
         roundLimitsManager = roundService.__getRoundLimitsManager();
     }

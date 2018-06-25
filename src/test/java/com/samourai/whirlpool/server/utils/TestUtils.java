@@ -10,7 +10,7 @@ import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.TestBlockchainDataService;
+import com.samourai.whirlpool.server.services.MockBlockchainDataService;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
@@ -121,10 +121,10 @@ public class TestUtils {
         }
 
         // mock tx
-        ((TestBlockchainDataService)blockchainDataService).mock(transaction, nbConfirmations);
+        ((MockBlockchainDataService)blockchainDataService).mock(transaction, nbConfirmations);
 
         // verify mock
-        RpcTransaction rpcTransaction = ((TestBlockchainDataService) blockchainDataService).getRpcTransaction(transaction.getHashAsString());
+        RpcTransaction rpcTransaction = ((MockBlockchainDataService) blockchainDataService).getRpcTransaction(transaction.getHashAsString());
         RpcOut rpcOut = Utils.findTxOutput(rpcTransaction, utxoIndex);
         Assert.assertEquals(addressBech32, bech32Util.getAddressFromScript(new Script(rpcOut.getScriptPubKey()), params));
 

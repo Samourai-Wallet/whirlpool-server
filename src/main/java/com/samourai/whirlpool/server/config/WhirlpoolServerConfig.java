@@ -242,6 +242,7 @@ public class WhirlpoolServerConfig {
         @NotBlank
         private String user;
         private String password;
+        private boolean mockTxBroadcast;
 
         public String getProtocol() {
             return protocol;
@@ -281,6 +282,14 @@ public class WhirlpoolServerConfig {
 
         public void setPassword(String password) {
             this.password = password;
+        }
+
+        public boolean isMockTxBroadcast() {
+            return mockTxBroadcast;
+        }
+
+        public void setMockTxBroadcast(boolean mockTxBroadcast) {
+            this.mockTxBroadcast = mockTxBroadcast;
         }
     }
 

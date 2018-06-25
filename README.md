@@ -39,13 +39,20 @@ UTXO for liquidities should be founded with *server.round.denomination*+*server.
 server.round.anonymity-set-target = 10
 server.round.anonymity-set-min = 6
 server.round.anonymity-set-max = 20
-server.round.anonymity-set-adjust-timeout
+server.round.anonymity-set-adjust-timeout = 120
 
-server.round.must-mix-min
-server.round.liquidity-timeout
+server.round.must-mix-min = 1
+server.round.liquidity-timeout = 60
 ```
 Round will start when *server.round.anonymity-set-target* (mustMix + liquidities) are registered.<br/>
 If this target is not met after *server.round.anonymity-set-adjust-timeout*, it will be gradually decreased to *server.round.anonymity-set-min*.<br/>
 
 At the beginning of the round, only mustMix can register and liquidities are placed on a waiting pool.<br/>
 After *server.round.liquidity-timeout*, liquidities are added as soon as *server.round.must-mix-min* is reached, up to *server.round.anonymity-set-max* inputs (mustMix + liquidities).
+
+### Testing
+```
+server.rpc-client.mock-tx-broadcast = false
+```
+For testing purpose, *server.rpc-client.mock-tx-broadcast* can be enabled to mock txs instead of broadcasting it.<br/>
+When enabled, server will keep whirlpool txs in memory until server restart and act as if these txs are confirmed in blockchain.
