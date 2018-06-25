@@ -4,6 +4,7 @@ import com.samourai.whirlpool.server.beans.RpcIn;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.exceptions.RoundException;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.slf4j.Logger;
@@ -47,7 +48,15 @@ public class BlockchainDataService {
     }
 
     public void broadcastTransaction(Transaction tx) throws Exception {
-        // TODO broadcast tx
+        String txid = tx.getHashAsString();
+        try {
+            log.info("Broadcasting tx " + txid);
+            rpcClient.sendRawTransaction(Utils.HEX.encode(tx.bitcoinSerialize()));
+        }
+        catch(Exception e) {
+            log.error("Unable to broadcast tx " + txid, e);
+            throw new RoundException("Unable to broadcast tx");
+        }
     }
 
     public boolean testConnectivity() {
