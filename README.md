@@ -47,8 +47,8 @@ server.round.liquidity-timeout = 60
 Round will start when *server.round.anonymity-set-target* (mustMix + liquidities) are registered.<br/>
 If this target is not met after *server.round.anonymity-set-adjust-timeout*, it will be gradually decreased to *server.round.anonymity-set-min*.<br/>
 
-At the beginning of the round, only mustMix can register and liquidities are placed on a waiting pool.<br/>
-After *server.round.liquidity-timeout*, liquidities are added as soon as *server.round.must-mix-min* is reached, up to *server.round.anonymity-set-max* inputs (mustMix + liquidities).
+At the beginning of the round, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
+After *server.round.liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *server.round.must-mix-min* is reached, up to *server.round.anonymity-set-max* inputs for the round.
 
 ### Testing
 ```

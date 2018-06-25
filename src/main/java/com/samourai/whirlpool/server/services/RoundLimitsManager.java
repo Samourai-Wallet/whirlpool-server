@@ -106,7 +106,7 @@ public class RoundLimitsManager {
 
                     default:
                         // should never use this default value
-                        timeToWait = 10000;
+                        timeToWait = 30000;
                         break;
                 }
                 return timeToWait;
@@ -119,6 +119,9 @@ public class RoundLimitsManager {
                         long elapsedTime = timeoutWatcher.computeElapsedTime();
                         if (!round.isAcceptLiquidities() && computeTimeToWaitAcceptLiquidities(elapsedTime) <= 0) {
                             // accept liquidities
+                            if (log.isDebugEnabled()) {
+                                log.debug("accepting liquidities now (liquidityTimeout elapsed)");
+                            }
                             round.setAcceptLiquidities(true);
                             addLiquidities(round);
                         }
@@ -180,9 +183,29 @@ public class RoundLimitsManager {
             this.roundWatchers.put(roundId, roundLimitsWatcher);
         }
 
-        if (round.isAcceptLiquidities() && round.getNbInputsLiquidities() == 0 && round.hasMinMustMixReached()) {
-            // we just reached minMustMix and acceptLiquidities was enabled earlier => add liquidities now
-            addLiquidities(round);
+        // avoid concurrent liquidity management
+        if (round.getNbInputsLiquidities() == 0) {
+
+            if (!round.isAcceptLiquidities()) {
+                if (roundService.isRegisterInputReady(round)) {
+                    // round is ready to start => add liquidities now
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("adding liquidities now (round is ready to start)");
+                    }
+                    round.setAcceptLiquidities(true);
+                    addLiquidities(round);
+                }
+            }
+            else {
+                if (round.hasMinMustMixReached()) {
+                    // round is not ready to start but minMustMix reached and liquidities accepted => ad liquidities now
+                    if (log.isDebugEnabled()) {
+                        log.debug("adding liquidities now (minMustMix reached and acceptLiquidities=true)");
+                    }
+                    addLiquidities(round);
+                }
+            }
         }
     }
 
@@ -193,14 +216,18 @@ public class RoundLimitsManager {
             return;
         }
 
-        int liquiditiesToAdd = round.getTargetAnonymitySet() - round.getNbInputs();
+        int liquiditiesToAdd = round.getMaxAnonymitySet() - round.getNbInputs();
         if (liquiditiesToAdd > 0) {
             // round needs liquidities
             try {
                 LiquidityPool liquidityPool = getLiquidityPool(round);
+                if (log.isDebugEnabled()) {
+                    log.debug("Adding up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
+                }
+
                 int liquiditiesAdded = 0;
                 while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
-                    log.info("Adding liquidity " + (liquiditiesAdded + 1) + "/" + liquiditiesToAdd);
+                    log.info("Adding liquidity " + (liquiditiesAdded + 1) + "(" + liquiditiesToAdd + " max.)");
                     RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
                     try {
                         roundService.addLiquidity(round, randomLiquidity);
@@ -209,10 +236,6 @@ public class RoundLimitsManager {
                         log.error("registerInput error when adding liquidity", e);
                         // ignore the error and continue with more liquidity
                     }
-                }
-                int missingLiquidities = liquiditiesToAdd - liquiditiesAdded;
-                if (missingLiquidities > 0) {
-                    log.warn("Not enough liquidities to start the round now! " + missingLiquidities + " liquidities missing");
                 }
             }
             catch(Exception e) {

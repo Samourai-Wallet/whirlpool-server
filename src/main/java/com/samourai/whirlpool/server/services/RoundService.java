@@ -110,9 +110,22 @@ public class RoundService {
         RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
         liquidityPool.registerLiquidity(registeredInputQueued);
         log.info(" • queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
+
+        logRoundStatus(round);
     }
 
     private synchronized void registerInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException {
+        // registerInput + response
+        doRegisterInput(round, registeredInput, signedBordereauToReply, isLiquidity);
+
+        // check round limits
+        roundLimitsManager.onInputRegistered(round);
+
+        // check round ready
+        checkRegisterInputReady(round);
+    }
+
+    private void doRegisterInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException {
         TxOutPoint input = registeredInput.getInput();
         String username = registeredInput.getUsername();
 
@@ -131,18 +144,16 @@ public class RoundService {
         // add immediately to round inputs
         round.registerInput(registeredInput);
         log.info(" • registered "+(isLiquidity ? "liquidity" : "mustMix")+": " + registeredInput.getInput());
-        roundLimitsManager.onInputRegistered(round);
+        logRoundStatus(round);
 
         // response
         RegisterInputResponse registerInputResponse = new RegisterInputResponse();
         registerInputResponse.signedBordereau = signedBordereauToReply;
         webSocketService.sendPrivate(username, registerInputResponse);
-
-        checkRegisterInputReady(round);
     }
 
     public void addLiquidity(Round round, RegisteredLiquidity randomLiquidity) throws Exception {
-        registerInput(round, randomLiquidity.getRegisteredInput(), randomLiquidity.getSignedBordereau(), true);
+        doRegisterInput(round, randomLiquidity.getRegisteredInput(), randomLiquidity.getSignedBordereau(), true);
     }
 
     private boolean isRegisterLiquiditiesOpen(Round round) {
@@ -150,7 +161,7 @@ public class RoundService {
             // wait to get enough mustMix before accepting liquidities
             return false;
         }
-        if (round.isAcceptLiquidities()) {
+        if (!round.isAcceptLiquidities()) {
             return false;
         }
         return true;
@@ -174,7 +185,7 @@ public class RoundService {
         return (input.getValue() == spendAmount);
     }
 
-    protected boolean isRegisterInputReady(Round round) {
+    public boolean isRegisterInputReady(Round round) {
         if (round.getNbInputs() == 0) {
             return false;
         }
@@ -202,7 +213,6 @@ public class RoundService {
     }
 
     public void checkRegisterInputReady(Round round) {
-        logRoundStatus(round);
         if (isRegisterInputReady(round)) {
             changeRoundStatus(round.getRoundId(), RoundStatus.REGISTER_OUTPUT);
         }
