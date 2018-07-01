@@ -6,6 +6,7 @@ import com.samourai.whirlpool.client.RoundParams;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.WhirlpoolMultiRoundClient;
 import com.samourai.whirlpool.client.WhirlpoolMultiRoundClientListener;
+import com.samourai.whirlpool.client.beans.RoundResultSuccess;
 import com.samourai.whirlpool.client.simple.ISimpleWhirlpoolClient;
 import com.samourai.whirlpool.client.simple.SimpleWhirlpoolClient;
 import com.samourai.whirlpool.client.utils.WhirlpoolClientConfig;
@@ -141,7 +142,7 @@ public class MultiClientManager {
             }
 
             @Override
-            public void roundSuccess(int currentRound, int nbRounds) {
+            public void roundSuccess(int currentRound, int nbRounds, RoundResultSuccess roundResultSuccess) {
             }
 
             @Override
