@@ -56,3 +56,15 @@ server.rpc-client.mock-tx-broadcast = false
 ```
 For testing purpose, *server.rpc-client.mock-tx-broadcast* can be enabled to mock txs instead of broadcasting it.<br/>
 When enabled, server will keep whirlpool txs in memory until server restart and act as if these txs are confirmed in blockchain.
+
+### Building
+- Use *build.sh* on your local developer machine:
+```
+./build.sh
+```
+
+This script:
+ * clones whirlpool modules from git remote
+ * mvn install each module
+ * generate whirlpool-server-*.jar to *./build* directory
+
