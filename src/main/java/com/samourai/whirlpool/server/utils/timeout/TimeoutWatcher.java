@@ -37,9 +37,6 @@ public class TimeoutWatcher implements Runnable {
                 waitSince = System.currentTimeMillis();
             }
             else {
-                if (log.isDebugEnabled()) {
-                    log.debug(timeToWait + "ms to wait before next check.");
-                }
                 try {
                     Thread.sleep(timeToWait);
                 }
