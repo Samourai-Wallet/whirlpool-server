@@ -60,7 +60,7 @@ public class BlockchainDataService {
     }
 
     public boolean testConnectivity() {
-        String nodeUrl = whirlpoolServerConfig.getRpcClient().getHost()+":"+whirlpoolServerConfig.getRpcClient().getPort();
+        String nodeUrl = rpcClient.rpcURL.toString();
         log.info("Connecting to bitcoin node... url="+nodeUrl);
         try {
             // verify node connectivity

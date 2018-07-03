@@ -17,6 +17,8 @@ import org.springframework.core.task.TaskExecutor;
 import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 
 import java.lang.invoke.MethodHandles;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 @Configuration
 public class ServicesConfig {
@@ -32,10 +34,20 @@ public class ServicesConfig {
 
     @Bean
     BitcoinJSONRPCClient bitcoinJSONRPCClient() throws Exception {
+        URL rpcClientUrl = computeRpcClientUrl();
+        BitcoinJSONRPCClient rpcClient = new BitcoinJSONRPCClient(rpcClientUrl);
+        return rpcClient;
+    }
+
+    private URL computeRpcClientUrl() throws Exception {
         WhirlpoolServerConfig.RpcClientConfig config = whirlpoolServerConfig.getRpcClient();
-        String url = config.getProtocol()+"://"+config.getUser()+":"+config.getPassword()+"@"+config.getHost()+":"+config.getPort();
-        BitcoinJSONRPCClient bitcoinClient = new BitcoinJSONRPCClient(url);
-        return bitcoinClient;
+        String rpcClientUrl = config.getProtocol() + "://" + config.getUser() + ":" + config.getPassword() + "@" + config.getHost() + ":" + config.getPort();
+        try {
+            return new URL(rpcClientUrl);
+        }
+        catch(Exception e) {
+            throw new Exception("invalid rpcClientUrl: "+rpcClientUrl);
+        }
     }
 
     @Bean
