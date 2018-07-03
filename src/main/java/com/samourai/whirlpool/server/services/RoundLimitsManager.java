@@ -164,6 +164,15 @@ public class RoundLimitsManager {
         log.info(" • must-mix-adjust-timeout over, adjusting targetAnonymitySet: "+nextTargetAnonymitySet);
         round.setTargetAnonymitySet(nextTargetAnonymitySet);
         timeoutWatcher.resetTimeout();
+
+        // is round ready now?
+        if (roundService.isRegisterInputReady(round)) {
+            // add liquidities first
+            checkAddLiquidities(round);
+
+            // start round
+            roundService.checkRegisterInputReady(round);
+        }
     }
 
     public LiquidityPool getLiquidityPool(Round round) throws RoundException {
@@ -183,6 +192,11 @@ public class RoundLimitsManager {
             this.roundWatchers.put(roundId, roundLimitsWatcher);
         }
 
+        // maybe we can add liquidities now
+        checkAddLiquidities(round);
+    }
+
+    private void checkAddLiquidities(Round round) {
         // avoid concurrent liquidity management
         if (round.getNbInputsLiquidities() == 0) {
 
