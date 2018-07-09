@@ -242,7 +242,7 @@ public class RoundService {
             // TODO recheck inputs balances and update/ban/reopen REGISTER_INPUT or fail if input spent in the meantime
             return false;
         }
-        return (round.getSendAddresses().size() == round.getNbInputs());
+        return (round.getRegisteredBordereaux().size() == round.getNbInputs());
     }
 
     public synchronized void revealOutput(String roundId, String username, String bordereau) throws RoundException, IllegalInputException {
@@ -266,7 +266,7 @@ public class RoundService {
     }
 
     protected synchronized boolean isRevealOutputOrBlameReady(Round round) {
-        return (round.getRevealedOutputUsers().size() == round.getNbInputs());
+        return (round.getRevealedOutputUsers().size() == round.getRegisteredBordereaux().size());
     }
 
     public synchronized void registerSignature(String roundId, String username, byte[][] witness) throws Exception {

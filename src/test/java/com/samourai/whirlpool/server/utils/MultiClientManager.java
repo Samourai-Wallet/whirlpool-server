@@ -270,13 +270,19 @@ public class MultiClientManager {
     }
 
     private void assertClientsSuccess(int nbAllRegisteredExpected, int numRound) {
-        // all clients shoud have success status
-        for (int i=0; i<nbAllRegisteredExpected; i++) {
+        // clients shoud have success status
+        int nbSuccess = 0;
+        for (int i=0; i<multiRoundClients.length; i++) {
             WhirlpoolMultiRoundClient multiRoundClient = multiRoundClients[i];
             WhirlpoolClient whirlpoolClient = multiRoundClient.getClient(numRound);
-            Assert.assertEquals(RoundStatus.SUCCESS, whirlpoolClient.__getRoundStatusNotification().status);
-            Assert.assertTrue(whirlpoolClient.isDone());
+            if (RoundStatus.SUCCESS.equals(whirlpoolClient.__getRoundStatusNotification().status) && whirlpoolClient.isDone()) {
+                nbSuccess++;
+            }
         }
+        if (nbAllRegisteredExpected != nbSuccess) {
+            debugClients();
+        }
+        Assert.assertEquals(nbAllRegisteredExpected, nbSuccess);
     }
 
     public void roundNextTargetAnonymitySetAdjustment() throws Exception {
