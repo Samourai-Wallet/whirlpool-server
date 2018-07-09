@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.RoundException;
@@ -21,7 +22,8 @@ public class RoundLimitsManager {
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
     private Map<String, LiquidityPool> liquidityPools;
-    private Map<String, TimeoutWatcher> roundWatchers;
+    private Map<String, TimeoutWatcher> limitsWatchers;
+    private Map<String, TimeoutWatcher> liquidityWatchers;
 
     public RoundLimitsManager(RoundService roundService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.roundService = roundService;
@@ -29,12 +31,18 @@ public class RoundLimitsManager {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
 
         this.liquidityPools = new HashMap<>();
-        this.roundWatchers = new HashMap<>();
+        this.limitsWatchers = new HashMap<>();
+        this.liquidityWatchers = new HashMap<>();
     }
 
-    private TimeoutWatcher getRoundLimitsWatcher(Round round) {
+    private TimeoutWatcher getLimitsWatcher(Round round) {
         String roundId = round.getRoundId();
-        return roundWatchers.get(roundId);
+        return limitsWatchers.get(roundId);
+    }
+
+    private TimeoutWatcher getLiquidityWatcher(Round round) {
+        String roundId = round.getRoundId();
+        return liquidityWatchers.get(roundId);
     }
 
     public void manage(Round round) {
@@ -49,34 +57,45 @@ public class RoundLimitsManager {
         LiquidityPool liquidityPool = new LiquidityPool();
         liquidityPools.put(roundId, liquidityPool);
 
-        // wait first input registered before instanciating roundWatcher
+        // wait first mustMix before instanciating limitsWatcher & liquidityWatchers
     }
 
     public void unmanage(Round round) {
         String roundId = round.getRoundId();
         liquidityPools.remove(roundId);
 
-        TimeoutWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
-        if (roundLimitsWatcher != null) {
-            roundLimitsWatcher.stop();
-            roundWatchers.remove(roundId);
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+        if (limitsWatcher != null) {
+            limitsWatcher.stop();
+            limitsWatchers.remove(roundId);
+        }
+
+        TimeoutWatcher liquidityWatcher = getLiquidityWatcher(round);
+        if (liquidityWatcher != null) {
+            liquidityWatcher.stop();
+            liquidityWatchers.remove(roundId);
         }
     }
 
     public void onRoundStatusChange(Round round) {
-        TimeoutWatcher roundLimitsWatcher = getRoundLimitsWatcher(round);
-
         // reset timeout for new roundStatus
-        roundLimitsWatcher.resetTimeout();
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+        limitsWatcher.resetTimeout();
+
+        // clear liquidityWatcher when REGISTER_INPUT completed
+        if (!RoundStatus.REGISTER_INPUT.equals(round.getRoundStatus())) {
+            TimeoutWatcher liquidityWatcher = getLiquidityWatcher(round);
+            if (liquidityWatcher != null) {
+                String roundId = round.getRoundId();
+
+                liquidityWatcher.stop();
+                liquidityWatchers.remove(roundId);
+            }
+        }
     }
 
-    public TimeoutWatcher computeRoundLimitsWatcher(Round round) {
+    private TimeoutWatcher computeLimitsWatcher(Round round) {
         ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
-            private long computeTimeToWaitAcceptLiquidities(long elapsedTime) {
-                long timeToWaitAcceptLiquidities = round.getLiquidityTimeout()*1000 - elapsedTime;
-                return timeToWaitAcceptLiquidities;
-            }
-
             @Override
             public long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
                 long elapsedTime = timeoutWatcher.computeElapsedTime();
@@ -85,15 +104,7 @@ public class RoundLimitsManager {
                 switch(round.getRoundStatus()) {
                     case REGISTER_INPUT:
                         // timeout before next targetAnonymitySet adjustment
-                        long timeToWaitAnonymitySetAdjust = round.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
-                        // timeout before accepting liquidities
-                        if (!round.isAcceptLiquidities()) {
-                            long timeToWaitAcceptLiquidities = computeTimeToWaitAcceptLiquidities(elapsedTime);
-                            timeToWait = Math.min(timeToWaitAnonymitySetAdjust, timeToWaitAcceptLiquidities);
-                        }
-                        else {
-                            timeToWait = timeToWaitAnonymitySetAdjust;
-                        }
+                        timeToWait = round.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
                         break;
 
                     case REGISTER_OUTPUT:
@@ -102,6 +113,10 @@ public class RoundLimitsManager {
 
                     case SIGNING:
                         timeToWait = whirlpoolServerConfig.getSigning().getTimeout() * 1000 - elapsedTime;
+                        break;
+
+                    case REVEAL_OUTPUT_OR_BLAME:
+                        timeToWait = whirlpoolServerConfig.getRevealOutput().getTimeout() * 1000 - elapsedTime;
                         break;
 
                     default:
@@ -114,30 +129,55 @@ public class RoundLimitsManager {
 
             @Override
             public void onTimeout(TimeoutWatcher timeoutWatcher) {
+                if (log.isDebugEnabled()) {
+                    log.debug("limitsWatcher.onTimeout");
+                }
                 switch(round.getRoundStatus()) {
                     case REGISTER_INPUT:
-                        long elapsedTime = timeoutWatcher.computeElapsedTime();
-                        if (!round.isAcceptLiquidities() && computeTimeToWaitAcceptLiquidities(elapsedTime) <= 0) {
-                            // accept liquidities
-                            if (log.isDebugEnabled()) {
-                                log.debug("accepting liquidities now (liquidityTimeout elapsed)");
-                            }
-                            round.setAcceptLiquidities(true);
-                            addLiquidities(round);
-                        }
-                        else {
-                            // adjust targetAnonymitySet
-                            adjustTargetAnonymitySet(round, timeoutWatcher);
-                        }
+                        // adjust targetAnonymitySet
+                        adjustTargetAnonymitySet(round, timeoutWatcher);
                         break;
 
                     case REGISTER_OUTPUT:
                         roundService.goRevealOutputOrBlame(round.getRoundId());
                         break;
 
+                    case REVEAL_OUTPUT_OR_BLAME:
+                        blameForRevealOutputAndResetRound(round);
+                        break;
+
                     case SIGNING:
                         blameForSigningAndResetRound(round);
                         break;
+                }
+            }
+        };
+
+        TimeoutWatcher roundLimitsWatcher = new TimeoutWatcher(listener);
+        return roundLimitsWatcher;
+    }
+
+    private TimeoutWatcher computeLiquidityWatcher(Round round) {
+        ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
+            @Override
+            public long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
+                long elapsedTime = timeoutWatcher.computeElapsedTime();
+                long timeToWait = round.getLiquidityTimeout()*1000 - elapsedTime;
+                return timeToWait;
+            }
+
+            @Override
+            public void onTimeout(TimeoutWatcher timeoutWatcher) {
+                if (log.isDebugEnabled()) {
+                    log.debug("liquidityWatcher.onTimeout");
+                }
+                if (RoundStatus.REGISTER_INPUT.equals(round.getRoundStatus()) && !round.isAcceptLiquidities()) {
+                    // accept liquidities
+                    if (log.isDebugEnabled()) {
+                        log.debug("accepting liquidities now (liquidityTimeout elapsed)");
+                    }
+                    round.setAcceptLiquidities(true);
+                    addLiquidities(round);
                 }
             }
         };
@@ -154,8 +194,8 @@ public class RoundLimitsManager {
             return;
         }
 
-        // round is ready => nothing to do
-        if (round.getNbInputs() >= round.getTargetAnonymitySet() || round.getMinAnonymitySet() >= round.getTargetAnonymitySet()) {
+        // anonymitySet already at minimum
+        if (round.getMinAnonymitySet() >= round.getTargetAnonymitySet()) {
             return;
         }
 
@@ -185,11 +225,14 @@ public class RoundLimitsManager {
     }
 
     public synchronized void onInputRegistered(Round round) {
-        // first input registered => instanciate roundWatcher
+        // first mustMix registered => instanciate limitsWatcher & liquidityWatcher
         if (round.getNbInputs() == 1) {
             String roundId = round.getRoundId();
-            TimeoutWatcher roundLimitsWatcher = computeRoundLimitsWatcher(round);
-            this.roundWatchers.put(roundId, roundLimitsWatcher);
+            TimeoutWatcher limitsWatcher = computeLimitsWatcher(round);
+            this.limitsWatchers.put(roundId, limitsWatcher);
+
+            TimeoutWatcher liquidityWatcher = computeLiquidityWatcher(round);
+            this.liquidityWatchers.put(roundId, liquidityWatcher);
         }
 
         // maybe we can add liquidities now
@@ -284,7 +327,12 @@ public class RoundLimitsManager {
     public void __simulateElapsedTime(Round round, long elapsedTimeSeconds) {
         String roundId = round.getRoundId();
         log.info("__simulateElapsedTime for roundId="+roundId);
-        TimeoutWatcher roundLimitsWatcher = roundWatchers.get(roundId);
-        roundLimitsWatcher.__simulateElapsedTime(elapsedTimeSeconds);
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+        limitsWatcher.__simulateElapsedTime(elapsedTimeSeconds);
+
+        TimeoutWatcher liquidityWatcher = getLiquidityWatcher(round);
+        if (liquidityWatcher != null) {
+            liquidityWatcher.__simulateElapsedTime(elapsedTimeSeconds);
+        }
     }
 }
