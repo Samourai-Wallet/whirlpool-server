@@ -20,6 +20,7 @@ public class WhirlpoolServerConfig {
     private RegisterInputConfig registerInput;
     private RegisterOutputConfig registerOutput;
     private SigningConfig signing;
+    private RevealOutputConfig revealOutput;
     private BanConfig ban;
     private RoundConfig round;
 
@@ -84,6 +85,14 @@ public class WhirlpoolServerConfig {
         this.signing = signing;
     }
 
+    public RevealOutputConfig getRevealOutput() {
+        return revealOutput;
+    }
+
+    public void setRevealOutput(RevealOutputConfig revealOutput) {
+        this.revealOutput = revealOutput;
+    }
+
     public BanConfig getBan() {
         return ban;
     }
@@ -134,6 +143,18 @@ public class WhirlpoolServerConfig {
     }
 
     public static class SigningConfig {
+        private int timeout;
+
+        public int getTimeout() {
+            return timeout;
+        }
+
+        public void setTimeout(int timeout) {
+            this.timeout = timeout;
+        }
+    }
+
+    public static class RevealOutputConfig {
         private int timeout;
 
         public int getTimeout() {
