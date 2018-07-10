@@ -21,15 +21,26 @@ public class MockBlockchainDataService extends BlockchainDataService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private CryptoService cryptoService;
     private Bech32Util bech32Util;
+    private boolean mockRpc;
     private Map<String,RpcTransaction> mockTransactions;
 
     private static final int MOCK_TX_CONFIRMATIONS = 99;
 
-    public MockBlockchainDataService(BitcoinJSONRPCClient rpcClient, CryptoService cryptoService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public MockBlockchainDataService(BitcoinJSONRPCClient rpcClient, CryptoService cryptoService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, boolean mockRpc) {
         super(rpcClient, whirlpoolServerConfig);
         this.cryptoService = cryptoService;
         this.bech32Util = bech32Util;
+        this.mockRpc = mockRpc;
         this.mockTransactions = new HashMap<>();
+    }
+
+    @Override
+    public boolean testConnectivity() {
+        if (mockRpc) {
+            log.info("Connecting to bitcoin node... MOCK");
+            return true;
+        }
+        return super.testConnectivity();
     }
 
     @Override
@@ -38,7 +49,13 @@ public class MockBlockchainDataService extends BlockchainDataService {
         if (rpcTransaction != null) {
             return rpcTransaction;
         }
-        return super.getRpcTransaction(hash);
+        if (mockRpc) {
+            log.error("mocked tx not found: " + hash);
+            return null;
+        }
+        else {
+            return super.getRpcTransaction(hash);
+        }
     }
 
     @Override

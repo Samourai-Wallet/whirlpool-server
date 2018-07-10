@@ -17,12 +17,12 @@ import org.springframework.core.task.TaskExecutor;
 import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 
 import java.lang.invoke.MethodHandles;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 @Configuration
 public class ServicesConfig {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final String RPC_CLIENT_PROTOCOL_MOCK = "mock";
 
     @Autowired
     private WhirlpoolServerConfig whirlpoolServerConfig;
@@ -33,7 +33,12 @@ public class ServicesConfig {
     }
 
     @Bean
-    BitcoinJSONRPCClient bitcoinJSONRPCClient() throws Exception {
+    BitcoinJSONRPCClient bitcoinJSONRPCClient(WhirlpoolServerConfig whirlpoolServerConfig) throws Exception {
+        boolean mockRpc = isMockRpc(whirlpoolServerConfig);
+        if (mockRpc) {
+            log.warn("server.rpc-client.protocol=mock, no real blockchain data will be used");
+            return null;
+        }
         URL rpcClientUrl = computeRpcClientUrl();
         BitcoinJSONRPCClient rpcClient = new BitcoinJSONRPCClient(rpcClientUrl);
         return rpcClient;
@@ -74,11 +79,30 @@ public class ServicesConfig {
     }
 
     @Bean
-    public BlockchainDataService blockchainDataService(BitcoinJSONRPCClient rpcClient, CryptoService cryptoService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig) {
-        if (whirlpoolServerConfig.getRpcClient().isMockTxBroadcast()) {
-            log.warn("server.rpc-client.mock-tx-broadcast=TRUE, tx WON'T be broadcasted by server");
-            return new MockBlockchainDataService(rpcClient, cryptoService, bech32Util, whirlpoolServerConfig);
+    public BlockchainDataService blockchainDataService(BitcoinJSONRPCClient rpcClient, WhirlpoolServerConfig whirlpoolServerConfig, MockBlockchainDataService mockBlockchainDataService) {
+        if (mockBlockchainDataService != null) {
+            log.info("Loading BlockchainDataService... mocked");
+            return mockBlockchainDataService;
         }
+
+        log.info("Loading BlockchainDataService... production");
         return new BlockchainDataService(rpcClient, whirlpoolServerConfig);
     }
+
+    @Bean
+    public MockBlockchainDataService mockBlockchainDataService(BitcoinJSONRPCClient rpcClient, CryptoService cryptoService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig) {
+        boolean mockRpc = isMockRpc(whirlpoolServerConfig);
+        if (whirlpoolServerConfig.getRpcClient().isMockTxBroadcast() || mockRpc) {
+            log.warn("server.rpc-client.mock-tx-broadcast=TRUE, tx WON'T be broadcasted by server");
+            return new MockBlockchainDataService(rpcClient, cryptoService, bech32Util, whirlpoolServerConfig, mockRpc);
+        }
+
+        // mock disabled
+        return null;
+    }
+
+    private boolean isMockRpc(WhirlpoolServerConfig whirlpoolServerConfig) {
+        return RPC_CLIENT_PROTOCOL_MOCK.equals(whirlpoolServerConfig.getRpcClient().getProtocol().toLowerCase());
+    }
+
 }
