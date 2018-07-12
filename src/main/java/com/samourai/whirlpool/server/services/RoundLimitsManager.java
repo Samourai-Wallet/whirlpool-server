@@ -8,6 +8,8 @@ import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Service
 public class RoundLimitsManager {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private RoundService roundService;
@@ -25,14 +28,19 @@ public class RoundLimitsManager {
     private Map<String, TimeoutWatcher> limitsWatchers;
     private Map<String, TimeoutWatcher> liquidityWatchers;
 
-    public RoundLimitsManager(RoundService roundService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
-        this.roundService = roundService;
+    @Autowired
+    public RoundLimitsManager(BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.blameService = blameService;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
 
         this.liquidityPools = new HashMap<>();
         this.limitsWatchers = new HashMap<>();
         this.liquidityWatchers = new HashMap<>();
+    }
+
+    // avoids circular reference
+    public void setRoundService(RoundService roundService) {
+        this.roundService = roundService;
     }
 
     private TimeoutWatcher getLimitsWatcher(Round round) {

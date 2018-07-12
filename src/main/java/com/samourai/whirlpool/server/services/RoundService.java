@@ -39,7 +39,7 @@ public class RoundService {
     private boolean deterministPaymentCodeMatching; // for testing purpose only
 
     @Autowired
-    public RoundService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public RoundService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, RoundLimitsManager roundLimitsManager) {
         this.cryptoService = cryptoService;
         this.blameService = blameService;
         this.dbService = dbService;
@@ -47,8 +47,9 @@ public class RoundService {
         this.webSocketService = webSocketService;
         this.bech32Util = bech32Util;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
+        roundLimitsManager.setRoundService(this); // avoids circular reference
+        this.roundLimitsManager = roundLimitsManager;
 
-        this.roundLimitsManager = new RoundLimitsManager(this, blameService, whirlpoolServerConfig);
         this.deterministPaymentCodeMatching = false;
 
         WhirlpoolServerConfig.RoundConfig roundConfig = whirlpoolServerConfig.getRound();
