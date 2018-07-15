@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="decorators/dashboard">
+<head>
+    <title>Status</title>
+    <meta http-equiv="refresh" content="30" />
+    <link rel="stylesheet" th:href="@{/css/smartwizard.css}"/>
+</head>
+<body>
+    <div layout:fragment="main">
+        <h1 class="h2">Current round</h1>
+
+        RoundId: <span th:text="${roundId}"/><br/>
+        Status: <span th:text="${roundStatus}"/><br/>
+        Duration: 5min22s<br/>
+        <br/>
+
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+progressPercent+'%'}"></div>
+        </div>
+        <br/>
+
+        <div class="sw-main sw-theme-dots">
+            <ul class="nav nav-tabs step-anchor">
+                <li class="nav-item done"><a href="#" class="nav-link">REGISTER_INPUT<br/><small>12:01:01</small></a></li>
+                <li class="nav-item done"><a href="#" class="nav-link">REGISTER_OUTPUT<br/><small>12:03:01</small></a></li>
+                <li class="nav-item active"><a href="#" class="nav-link">SIGNING<br/><small>236s remaining</small></a></li>
+                <li class="nav-item"><a href="#" class="nav-link">SUCCESS<br/><small>...</small></a></li>
+            </ul>
+        </div>
+
+        Anonymity set: <span th:text="${nbInputs}"/> / <span th:text="${targetAnonymitySet}"/> (<span th:text="${nbInputsMustMix}"/> mustMix + <span th:text="${nbInputsLiquidities}"/> liquidities)<br/>
+        Liquidity pool: <span th:text="${nbLiquiditiesAvailable}"/> more liquidities available<br/>
+
+        <span th:text="${minAnonymitySet}"/> <span th:text="${maxAnonymitySet}"/>
+        <br/>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Event</th>
+                <th scope="col">Details</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01/05/2018 12:19:25</td>
+                    <td>REGISTER_INPUT</td>
+                    <td>utxos: [kdlskdlsdk:1, lskdlskd:2]</td>
+                </tr>
+                <tr>
+                    <td>01/05/2018 12:19:25</td>
+                    <td>First mustmix joined</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>01/05/2018 12:19:25</td>
+                    <td>REGISTER_OUTPUT</td>
+                    <td>receiveAddresses: flkdfldfkdlf, kgjkjgfkjg</td>
+                </tr>
+                <tr>
+                    <td>01/05/2018 12:19:25</td>
+                    <td>SIGNING</td>
+                    <td>txid: 1219281928<br/>
+                        raw tx to sign: IDU2IDJSJFISJFKSJFKSJF</td>
+                </tr>
+                <tr>
+                    <td>in 65s</td>
+                    <td>COMPLETE</td>
+                    <td>txid: -<br/>
+                        raw tx: -</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

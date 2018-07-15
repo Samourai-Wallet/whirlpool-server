@@ -6,6 +6,9 @@
 	<artifactId>whirlpool-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>whirlpool-server</name>
+    <properties>
+        <spring.version>1.5.13.RELEASE</spring.version>
+    </properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.samouraiwallet</groupId>
@@ -22,9 +25,20 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
-			<version>1.5.12.RELEASE</version>
+			<version>${spring.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<!--<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<version>${spring.version}</version>
+			<optional>true</optional>
+		</dependency>-->
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
@@ -43,6 +57,16 @@
 			<version>0.9.17</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>4.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>jquery</artifactId>
+			<version>3.1.1-1</version>
+		</dependency>
 		<!-- test -->
 		<dependency>
 			<groupId>com.samouraiwallet</groupId>
@@ -53,7 +77,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<version>1.5.12.RELEASE</version>
+			<version>${spring.version}</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -98,6 +122,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${spring.version}</version>
 				<configuration>
 					<fork>true</fork>
 					<mainClass>com.samourai.whirlpool.server.Application</mainClass>
