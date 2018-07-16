@@ -2,10 +2,10 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.beans.BlameReason;
 import com.samourai.whirlpool.server.beans.RoundResult;
-import com.samourai.whirlpool.server.to.BlameTO;
+import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.to.RoundTO;
+import com.samourai.whirlpool.server.persistence.to.RoundTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.springframework.stereotype.Service;
 

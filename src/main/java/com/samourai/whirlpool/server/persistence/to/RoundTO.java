@@ -1,9 +1,12 @@
-package com.samourai.whirlpool.server.to;
+package com.samourai.whirlpool.server.persistence.to;
 
 import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.beans.RoundResult;
 
-public class RoundTO {
+import javax.persistence.Entity;
+
+@Entity
+public class RoundTO extends EntityTO {
     private String roundId;
     private int nbMustMix;
     private int nbLiquidities;

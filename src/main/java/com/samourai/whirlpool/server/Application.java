@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server;
 
 import com.samourai.whirlpool.server.services.BlockchainDataService;
+import com.samourai.whirlpool.server.utils.DbUtils;
 import com.samourai.whirlpool.server.utils.LogbackUtils;
 import org.apache.log4j.Level;
 import org.slf4j.Logger;
@@ -16,7 +17,10 @@ import org.springframework.context.ApplicationContext;
 public class Application implements ApplicationRunner {
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
+	private static final String SETUP_SQL_FILENAME = "classpath:setup.sql";
+
 	private static final String ARG_DEBUG = "debug";
+	private static final String ARG_SETUP = "setup";
 
 	private ApplicationArguments args;
 
@@ -26,6 +30,9 @@ public class Application implements ApplicationRunner {
 	@Autowired
 	private ApplicationContext applicationContext;
 
+	@Autowired
+	private DbUtils dbUtils;
+
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
@@ -34,17 +41,39 @@ public class Application implements ApplicationRunner {
 	public void run(ApplicationArguments args) {
 		this.args = args;
 
+		if (args.containsOption(ARG_SETUP)) {
+			setup();
+			exit();
+		}
+
 		if (args.containsOption(ARG_DEBUG)) {
 			// enable debug logs
 			LogbackUtils.setLogLevel("com.samourai.whirlpool.server", Level.DEBUG.toString());
 		}
 
 		if (!blockchainDataService.testConnectivity()) {
-			int exitCode = 1;
-			SpringApplication.exit(applicationContext, () -> exitCode);
-			System.exit(exitCode);
+			exit();
 		}
 
 		log.info("------------ whirlpool-server ------------");
+	}
+
+	private void exit() {
+		final int exitCode = 1;
+		SpringApplication.exit(applicationContext, () -> exitCode);
+		System.exit(exitCode);
+	}
+
+	private void setup() {
+		try {
+			log.info("ENTERING SETUP...");
+
+			// setup database
+			dbUtils.runSqlFile(SETUP_SQL_FILENAME);
+
+			log.info("SETUP SUCCESS.");
+		} catch (Exception e) {
+			log.error("SETUP ERROR", e);
+		}
 	}
 }
