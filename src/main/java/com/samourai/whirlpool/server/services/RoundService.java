@@ -31,7 +31,7 @@ public class RoundService {
     private BlameService blameService;
     private DbService dbService;
     private BlockchainDataService blockchainDataService;
-    private RoundLimitsManager roundLimitsManager;
+    private RoundLimitsService roundLimitsService;
     private Bech32Util bech32Util;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
@@ -40,7 +40,7 @@ public class RoundService {
     private boolean deterministPaymentCodeMatching; // for testing purpose only
 
     @Autowired
-    public RoundService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, RoundLimitsManager roundLimitsManager) {
+    public RoundService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, RoundLimitsService roundLimitsService) {
         this.cryptoService = cryptoService;
         this.blameService = blameService;
         this.dbService = dbService;
@@ -48,8 +48,8 @@ public class RoundService {
         this.webSocketService = webSocketService;
         this.bech32Util = bech32Util;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
-        roundLimitsManager.setRoundService(this); // avoids circular reference
-        this.roundLimitsManager = roundLimitsManager;
+        roundLimitsService.setRoundService(this); // avoids circular reference
+        this.roundLimitsService = roundLimitsService;
 
         this.deterministPaymentCodeMatching = false;
 
@@ -103,7 +103,7 @@ public class RoundService {
         /*
          * liquidity placed in waiting pool
          */
-        LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
         if (liquidityPool.hasLiquidity(registeredInput.getInput())) {
             throw new IllegalInputException("Liquidity already registered for this round");
         }
@@ -121,7 +121,7 @@ public class RoundService {
         doRegisterInput(round, registeredInput, signedBordereauToReply, isLiquidity);
 
         // check round limits
-        roundLimitsManager.onInputRegistered(round);
+        roundLimitsService.onInputRegistered(round);
 
         // check round ready
         checkRegisterInputReady(round);
@@ -223,7 +223,7 @@ public class RoundService {
     private void logRoundStatus(Round round) {
         int liquiditiesInPool = 0;
         try {
-            LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+            LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
             liquiditiesInPool = liquidityPool.getNbLiquidities();
         } catch(Exception e) {
             // no liquidityPool instanciated yet
@@ -272,7 +272,7 @@ public class RoundService {
         log.info(" • revealed output: username=" + username);
 
         if (isRevealOutputOrBlameReady(round)) {
-            roundLimitsManager.blameForRevealOutputAndResetRound(round);
+            roundLimitsService.blameForRevealOutputAndResetRound(round);
         }
     }
 
@@ -353,7 +353,7 @@ public class RoundService {
             } catch(Exception e) {
                 log.error("", e);
             }
-            roundLimitsManager.onRoundStatusChange(round);
+            roundLimitsService.onRoundStatusChange(round);
 
             RoundStatusNotification roundStatusNotification = computeRoundStatusNotification();
             webSocketService.broadcast(roundStatusNotification);
@@ -565,18 +565,18 @@ public class RoundService {
 
     public void __reset(Round round) {
         if (this.currentRound != null) {
-            roundLimitsManager.unmanage(round);
+            roundLimitsService.unmanage(round);
         }
 
         log.info("[NEW ROUND "+round.getRoundId()+"]");
         logRoundStatus(round);
         this.currentRound = round;
         // TODO disconnect all clients (except liquidities?)
-        roundLimitsManager.manage(round);
+        roundLimitsService.manage(round);
     }
 
-    public RoundLimitsManager __getRoundLimitsManager() {
-        return roundLimitsManager;
+    public RoundLimitsService __getRoundLimitsService() {
+        return roundLimitsService;
     }
 
     public void __setUseDeterministPaymentCodeMatching(boolean useDeterministPaymentCodeMatching) {

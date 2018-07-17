@@ -82,7 +82,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Round round = roundService.__getCurrentRound();
-        LiquidityPool liquidityPool = roundService.__getRoundLimitsManager().getLiquidityPool(round);
+        LiquidityPool liquidityPool = roundService.__getRoundLimitsService().getLiquidityPool(round);
 
         // bordereau should be registered
         Assert.assertTrue(dbService.isBlindedBordereauRegistered(validBlindedBordereau));
@@ -103,7 +103,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Round round = roundService.__getCurrentRound();
-        LiquidityPool liquidityPool = roundService.__getRoundLimitsManager().getLiquidityPool(round);
+        LiquidityPool liquidityPool = roundService.__getRoundLimitsService().getLiquidityPool(round);
 
         // bordereau should be registered
         Assert.assertTrue(dbService.isBlindedBordereauRegistered(validBlindedBordereau));

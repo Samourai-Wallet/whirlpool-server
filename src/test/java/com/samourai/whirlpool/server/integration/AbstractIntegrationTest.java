@@ -56,7 +56,7 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected TaskExecutor taskExecutor;
 
-    protected RoundLimitsManager roundLimitsManager;
+    protected RoundLimitsService roundLimitsService;
 
     private MultiClientManager multiClientManager;
 
@@ -74,7 +74,7 @@ public abstract class AbstractIntegrationTest {
         roundService.__setUseDeterministPaymentCodeMatching(true);
         ((MockBlockchainDataService)blockchainDataService).resetMock();
 
-        roundLimitsManager = roundService.__getRoundLimitsManager();
+        roundLimitsService = roundService.__getRoundLimitsService();
     }
 
     @After
@@ -85,7 +85,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected MultiClientManager multiClientManager(int nbClients, Round round) {
-        multiClientManager = new MultiClientManager(nbClients, round, roundService, testUtils, cryptoService, blockchainDataService, roundLimitsManager, port);
+        multiClientManager = new MultiClientManager(nbClients, round, roundService, testUtils, cryptoService, blockchainDataService, roundLimitsService, port);
         return multiClientManager;
     }
 

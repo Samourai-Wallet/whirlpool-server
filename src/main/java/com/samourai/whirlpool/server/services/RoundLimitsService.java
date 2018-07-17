@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class RoundLimitsManager {
+public class RoundLimitsService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private RoundService roundService;
     private BlameService blameService;
@@ -29,7 +29,7 @@ public class RoundLimitsManager {
     private Map<String, TimeoutWatcher> liquidityWatchers;
 
     @Autowired
-    public RoundLimitsManager(BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public RoundLimitsService(BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.blameService = blameService;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
 

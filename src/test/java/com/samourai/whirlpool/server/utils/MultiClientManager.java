@@ -16,7 +16,7 @@ import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.RoundLimitsManager;
+import com.samourai.whirlpool.server.services.RoundLimitsService;
 import com.samourai.whirlpool.server.services.RoundService;
 import org.bitcoinj.core.ECKey;
 import org.junit.Assert;
@@ -32,7 +32,7 @@ public class MultiClientManager {
     private TestUtils testUtils;
     private CryptoService cryptoService;
     private BlockchainDataService blockchainDataService;
-    private RoundLimitsManager roundLimitsManager;
+    private RoundLimitsService roundLimitsService;
     private int port;
 
     private Round round;
@@ -44,13 +44,13 @@ public class MultiClientManager {
     private WhirlpoolMultiRoundClientListener[] listeners;
 
 
-    public MultiClientManager(int nbClients, Round round, RoundService roundService, TestUtils testUtils, CryptoService cryptoService, BlockchainDataService blockchainDataService, RoundLimitsManager roundLimitsManager, int port) {
+    public MultiClientManager(int nbClients, Round round, RoundService roundService, TestUtils testUtils, CryptoService cryptoService, BlockchainDataService blockchainDataService, RoundLimitsService roundLimitsService, int port) {
         this.round = round;
         this.roundService = roundService;
         this.testUtils = testUtils;
         this.cryptoService = cryptoService;
         this.blockchainDataService = blockchainDataService;
-        this.roundLimitsManager = roundLimitsManager;
+        this.roundLimitsService = roundLimitsService;
         this.port = port;
 
         inputs = new TxOutPoint[nbClients];
@@ -177,7 +177,7 @@ public class MultiClientManager {
     }
 
     public void waitLiquiditiesInPool(int nbLiquiditiesInPoolExpected) throws Exception {
-        LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
 
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
@@ -231,7 +231,7 @@ public class MultiClientManager {
         // wait inputs to register
         waitRegisteredInputs(nbInputsExpected);
 
-        LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
         System.out.println("=> roundStatus="+round.getRoundStatus()+", nbInputs="+round.getNbInputs());
 
         // all clients should have registered their outputs
@@ -255,7 +255,7 @@ public class MultiClientManager {
         Assert.assertEquals(RoundStatus.SUCCESS, round.getRoundStatus());
         Assert.assertEquals(nbAllRegisteredExpected, round.getNbInputs());
 
-        LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
         Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasLiquidity());
 
         // all clients should have registered their outputs
@@ -294,7 +294,7 @@ public class MultiClientManager {
         log.info("roundNextTargetAnonymitySetAdjustment: "+ (targetAnonymitySetExpected+1) + " -> " + targetAnonymitySetExpected);
 
         // simulate 9min58 elapsed... round targetAnonymitySet should remain unchanged
-        roundLimitsManager.__simulateElapsedTime(round, round.getTimeoutAdjustAnonymitySet()-2);
+        roundLimitsService.__simulateElapsedTime(round, round.getTimeoutAdjustAnonymitySet()-2);
         Thread.sleep(1000);
         Assert.assertEquals(targetAnonymitySetExpected + 1, round.getTargetAnonymitySet());
 

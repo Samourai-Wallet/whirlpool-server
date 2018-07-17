@@ -3,7 +3,7 @@ package com.samourai.whirlpool.server.controllers.web;
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.services.RoundLimitsManager;
+import com.samourai.whirlpool.server.services.RoundLimitsService;
 import com.samourai.whirlpool.server.services.RoundService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +26,12 @@ public class StatusWebController {
   private static final String STATUS_START_ROUND = "START_ROUND";
 
   private RoundService roundService;
-  private RoundLimitsManager roundLimitsManager;
+  private RoundLimitsService roundLimitsService;
 
   @Autowired
-  public StatusWebController(RoundService roundService, RoundLimitsManager roundLimitsManager) {
+  public StatusWebController(RoundService roundService, RoundLimitsService roundLimitsService) {
     this.roundService = roundService;
-    this.roundLimitsManager = roundLimitsManager;
+    this.roundLimitsService = roundLimitsService;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
@@ -46,15 +46,15 @@ public class StatusWebController {
     model.addAttribute("nbInputsMustMix", round.getNbInputsMustMix());
     model.addAttribute("nbInputsLiquidities", round.getNbInputsLiquidities());
 
-    Long currentStepElapsedTime = toSeconds(this.roundLimitsManager.getLimitsWatcherElapsedTime(round));
-    Long currentStepRemainingTime = toSeconds(this.roundLimitsManager.getLimitsWatcherTimeToWait(round));
+    Long currentStepElapsedTime = toSeconds(this.roundLimitsService.getLimitsWatcherElapsedTime(round));
+    Long currentStepRemainingTime = toSeconds(this.roundLimitsService.getLimitsWatcherTimeToWait(round));
     Double currentStepProgress = currentStepElapsedTime != null && currentStepRemainingTime != null ? Math.ceil(Double.valueOf(currentStepElapsedTime) / (currentStepElapsedTime+currentStepRemainingTime) * 100) : null;
     model.addAttribute("currentStepProgress", currentStepProgress);
 
     String currentStepProgressLabel = computeCurrentStepProgressLabel(round.getRoundStatus(), currentStepElapsedTime, currentStepRemainingTime);
     model.addAttribute("currentStepProgressLabel", currentStepProgressLabel);
 
-    LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
+    LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
     model.addAttribute("nbLiquiditiesAvailable", liquidityPool.getNbLiquidities());
 
     Map<RoundStatus, Timestamp> timeStatus = round.getTimeStatus();
