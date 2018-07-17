@@ -8,6 +8,7 @@ import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.crypto.ChildNumber;
@@ -38,7 +39,7 @@ public class BlockchainService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, int minConfirmations, long samouraiFeesMin, boolean liquidity) throws IllegalInputException {
+    public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, int minConfirmations, long samouraiFeesMin, boolean liquidity) throws IllegalInputException, UnconfirmedInputException {
         RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(utxoHash);
         if (rpcTransaction == null) {
             log.error("UTXO transaction not found: "+utxoHash);
@@ -72,17 +73,10 @@ public class BlockchainService {
         }
     }
 
-    protected void checkInputConfirmations(RpcTransaction rpcTransaction, int minConfirmations) throws IllegalInputException {
-        int inputConfirmations;
-        try {
-            inputConfirmations = rpcTransaction.getConfirmations();
-        }
-        catch(Exception e) {
-            log.error("Couldn't retrieve input confirmations", e);
-            throw new IllegalInputException("Couldn't retrieve input confirmations");
-        }
+    protected void checkInputConfirmations(RpcTransaction rpcTransaction, int minConfirmations) throws UnconfirmedInputException {
+        int inputConfirmations = rpcTransaction.getConfirmations();
         if (inputConfirmations < minConfirmations) {
-            throw new IllegalInputException("Input needs at least "+minConfirmations+" confirmations");
+            throw new UnconfirmedInputException("Input needs at least "+minConfirmations+" confirmations");
         }
     }
 

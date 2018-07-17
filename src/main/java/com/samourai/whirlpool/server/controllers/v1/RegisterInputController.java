@@ -2,6 +2,8 @@ package com.samourai.whirlpool.server.controllers.v1;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.v1.messages.RegisterInputRequest;
+import com.samourai.whirlpool.server.exceptions.QueueInputException;
+import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import com.samourai.whirlpool.server.services.RegisterInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -36,8 +38,16 @@ public class RegisterInputController {
       log.debug("[controller] /registerInput: username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
-    // register inputs and send back signed bordereau
-    registerInputService.registerInput(payload.roundId, username, payload.pubkey, payload.signature, payload.blindedBordereau,  payload.utxoHash, payload.utxoIndex, payload.paymentCode, payload.liquidity);
+    try {
+      // register inputs and send back signed bordereau
+      registerInputService.registerInput(payload.roundId, username, payload.pubkey, payload.signature, payload.blindedBordereau, payload.utxoHash, payload.utxoIndex, payload.paymentCode, payload.liquidity);
+    }
+    catch(UnconfirmedInputException e) {
+      log.info("Placing unconfirmed input on queue: " + payload.utxoHash+":"+payload.utxoIndex, e.getMessage());
+    }
+    catch(QueueInputException e) {
+      log.info("Placing input on queue: " + payload.utxoHash+":"+payload.utxoIndex, e.getMessage());
+    }
   }
 
   @MessageExceptionHandler

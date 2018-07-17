@@ -10,6 +10,7 @@ import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.controllers.v1.RegisterOutputController;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.exceptions.RoundException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.*;
@@ -70,7 +71,7 @@ public class RoundService {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
-    public synchronized void registerInput(String roundId, String username, TxOutPoint input, byte[] pubkey, String paymentCode, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, RoundException {
+    public synchronized void registerInput(String roundId, String username, TxOutPoint input, byte[] pubkey, String paymentCode, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, RoundException, QueueInputException {
         if (log.isDebugEnabled()) {
             log.debug("registerInput "+roundId+" : "+username+" : "+input);
         }
@@ -115,7 +116,7 @@ public class RoundService {
         logRoundStatus(round);
     }
 
-    private synchronized void registerInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException {
+    private synchronized void registerInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException, QueueInputException {
         // registerInput + response
         doRegisterInput(round, registeredInput, signedBordereauToReply, isLiquidity);
 
@@ -126,12 +127,12 @@ public class RoundService {
         checkRegisterInputReady(round);
     }
 
-    private void doRegisterInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException {
+    private void doRegisterInput(Round round, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, RoundException, QueueInputException {
         TxOutPoint input = registeredInput.getInput();
         String username = registeredInput.getUsername();
 
         if (isRoundFull(round)) {
-            throw new RoundException("Round is full, please wait for next round");
+            throw new QueueInputException("Round is full, please wait for next round");
         }
         if (isLiquidity && !isRegisterLiquiditiesOpen(round)) {
             // should never go here...

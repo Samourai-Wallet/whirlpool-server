@@ -3,9 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
-import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.RoundException;
+import com.samourai.whirlpool.server.exceptions.*;
 import org.bitcoinj.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +35,7 @@ public class RegisterInputService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public synchronized void registerInput(String roundId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, String paymentCode, boolean liquidity) throws IllegalInputException, IllegalBordereauException, RoundException {
+    public synchronized void registerInput(String roundId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, String paymentCode, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, RoundException {
         // validate paymentCode
         if (!formatsUtil.isValidPaymentCode(paymentCode)) {
             throw new IllegalInputException("Invalid paymentCode");
