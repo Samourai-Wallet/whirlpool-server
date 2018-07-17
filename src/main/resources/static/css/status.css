@@ -1,0 +1,24 @@
+.sw-main ul.step-anchor>li.active>a {
+    color: #b71c1c;
+}
+.sw-main ul.step-anchor > li.active > a::after {
+    background: #b71c1c;
+}
+.sw-main ul.step-anchor>li.done>a {
+    color: #700606 !important;
+}
+.sw-main ul.step-anchor > li.done > a::after {
+    background: #700606 !important;
+}
+.nav-tabs .nav-item {
+    width: 180px;
+}
+.sw-main ul.step-anchor>li>a {
+    cursor: default;
+}
+.sw-main ul.step-anchor::before {
+    top: 42px;
+}
+.progress-bar {
+    background: #700606 !important;
+}

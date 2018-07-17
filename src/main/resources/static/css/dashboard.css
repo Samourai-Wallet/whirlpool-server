@@ -12,3 +12,9 @@
 .navbar-brand img {
     width:30px;
 }
+.sidebar .nav-link.active, .container-fluid a {
+    color: #700606;
+}
+.container-fluid a:hover {
+    color: #b71c1c !important;
+}

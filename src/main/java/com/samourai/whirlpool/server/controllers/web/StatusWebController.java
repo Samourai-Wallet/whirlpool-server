@@ -48,7 +48,7 @@ public class StatusWebController {
 
     Long currentStepElapsedTime = toSeconds(this.roundLimitsManager.getLimitsWatcherElapsedTime(round));
     Long currentStepRemainingTime = toSeconds(this.roundLimitsManager.getLimitsWatcherTimeToWait(round));
-    Long currentStepProgress = currentStepElapsedTime != null && currentStepRemainingTime != null && currentStepRemainingTime > 0 ? currentStepElapsedTime / currentStepRemainingTime * 100 : null;
+    Double currentStepProgress = currentStepElapsedTime != null && currentStepRemainingTime != null ? Math.ceil(Double.valueOf(currentStepElapsedTime) / (currentStepElapsedTime+currentStepRemainingTime) * 100) : null;
     model.addAttribute("currentStepElapsedTime", currentStepElapsedTime);
     model.addAttribute("currentStepRemainingTime", currentStepRemainingTime);
     model.addAttribute("currentStepProgress", currentStepProgress);

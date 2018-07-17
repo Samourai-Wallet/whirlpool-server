@@ -8,6 +8,7 @@
     <title>Status</title>
     <meta http-equiv="refresh" content="60" />
     <link rel="stylesheet" th:href="@{/css/smartwizard.css}"/>
+    <link rel="stylesheet" th:href="@{/css/status.css}"/>
 </head>
 <body>
     <div layout:fragment="main">
@@ -25,9 +26,18 @@
                             </svg>
                         </div>
                         Current round: <span th:text="${roundId}"/><br/>
-                        Status: <span th:text="${roundStatus}" style="font-weight:bold"/><br/>
-                        <div th:if="${currentStepElapsedTime != null && currentStepTimeToWait != null}">
-                            Current step: <span th:text="${currentStepElapsedTime}"/>s elapsed, <span th:text="${currentStepTimeToWait}"/>s remaining
+                        <div class="row">
+                            <div class="col-sm">
+                                Status: <span th:text="${roundStatus}" style="font-weight:bold"/>
+                            </div>
+                            <div class="col-sm">
+                                <div th:if="${currentStepProgress != null}" class="progress" style="height:10px">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+currentStepProgress+'%'}"></div>
+                                </div>
+                                <div th:if="${currentStepElapsedTime != null && currentStepRemainingTime != null}" class="text-center">
+                                    <small><span th:text="${currentStepElapsedTime}"/>s elapsed, <span th:text="${currentStepRemainingTime}"/>s remaining</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -42,10 +52,6 @@
             </div>
         </div>
         <br/>
-
-        <div th:if="${currentStepProgress != null}" class="progress" style="height:10px">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+currentStepProgress+'%'}"></div>
-        </div>
 
         <div class="sw-main sw-theme-dots">
             <ul class="nav nav-tabs step-anchor">
