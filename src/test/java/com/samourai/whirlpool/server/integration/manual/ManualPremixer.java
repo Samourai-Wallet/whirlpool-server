@@ -214,7 +214,7 @@ public class ManualPremixer {
             String utxo = utxos.get(tx0spendFrom);
             String[] s = utxo.split("-");
 
-            Sha256Hash txHash = new Sha256Hash(Hex.decode(s[0]));
+            Sha256Hash txHash = Sha256Hash.wrap(Hex.decode(s[0]));
             TransactionOutPoint outPoint = new TransactionOutPoint(params, Long.parseLong(s[1]), txHash, Coin.valueOf(biSelectedAmount.longValue()));
 
             final Script segwitPubkeyScript = ScriptBuilder.createP2WPKHOutputScript(ecKeySpendFrom);

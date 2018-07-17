@@ -326,7 +326,7 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
             String utxo = utxos.get(tx0spendFrom);
             String[] s = utxo.split("-");
 
-            Sha256Hash txHash = new Sha256Hash(Hex.decode(s[0]));
+            Sha256Hash txHash = Sha256Hash.wrap(Hex.decode(s[0]));
             TransactionOutPoint outPoint = new TransactionOutPoint(params, Long.parseLong(s[1]), txHash, Coin.valueOf(biSelectedAmount.longValue()));
 
             final Script segwitPubkeyScript = ScriptBuilder.createP2WPKHOutputScript(ecKeySpendFrom);
@@ -416,7 +416,7 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
             String utxo = toUTXO.get(Hex.toHexString(redeemScript.getProgram()));
             String[] s = utxo.split("-");
 
-            TransactionOutPoint outPoint = new TransactionOutPoint(params, Long.parseLong(s[1]), new Sha256Hash(Hex.decode(s[0])), Coin.valueOf(biUnitSpendAmount.longValue()));
+            TransactionOutPoint outPoint = new TransactionOutPoint(params, Long.parseLong(s[1]), Sha256Hash.wrap(Hex.decode(s[0])), Coin.valueOf(biUnitSpendAmount.longValue()));
             TransactionInput txInput = new TransactionInput(params, null, new byte[]{}/*redeemScript.getProgram()*/, outPoint, Coin.valueOf(biUnitSpendAmount.longValue()));
 
             serializedInputs.put(Hex.toHexString(txInput.bitcoinSerialize()), fromAddress);

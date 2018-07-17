@@ -149,7 +149,7 @@ public class ManualMixer {
             String utxo = toUTXO.get(Hex.toHexString(redeemScript.getProgram()));
             String[] s = utxo.split("-");
 
-            Sha256Hash txHash = new Sha256Hash(Hex.decode(s[0]));
+            Sha256Hash txHash = Sha256Hash.wrap(Hex.decode(s[0]));
             TransactionOutPoint outPoint = new TransactionOutPoint(params, Long.parseLong(s[1]), txHash, Coin.valueOf(biUnitSpendAmount.longValue()));
             TransactionInput txInput = new TransactionInput(params, null, new byte[]{}/*redeemScript.getProgram()*/, outPoint, Coin.valueOf(biUnitSpendAmount.longValue()));
 

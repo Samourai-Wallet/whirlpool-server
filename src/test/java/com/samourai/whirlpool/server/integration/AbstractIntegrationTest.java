@@ -5,11 +5,7 @@ import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.client.services.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.services.*;
-import com.samourai.whirlpool.server.utils.LogbackUtils;
-import com.samourai.whirlpool.server.utils.MessageSignUtil;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
-import com.samourai.whirlpool.server.utils.TestUtils;
-import org.apache.log4j.Level;
+import com.samourai.whirlpool.server.utils.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,7 +63,7 @@ public abstract class AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         // enable debug
-        LogbackUtils.setLogLevel("com.samourai.whirlpool", Level.DEBUG.toString());
+        Utils.setLoggerDebug("com.samourai.whirlpool");
 
         Assert.assertTrue(blockchainDataService.testConnectivity());
 

@@ -102,7 +102,7 @@ public class TestUtils {
         }
 
         if (utxoHash != null) {
-            transaction.setHash(new Sha256Hash(Hex.decode(utxoHash)));
+            transaction.setHash(Sha256Hash.wrap(Hex.decode(utxoHash)));
         }
 
         if (utxoIndex != null) {

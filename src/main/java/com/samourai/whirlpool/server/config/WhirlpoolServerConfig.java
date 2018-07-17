@@ -5,9 +5,10 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import javax.validation.constraints.NotEmpty;
 
 @ConfigurationProperties(prefix = "server")
 @Configuration
@@ -254,13 +255,13 @@ public class WhirlpoolServerConfig {
     }
 
     public static class RpcClientConfig {
-        @NotBlank
+        @NotEmpty
         private String protocol;
-        @NotBlank
+        @NotEmpty
         private String host;
-        @NotBlank
+        @NotEmpty
         private int port;
-        @NotBlank
+        @NotEmpty
         private String user;
         private String password;
         private boolean mockTxBroadcast;
@@ -315,7 +316,7 @@ public class WhirlpoolServerConfig {
     }
 
     public static class SamouraiFeeConfig {
-        @NotBlank
+        @NotEmpty
         private String xpub;
         private int amount;
 
