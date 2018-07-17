@@ -1,0 +1,9 @@
+table.history {
+    font-size: 0.8em;
+}
+td.rawTx {
+    max-width: 300px;
+}
+td.roundId, td.txid, td.rawTx {
+    font-size: 0.8em;
+}

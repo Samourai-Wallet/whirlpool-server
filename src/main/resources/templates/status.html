@@ -2,39 +2,57 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="decorators/dashboard">
+      layout:decorate="decorators/dashboard"
+      th:with="currentPage = 'status'">
 <head>
     <title>Status</title>
-    <meta http-equiv="refresh" content="30" />
+    <meta http-equiv="refresh" content="60" />
     <link rel="stylesheet" th:href="@{/css/smartwizard.css}"/>
 </head>
 <body>
     <div layout:fragment="main">
-        <h1 class="h2">Current round</h1>
+        <h1 class="h2">Status</h1>
 
-        RoundId: <span th:text="${roundId}"/><br/>
-        Status: <span th:text="${roundStatus}"/><br/>
-        Duration: 5min22s<br/>
-        <br/>
-
-        <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+progressPercent+'%'}"></div>
+        <div class="row">
+            <div class="col-sm">
+                <div class="card">
+                    <div class="card-body" style="height:85px">
+                        <div class="float-right" style="width:20px; height:20px">
+                            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="lds-eclipse">
+                                <path stroke="none" d="M10 50A40 40 0 0 0 90 50A40 42 0 0 1 10 50" fill="#bd4030">
+                                    <animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 51;360 50 51" keyTimes="0;1" dur="1s" begin="0s" repeatCount="indefinite"></animateTransform>
+                                </path>
+                            </svg>
+                        </div>
+                        Current round: <span th:text="${roundId}"/>
+                        Status: <span th:text="${roundStatus}" style="font-weight:bold"/><br/>
+                        <div th:if="${currentStepElapsedTime != null && currentStepTimeToWait != null}">
+                            Current step: <span th:text="${currentStepElapsedTime}"/>s elapsed, <span th:text="${currentStepTimeToWait}"/>s remaining
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm">
+                <div class="card" style="height:85px">
+                    <div class="card-body">
+                        Connected: <span th:text="${nbInputs}" style="font-weight:bold"/> (<span th:text="${nbInputsMustMix}"/> mustMix + <span th:text="${nbInputsLiquidities}"/> liquidities) / <span th:text="${targetAnonymitySet}"/><br/>
+                        <span th:if="${nbLiquiditiesAvailable > 0}"><span th:text="${nbLiquiditiesAvailable}"/> more liquidities queued</span>
+                    </div>
+                </div>
+            </div>
         </div>
         <br/>
+
+        <div th:if="${currentStepProgress != null}" class="progress" style="height:10px">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+currentStepProgress+'%'}"></div>
+        </div>
 
         <div class="sw-main sw-theme-dots">
             <ul class="nav nav-tabs step-anchor">
-                <li class="nav-item done"><a href="#" class="nav-link">REGISTER_INPUT<br/><small>12:01:01</small></a></li>
-                <li class="nav-item done"><a href="#" class="nav-link">REGISTER_OUTPUT<br/><small>12:03:01</small></a></li>
-                <li class="nav-item active"><a href="#" class="nav-link">SIGNING<br/><small>236s remaining</small></a></li>
-                <li class="nav-item"><a href="#" class="nav-link">SUCCESS<br/><small>...</small></a></li>
+                <li th:each="step : *{steps}" th:class="${step.done} ? 'nav-item done' : (${step.active} ? 'nav-item active' : 'nav-item')"><a href="#" class="nav-link" th:text="${step.title}"/></li>
             </ul>
         </div>
 
-        Anonymity set: <span th:text="${nbInputs}"/> / <span th:text="${targetAnonymitySet}"/> (<span th:text="${nbInputsMustMix}"/> mustMix + <span th:text="${nbInputsLiquidities}"/> liquidities)<br/>
-        Liquidity pool: <span th:text="${nbLiquiditiesAvailable}"/> more liquidities available<br/>
-
-        <span th:text="${minAnonymitySet}"/> <span th:text="${maxAnonymitySet}"/>
         <br/>
 
         <table class="table">
@@ -46,32 +64,10 @@
             </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>01/05/2018 12:19:25</td>
-                    <td>REGISTER_INPUT</td>
-                    <td>utxos: [kdlskdlsdk:1, lskdlskd:2]</td>
-                </tr>
-                <tr>
-                    <td>01/05/2018 12:19:25</td>
-                    <td>First mustmix joined</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>01/05/2018 12:19:25</td>
-                    <td>REGISTER_OUTPUT</td>
-                    <td>receiveAddresses: flkdfldfkdlf, kgjkjgfkjg</td>
-                </tr>
-                <tr>
-                    <td>01/05/2018 12:19:25</td>
-                    <td>SIGNING</td>
-                    <td>txid: 1219281928<br/>
-                        raw tx to sign: IDU2IDJSJFISJFKSJFKSJF</td>
-                </tr>
-                <tr>
-                    <td>in 65s</td>
-                    <td>COMPLETE</td>
-                    <td>txid: -<br/>
-                        raw tx: -</td>
+                <tr th:each="event : *{events}">
+                    <td><span th:text="${#dates.format(event.date, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
+                    <td><span th:text="${event.title}"/></td>
+                    <td><span th:if="${event.details != null}" th:text="${event.details}"/></td>
                 </tr>
             </tbody>
         </table>

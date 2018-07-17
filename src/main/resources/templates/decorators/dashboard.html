@@ -5,17 +5,18 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="https://samouraiwallet.com/static/favicon.ico" />
 
-    <title layout:title-pattern="$CONTENT_TITLE - $DECORATOR_TITLE">Whirlpool</title>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Samourai Whirlpool</title>
 
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.1.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/bootstrap-dashboard.css}" />
     <link rel="stylesheet" th:href="@{/css/dashboard.css}" />
 </head>
 
 <body>
     <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">whirlpool</a>
+        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/status" title="Samourai Whirlpool"><img src="https://samouraiwallet.com/static/public/images/logo2.png"/> Whirlpool</a>
     </nav>
 
     <div class="container-fluid">
@@ -24,33 +25,15 @@
                 <div class="sidebar-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="/status">
+                            <a th:class="${currentPage == 'status'} ? 'nav-link active' : 'nav-link'" href="/status">
                                 <span data-feather="play"></span>
                                 Status
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/history">
+                            <a th:class="${currentPage == 'history'} ? 'nav-link active' : 'nav-link'" href="/history">
                                 <span data-feather="list"></span>
                                 History
-                            </a>
-                        </li>
-                    </ul>
-
-                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                        <span>Reports</span>
-                    </h6>
-                    <ul class="nav flex-column mb-2">
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span data-feather="file-text"></span>
-                                Current month
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span data-feather="file-text"></span>
-                                Last quarter
                             </a>
                         </li>
                     </ul>
