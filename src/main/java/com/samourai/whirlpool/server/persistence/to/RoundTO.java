@@ -1,26 +1,54 @@
 package com.samourai.whirlpool.server.persistence.to;
 
+import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.beans.RoundResult;
+import com.samourai.whirlpool.server.beans.FailReason;
 
-import javax.persistence.Entity;
+import javax.persistence.*;
 
-@Entity
+@Entity(name = "round")
 public class RoundTO extends EntityTO {
+    @Column(unique = true)
     private String roundId;
+
+    private int anonymitySet;
     private int nbMustMix;
     private int nbLiquidities;
-    private RoundResult roundResult;
 
-    public RoundTO(Round round, RoundResult roundResult) {
+    @Enumerated(EnumType.STRING)
+    private RoundStatus roundStatus;
+
+    @Enumerated(EnumType.STRING)
+    private FailReason failReason;
+
+    @OneToOne(fetch = FetchType.LAZY,
+            cascade =  CascadeType.ALL,
+            mappedBy = "round")
+    private RoundLogTO roundLog;
+
+    public RoundTO() {
+    }
+
+    public void update(Round round) {
         this.roundId = round.getRoundId();
+        this.anonymitySet = round.getNbInputs();
         this.nbMustMix = round.getNbInputsMustMix();
         this.nbLiquidities = round.getNbInputsLiquidities();
-        this.roundResult = roundResult;
+        this.roundStatus = round.getRoundStatus();
+        this.failReason = round.getFailReason();
+
+        if (this.roundLog == null) {
+            this.roundLog = new RoundLogTO();
+        }
+        this.roundLog.update(round, this);
     }
 
     public String getRoundId() {
         return roundId;
+    }
+
+    public int getAnonymitySet() {
+        return anonymitySet;
     }
 
     public int getNbMustMix() {
@@ -31,7 +59,15 @@ public class RoundTO extends EntityTO {
         return nbLiquidities;
     }
 
-    public RoundResult getRoundResult() {
-        return roundResult;
+    public RoundStatus getRoundStatus() {
+        return roundStatus;
+    }
+
+    public FailReason getFailReason() {
+        return failReason;
+    }
+
+    public RoundLogTO getRoundLog() {
+        return roundLog;
     }
 }

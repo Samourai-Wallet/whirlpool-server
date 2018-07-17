@@ -5,8 +5,8 @@ import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.RoundException;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,12 +36,12 @@ public class BlockchainDataService {
 
         for (BitcoindRpcClient.RawTransaction.In in : rawTransaction.vIn()) {
             BitcoindRpcClient.RawTransaction.Out out = in.getTransactionOutput();
-            RpcOut fromOut = new RpcOut(out.n(), (long)(out.value()*100000000), Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
+            RpcOut fromOut = new RpcOut(out.n(), (long)(out.value()*100000000), org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             RpcIn rpcIn = new RpcIn(fromOut, rpcTransaction);
             rpcTransaction.addRpcIn(rpcIn);
         }
         for (BitcoindRpcClient.RawTransaction.Out out : rawTransaction.vOut()) {
-            RpcOut rpcOut = new RpcOut(out.n(), (long)(out.value()*100000000), Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
+            RpcOut rpcOut = new RpcOut(out.n(), (long)(out.value()*100000000), org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             rpcTransaction.addRpcOut(rpcOut);
         }
         return rpcTransaction;
@@ -51,7 +51,7 @@ public class BlockchainDataService {
         String txid = tx.getHashAsString();
         try {
             log.info("Broadcasting tx " + txid);
-            rpcClient.sendRawTransaction(Utils.HEX.encode(tx.bitcoinSerialize()));
+            rpcClient.sendRawTransaction(Utils.getRawTx(tx));
         }
         catch(Exception e) {
             log.error("Unable to broadcast tx " + txid, e);

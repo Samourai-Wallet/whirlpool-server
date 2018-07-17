@@ -2,13 +2,18 @@ package com.samourai.whirlpool.server.beans;
 
 import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
 import com.samourai.whirlpool.server.exceptions.RoundException;
+import com.samourai.whirlpool.server.persistence.to.RoundTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.Transaction;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 public class Round {
+    private RoundTO roundTO;
     private String roundId;
+    private Timestamp timeStarted;
+    private Map<RoundStatus,Timestamp> timeStatus;
     private long denomination; // in satoshis
     private long fees; // in satoshis
     private int minMustMix;
@@ -30,10 +35,13 @@ public class Round {
     private Map<String,Signature> signatures;
 
     private Transaction tx;
-    private RoundResult failReason;
+    private FailReason failReason;
 
     public Round(String roundId, long denomination, long fees, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
+        this.roundTO = null;
         this.roundId = roundId;
+        this.timeStarted = new Timestamp(System.currentTimeMillis());
+        this.timeStatus = new HashMap<>();
         this.denomination = denomination;
         this.fees = fees;
         this.minMustMix = minMustMix;
@@ -62,12 +70,28 @@ public class Round {
         this(roundId, copyRound.getDenomination(), copyRound.getFees(), copyRound.getMinMustMix(), copyRound.getTargetAnonymitySetInitial(), copyRound.getMinAnonymitySet(), copyRound.getMaxAnonymitySet(), copyRound.getTimeoutAdjustAnonymitySet(), copyRound.getLiquidityTimeout());
     }
 
+    public RoundTO computeRoundTO() {
+        if (roundTO == null) {
+            roundTO = new RoundTO();
+        }
+        roundTO.update(this);
+        return roundTO;
+    }
+
     public boolean hasMinMustMixReached() {
         return getNbInputsMustMix() >= getMinMustMix();
     }
 
     public String getRoundId() {
         return roundId;
+    }
+
+    public Timestamp getTimeStarted() {
+        return timeStarted;
+    }
+
+    public Map<RoundStatus, Timestamp> getTimeStatus() {
+        return timeStatus;
     }
 
     public long getDenomination() {
@@ -124,6 +148,7 @@ public class Round {
 
     public void setRoundStatusAndTime(RoundStatus roundStatus) {
         this.roundStatus = roundStatus;
+        timeStatus.put(roundStatus, new Timestamp(System.currentTimeMillis()));
     }
 
     public Collection<RegisteredInput> getInputs() {
@@ -148,6 +173,10 @@ public class Round {
             throw new RoundException("input already registered");
         }
         inputsById.put(inputId, registeredInput);
+
+        if (timeStatus.get(RoundStatus.REGISTER_INPUT) == null && !registeredInput.isLiquidity()) {
+            timeStatus.put(RoundStatus.REGISTER_INPUT, new Timestamp(System.currentTimeMillis()));
+        }
     }
 
     public boolean hasInput(TxOutPoint outPoint) {
@@ -200,11 +229,11 @@ public class Round {
         return tx;
     }
 
-    public void setFailReason(RoundResult failReason) {
+    public void setFailReason(FailReason failReason) {
         this.failReason = failReason;
     }
 
-    public RoundResult getFailReason() {
+    public FailReason getFailReason() {
         return failReason;
     }
 }

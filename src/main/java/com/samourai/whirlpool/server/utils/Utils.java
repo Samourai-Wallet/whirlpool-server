@@ -16,6 +16,7 @@ import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
@@ -81,6 +82,10 @@ public class Utils {
         return null;
     }
 
+    public static String getRawTx(Transaction tx) {
+        return org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize());
+    }
+
     public static TransactionWitness witnessUnserialize(byte[][] serialized) {
         TransactionWitness witness = new TransactionWitness(serialized.length);
         for (int i=0; i<serialized.length; i++) {
@@ -115,5 +120,9 @@ public class Utils {
             log.error("", e);
         }
         return null;
+    }
+
+    public static void setLoggerDebug(String logger) {
+        LogbackUtils.setLogLevel(logger, Level.DEBUG.toString());
     }
 }

@@ -317,7 +317,7 @@ public class RoundLimitsManager {
         registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_REGISTER_OUTPUT, roundId));
 
         // reset round
-        roundService.goFail(round, RoundResult.FAIL_REGISTER_OUTPUTS);
+        roundService.goFail(round, FailReason.FAIL_REGISTER_OUTPUTS);
     }
 
     public void blameForSigningAndResetRound(Round round) {
@@ -329,7 +329,23 @@ public class RoundLimitsManager {
         registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_SIGNING, roundId));
 
         // reset round
-        roundService.goFail(round, RoundResult.FAIL_SIGNING);
+        roundService.goFail(round, FailReason.FAIL_SIGNING);
+    }
+
+    public Long getLimitsWatcherTimeToWait(Round round) {
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+        if (limitsWatcher != null) {
+            return limitsWatcher.computeTimeToWait();
+        }
+        return null;
+    }
+
+    public Long getLimitsWatcherElapsedTime(Round round) {
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+        if (limitsWatcher != null) {
+            return limitsWatcher.computeElapsedTime();
+        }
+        return null;
     }
 
     public void __simulateElapsedTime(Round round, long elapsedTimeSeconds) {

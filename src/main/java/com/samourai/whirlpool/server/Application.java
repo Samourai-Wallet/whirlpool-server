@@ -2,8 +2,7 @@ package com.samourai.whirlpool.server;
 
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.utils.DbUtils;
-import com.samourai.whirlpool.server.utils.LogbackUtils;
-import org.apache.log4j.Level;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +47,7 @@ public class Application implements ApplicationRunner {
 
 		if (args.containsOption(ARG_DEBUG)) {
 			// enable debug logs
-			LogbackUtils.setLogLevel("com.samourai.whirlpool.server", Level.DEBUG.toString());
+			Utils.setLoggerDebug("com.samourai.whirlpool.server");
 		}
 
 		if (!blockchainDataService.testConnectivity()) {

@@ -29,7 +29,7 @@ public class TimeoutWatcher implements Runnable {
         while(running) {
 
             // did we wait enough?
-            long timeToWait = listener.computeTimeToWait(this);
+            long timeToWait = computeTimeToWait();
             if (timeToWait <= 0) {
                 // timer expired => notify
                 listener.onTimeout(this);
@@ -68,7 +68,7 @@ public class TimeoutWatcher implements Runnable {
 
     public void __simulateElapsedTime(long elapsedTimeSeconds) {
         this.waitSince = (System.currentTimeMillis() - (elapsedTimeSeconds * 1000));
-        long timeToWait = listener.computeTimeToWait(this);
+        long timeToWait = computeTimeToWait();
         log.info("__simulateElapsedTime: "+waitSince+" (" + timeToWait + "ms to wait)");
         resumeThread();
     }
@@ -76,5 +76,9 @@ public class TimeoutWatcher implements Runnable {
     public long computeElapsedTime() {
         long elapsedTime = System.currentTimeMillis() - waitSince;
         return elapsedTime;
+    }
+
+    public long computeTimeToWait() {
+        return listener.computeTimeToWait(this);
     }
 }

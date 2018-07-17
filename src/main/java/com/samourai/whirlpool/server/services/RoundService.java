@@ -228,6 +228,15 @@ public class RoundService {
             // no liquidityPool instanciated yet
         }
         log.info(round.getNbInputsMustMix()+"/"+round.getMinMustMix()+" mustMix, "+round.getNbInputs()+"/"+round.getTargetAnonymitySet()+" anonymitySet, "+liquiditiesInPool+" liquidities in pool");
+
+        // update round status in database
+        if (round.getNbInputsMustMix() > 0) {
+            try {
+                dbService.saveRound(round);
+            } catch (Exception e) {
+                log.error("", e);
+            }
+        }
     }
 
     protected void validateOutputs(Round round) throws Exception {
@@ -278,18 +287,18 @@ public class RoundService {
 
         if (isRegisterSignaturesReady(round)) {
             Transaction tx = round.getTx();
-            signTransaction(tx, round); // updates Transaction object itself
+            tx = signTransaction(tx, round);
+            round.setTx(tx);
 
-            log.info("Tx to broadcast: \n" + tx + "\nRaw: " + org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
+            log.info("Tx to broadcast: \n" + tx + "\nRaw: " + Utils.getRawTx(tx));
             try {
                 blockchainDataService.broadcastTransaction(tx);
+                changeRoundStatus(roundId, RoundStatus.SUCCESS);
             }
             catch(Exception e) {
                 log.error("Unable to broadcast tx", e);
-                dbService.saveRound(round, RoundResult.FAIL_BROADCAST);
+                goFail(round, FailReason.FAIL_BROADCAST);
             }
-
-            changeRoundStatus(roundId, RoundStatus.SUCCESS);
         }
     }
 
@@ -328,7 +337,7 @@ public class RoundService {
 
                     log.info("Txid: "+tx.getHashAsString());
                     if (log.isDebugEnabled()) {
-                        log.debug("Tx to sign: \n" + tx + "\nRaw: " + org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
+                        log.debug("Tx to sign: \n" + tx + "\nRaw: " + Utils.getRawTx(tx));
                     }
                 } catch (Exception e) {
                     log.error("Unexpected exception on buildTransaction() for signing", e);
@@ -338,6 +347,11 @@ public class RoundService {
 
             // update round status
             round.setRoundStatusAndTime(roundStatus);
+            try {
+                dbService.saveRound(round);
+            } catch(Exception e) {
+                log.error("", e);
+            }
             roundLimitsManager.onRoundStatusChange(round);
 
             RoundStatusNotification roundStatusNotification = computeRoundStatusNotification();
@@ -345,10 +359,8 @@ public class RoundService {
 
             // start next round (after notifying clients for success)
             if (roundStatus == RoundStatus.SUCCESS) {
-                dbService.saveRound(round, RoundResult.SUCCESS);
                 __nextRound();
             } else if (roundStatus == RoundStatus.FAIL) {
-                dbService.saveRound(round, round.getFailReason());
                 __nextRound();
             }
         }
@@ -510,7 +522,7 @@ public class RoundService {
         return tx;
     }
 
-    private void signTransaction(Transaction tx, Round round) {
+    private Transaction signTransaction(Transaction tx, Round round) {
         for (RegisteredInput registeredInput : round.getInputs()) {
             Signature signature = round.getSignatureByUsername(registeredInput.getUsername());
 
@@ -526,6 +538,8 @@ public class RoundService {
 
         // check final transaction
         tx.verify();
+
+        return tx;
     }
 
     public void goRevealOutputOrBlame(String roundId) {
@@ -533,8 +547,8 @@ public class RoundService {
         changeRoundStatus(roundId, RoundStatus.REVEAL_OUTPUT_OR_BLAME);
     }
 
-    public void goFail(Round round, RoundResult roundResult) {
-        round.setFailReason(roundResult);
+    public void goFail(Round round, FailReason failReason) {
+        round.setFailReason(failReason);
         changeRoundStatus(round.getRoundId(), RoundStatus.FAIL);
     }
 

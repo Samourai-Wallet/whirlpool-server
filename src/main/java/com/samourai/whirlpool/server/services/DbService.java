@@ -1,26 +1,30 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.beans.BlameReason;
-import com.samourai.whirlpool.server.beans.RoundResult;
-import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.persistence.repositories.RoundRepository;
+import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.persistence.to.RoundTO;
 import com.samourai.whirlpool.server.utils.Utils;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-// TODO use mysql
 @Service
 public class DbService {
     private Set<String> blindedBordereaux;
     private Set<String> bordereaux;
     private List<BlameTO> blames;
-    private List<RoundTO> rounds;
+    private RoundRepository roundRepository;
 
-    public DbService() {
-        __reset();
+    public DbService(RoundRepository roundRepository) {
+        this.roundRepository = roundRepository;
+        __reset(); // TODO
     }
 
     private String computeKeyBlindedBordereau(byte[] blindedBordereau) {
@@ -50,15 +54,18 @@ public class DbService {
         blames.add(blameTO);
     }
 
-    public void saveRound(Round round, RoundResult roundResult) {
-        RoundTO roundTO = new RoundTO(round, roundResult);
-        rounds.add(roundTO);
+    public void saveRound(Round round) {
+        RoundTO roundTO = round.computeRoundTO();
+        roundRepository.save(roundTO);
+    }
+
+    public Iterable<RoundTO> findRounds() {
+        return roundRepository.findAll(new Sort(Sort.Direction.DESC, "created"));
     }
 
     public void __reset() {
         blindedBordereaux = new HashSet<>();
         bordereaux = new HashSet<>();
         blames = new ArrayList<>();
-        rounds = new ArrayList<>();
     }
 }
