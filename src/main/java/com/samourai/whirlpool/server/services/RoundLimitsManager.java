@@ -105,14 +105,16 @@ public class RoundLimitsManager {
     private TimeoutWatcher computeLimitsWatcher(Round round) {
         ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
             @Override
-            public long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
+            public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
                 long elapsedTime = timeoutWatcher.computeElapsedTime();
 
-                long timeToWait;
+                Long timeToWait = null;
                 switch(round.getRoundStatus()) {
                     case REGISTER_INPUT:
-                        // timeout before next targetAnonymitySet adjustment
-                        timeToWait = round.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
+                        if (round.getTargetAnonymitySet() > round.getMinAnonymitySet()) {
+                            // timeout before next targetAnonymitySet adjustment
+                            timeToWait = round.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
+                        }
                         break;
 
                     case REGISTER_OUTPUT:
@@ -128,8 +130,7 @@ public class RoundLimitsManager {
                         break;
 
                     default:
-                        // should never use this default value
-                        timeToWait = 30000;
+                        // no timer
                         break;
                 }
                 return timeToWait;
@@ -168,7 +169,7 @@ public class RoundLimitsManager {
     private TimeoutWatcher computeLiquidityWatcher(Round round) {
         ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
             @Override
-            public long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
+            public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
                 long elapsedTime = timeoutWatcher.computeElapsedTime();
                 long timeToWait = round.getLiquidityTimeout()*1000 - elapsedTime;
                 return timeToWait;

@@ -5,7 +5,6 @@ import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.services.RoundLimitsManager;
 import com.samourai.whirlpool.server.services.RoundService;
-import org.bouncycastle.util.Times;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,9 +49,10 @@ public class StatusWebController {
     Long currentStepElapsedTime = toSeconds(this.roundLimitsManager.getLimitsWatcherElapsedTime(round));
     Long currentStepRemainingTime = toSeconds(this.roundLimitsManager.getLimitsWatcherTimeToWait(round));
     Double currentStepProgress = currentStepElapsedTime != null && currentStepRemainingTime != null ? Math.ceil(Double.valueOf(currentStepElapsedTime) / (currentStepElapsedTime+currentStepRemainingTime) * 100) : null;
-    model.addAttribute("currentStepElapsedTime", currentStepElapsedTime);
-    model.addAttribute("currentStepRemainingTime", currentStepRemainingTime);
     model.addAttribute("currentStepProgress", currentStepProgress);
+
+    String currentStepProgressLabel = computeCurrentStepProgressLabel(round.getRoundStatus(), currentStepElapsedTime, currentStepRemainingTime);
+    model.addAttribute("currentStepProgressLabel", currentStepProgressLabel);
 
     LiquidityPool liquidityPool = roundLimitsManager.getLiquidityPool(round);
     model.addAttribute("nbLiquiditiesAvailable", liquidityPool.getNbLiquidities());
@@ -88,6 +88,29 @@ public class StatusWebController {
     boolean isActive = (!timeStatus.isEmpty() && new ArrayList<>(timeStatus.keySet()).indexOf(roundStatus) == (timeStatus.size()-1));
     boolean isDone = !isActive && timeStatus.containsKey(roundStatus);
     return new StatusStep(isDone, isActive, roundStatus.toString(), null);
+  }
+
+  private String computeCurrentStepProgressLabel(RoundStatus roundStatus, Long currentStepElapsedTime, Long currentStepRemainingTime) {
+      String progressLabel = null;
+
+      if (currentStepElapsedTime != null && currentStepRemainingTime != null) {
+          progressLabel = currentStepElapsedTime + "s elapsed, " + currentStepRemainingTime + "s remaining ";
+          switch (roundStatus) {
+              case REGISTER_INPUT:
+                  progressLabel += "before anonymitySet adjustment";
+                  break;
+              case REGISTER_OUTPUT:
+                  progressLabel += "to register outputs";
+                  break;
+              case SIGNING:
+                  progressLabel += "to sign";
+                  break;
+              case REVEAL_OUTPUT_OR_BLAME:
+                  progressLabel += "to reveal outputs";
+                  break;
+          }
+      }
+      return progressLabel;
   }
 
   private Long toSeconds(Long milliseconds) {

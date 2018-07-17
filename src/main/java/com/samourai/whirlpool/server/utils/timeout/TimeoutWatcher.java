@@ -25,23 +25,30 @@ public class TimeoutWatcher implements Runnable {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         while(running) {
 
             // did we wait enough?
-            long timeToWait = computeTimeToWait();
-            if (timeToWait <= 0) {
-                // timer expired => notify
-                listener.onTimeout(this);
-                // reset timer
-                waitSince = System.currentTimeMillis();
+            Long timeToWait = computeTimeToWait();
+            if (timeToWait == null) {
+                // no timer
+                try {
+                    wait();
+                }
+                catch(InterruptedException e) {} // normal
             }
             else {
-                try {
-                    Thread.sleep(timeToWait);
+                if (timeToWait <= 0) {
+                    // timer expired => notify
+                    listener.onTimeout(this);
+                    // reset timer
+                    waitSince = System.currentTimeMillis();
                 }
-                catch(InterruptedException e) {
-                    // normal
+                else {
+                    try {
+                        Thread.sleep(timeToWait);
+                    }
+                    catch(InterruptedException e) {} // normal
                 }
             }
         }
@@ -68,8 +75,10 @@ public class TimeoutWatcher implements Runnable {
 
     public void __simulateElapsedTime(long elapsedTimeSeconds) {
         this.waitSince = (System.currentTimeMillis() - (elapsedTimeSeconds * 1000));
-        long timeToWait = computeTimeToWait();
-        log.info("__simulateElapsedTime: "+waitSince+" (" + timeToWait + "ms to wait)");
+        if (log.isDebugEnabled()) {
+            Long timeToWait = computeTimeToWait();
+            log.debug("__simulateElapsedTime: "+waitSince+" (" + (timeToWait != null ? timeToWait : "null") + "ms to wait)");
+        }
         resumeThread();
     }
 
@@ -78,7 +87,7 @@ public class TimeoutWatcher implements Runnable {
         return elapsedTime;
     }
 
-    public long computeTimeToWait() {
+    public Long computeTimeToWait() {
         return listener.computeTimeToWait(this);
     }
 }

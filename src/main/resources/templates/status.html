@@ -27,15 +27,15 @@
                         </div>
                         Current round: <span th:text="${roundId}"/><br/>
                         <div class="row">
-                            <div class="col-sm">
+                            <div class="col-sm-4">
                                 Status: <span th:text="${roundStatus}" style="font-weight:bold"/>
                             </div>
-                            <div class="col-sm">
+                            <div class="col-sm-8">
                                 <div th:if="${currentStepProgress != null}" class="progress" style="height:10px">
                                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+currentStepProgress+'%'}"></div>
                                 </div>
-                                <div th:if="${currentStepElapsedTime != null && currentStepRemainingTime != null}" class="text-center">
-                                    <small><span th:text="${currentStepElapsedTime}"/>s elapsed, <span th:text="${currentStepRemainingTime}"/>s remaining</small>
+                                <div th:if="${currentStepProgressLabel != null}" class="text-center">
+                                    <small><span th:text="${currentStepProgressLabel}"/></small>
                                 </div>
                             </div>
                         </div>
