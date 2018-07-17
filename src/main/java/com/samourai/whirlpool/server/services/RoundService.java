@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RoundService {
@@ -551,6 +552,36 @@ public class RoundService {
     public void goFail(Round round, FailReason failReason) {
         round.setFailReason(failReason);
         changeRoundStatus(round.getRoundId(), RoundStatus.FAIL);
+    }
+
+    public synchronized void onClientDisconnect(String username) {
+        // mark registeredInput offline
+        for (Round round : getCurrentRounds()) {
+            String roundId = round.getRoundId();
+            List<RegisteredInput> registeredInputs = round.getInputs().parallelStream().filter(registeredInput -> registeredInput.getUsername().equals(username)).collect(Collectors.toList());
+            if (!registeredInputs.isEmpty()) {
+                if (RoundStatus.REGISTER_INPUT.equals(round.getRoundStatus())) {
+                    // round not started yet => remove input as round isn't started yet
+                    registeredInputs.forEach(registeredInput -> {
+                        log.info(" • [" + roundId + "] unregistered " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ", username=" + registeredInput.getUsername());
+                        round.unregisterInput(registeredInput);
+                    });
+                }
+                else {
+                    // round already started => mark input as offline
+                    registeredInputs.forEach(registeredInput -> {
+                        log.info(" • [" + roundId + "] offlined " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ", username=" + registeredInput.getUsername());
+                        registeredInput.setOffline(true);
+                    });
+                }
+            }
+        }
+    }
+
+    private List<Round> getCurrentRounds() {
+        List<Round> currentRounds = new ArrayList<>();
+        currentRounds.add(__getCurrentRound());
+        return currentRounds;
     }
 
     public void __reset(String roundId) {

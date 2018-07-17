@@ -2,19 +2,22 @@ package com.samourai.whirlpool.server.config.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.server.services.WebSocketSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
@@ -27,7 +30,7 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
+public class WebsocketConfig extends WebSocketMessageBrokerConfigurationSupport implements WebSocketMessageBrokerConfigurer {
     private static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Autowired
@@ -35,6 +38,30 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
     private WhirlpoolProtocol whirlpoolProtocol;
+
+    @Autowired
+    private WebSocketSessionService webSocketSessionService;
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        super.configureWebSocketTransport(registry);
+    }
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        super.configureClientInboundChannel(registration);
+    }
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        super.configureClientOutboundChannel(registration);
+    }
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
+        super.addArgumentResolvers(argumentResolvers);
+    }
+    @Override
+    public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
+        super.addReturnValueHandlers(returnValueHandlers);
+    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -87,5 +114,11 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
         if (log.isDebugEnabled()) {
             log.debug("[event] disconnect: username="+event.getUser().getName()+", event="+event);
         }
+    }
+
+    @Bean
+    @Override
+    public org.springframework.web.socket.WebSocketHandler subProtocolWebSocketHandler() {
+        return new WebSocketHandler(clientInboundChannel(), clientOutboundChannel(), webSocketSessionService);
     }
 }

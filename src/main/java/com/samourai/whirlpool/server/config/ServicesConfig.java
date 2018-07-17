@@ -4,6 +4,7 @@ import com.samourai.wallet.bip47.BIP47Util;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.server.config.websocket.WebSocketHandler;
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.MockBlockchainDataService;

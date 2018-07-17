@@ -6,6 +6,7 @@ public class RegisteredInput {
     private byte[] pubkey;
     private String paymentCode;
     private boolean liquidity;
+    private boolean offline;
 
     public RegisteredInput(String username, TxOutPoint input, byte[] pubkey, String paymentCode, boolean liquidity) {
         this.username = username;
@@ -13,6 +14,7 @@ public class RegisteredInput {
         this.pubkey = pubkey;
         this.paymentCode = paymentCode;
         this.liquidity = liquidity;
+        this.offline = false;
     }
 
     public String getUsername() {
@@ -33,5 +35,13 @@ public class RegisteredInput {
 
     public boolean isLiquidity() {
         return liquidity;
+    }
+
+    public void setOffline(boolean offline) {
+        this.offline = offline;
+    }
+
+    public boolean isOffline() {
+        return offline;
     }
 }

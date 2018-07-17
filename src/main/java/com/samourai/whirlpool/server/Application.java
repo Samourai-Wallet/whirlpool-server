@@ -53,6 +53,7 @@ public class Application implements ApplicationRunner {
 
 			// skip noisy logs in debug mode
 			LogbackUtils.setLogLevel("org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter", Level.INFO.toString());
+			LogbackUtils.setLogLevel("org.springframework.web.socket.config.WebSocketMessageBrokerStats", Level.ERROR.toString());
 		}
 
 		if (!blockchainDataService.testConnectivity()) {

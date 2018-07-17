@@ -179,6 +179,11 @@ public class Round {
         }
     }
 
+    public synchronized void unregisterInput(RegisteredInput registeredInput) {
+        String inputId = Utils.computeInputId(registeredInput.getInput());
+        inputsById.remove(inputId);
+    }
+
     public boolean hasInput(TxOutPoint outPoint) {
         return inputsById.containsKey(Utils.computeInputId(outPoint)) ;
     }
