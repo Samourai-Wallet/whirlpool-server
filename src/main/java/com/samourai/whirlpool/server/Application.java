@@ -2,9 +2,11 @@ package com.samourai.whirlpool.server;
 
 import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.utils.DbUtils;
+import com.samourai.whirlpool.server.utils.LogbackUtils;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -48,6 +50,9 @@ public class Application implements ApplicationRunner {
 		if (args.containsOption(ARG_DEBUG)) {
 			// enable debug logs
 			Utils.setLoggerDebug("com.samourai.whirlpool.server");
+
+			// skip noisy logs in debug mode
+			LogbackUtils.setLogLevel("org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter", Level.INFO.toString());
 		}
 
 		if (!blockchainDataService.testConnectivity()) {
