@@ -30,8 +30,14 @@
                     <td class="roundId"><pre><code th:text="${round.roundId}"/></pre></td>
                     <td class="anonymitySet"><span th:text="${round.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${round.nbMustMix}" title="mustMix"/> + <span th:text="${round.nbLiquidities}" title="liquidities"/>)</td>
                     <td class="status"><span th:text="${round.roundStatus}"/> <span th:text="${round.failReason != null} ? ${'(' + round.failReason + ')'} : ''"/></td>
-                    <td class="txid"><a th:href="${urlExplorer + round.roundLog.txid}" target="_blank"><pre><code th:text="${round.roundLog != null && round.roundLog.txid != null} ? ${round.roundLog.txid} : '...'"/></pre></a></td>
-                    <td class="rawTx"><pre><code th:text="${round.roundLog != null && round.roundLog.rawTx != null} ? ${round.roundLog.rawTx} : '...'"/></pre></td>
+                    <td class="txid">
+                        <a th:if="${round.roundLog != null && round.roundLog.txid != null}" th:href="${urlExplorer + round.roundLog.txid}" target="_blank"><pre><code th:text="${round.roundLog.txid}"/></pre></a>
+                        <span th:if="${round.roundLog == null || round.roundLog.txid == null}">...</span>
+                    </td>
+                    <td class="rawTx">
+                        <pre><code th:if="${round.roundLog != null && round.roundLog.rawTx != null}" th:text="${round.roundLog.rawTx}"/></pre>
+                        <span th:if="${round.roundLog == null || round.roundLog.rawTx == null}">...</span>
+                    </td>
                 </tr>
             </tbody>
         </table>
