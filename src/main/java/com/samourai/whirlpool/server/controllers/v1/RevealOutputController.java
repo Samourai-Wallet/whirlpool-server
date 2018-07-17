@@ -33,7 +33,7 @@ public class RevealOutputController {
   public void revealOutput(@Payload RegisterOutputRequest payload, Principal principal) throws Exception {
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug("[controller] /revealOutput: username=" + username + ", payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
     // register output

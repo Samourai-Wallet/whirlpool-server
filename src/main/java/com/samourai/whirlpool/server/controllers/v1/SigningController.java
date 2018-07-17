@@ -33,7 +33,7 @@ public class SigningController {
   public void signing(@Payload SigningRequest payload, Principal principal) throws Exception {
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug("[controller] /signing: username=" + username + ", payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_SIGNING + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
     // signing

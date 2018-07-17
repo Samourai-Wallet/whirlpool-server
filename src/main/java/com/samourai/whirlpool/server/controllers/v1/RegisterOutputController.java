@@ -29,7 +29,7 @@ public class RegisterOutputController {
   @RequestMapping(value = ENDPOINT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
     if (log.isDebugEnabled()) {
-      log.debug("[controller] /registerInput: payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + ENDPOINT + ": payload=" + Utils.toJsonString(payload));
     }
 
     validate(payload);

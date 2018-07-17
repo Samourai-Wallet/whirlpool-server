@@ -35,7 +35,7 @@ public class RegisterInputController {
   public void registerInputs(@Payload RegisterInputRequest payload, Principal principal) throws Exception {
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug("[controller] /registerInput: username=" + username + ", payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
     try {

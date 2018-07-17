@@ -30,7 +30,7 @@ public class RoundStatusController {
   public void roundStatusOnSubscribe(Principal principal) {
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.info("[controller] /roundStatusOnSubscribe: username=" + username);
+      log.info("[controller] subscribe:"+ WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY + ": username=" + username);
     }
 
     // return roundStatus
