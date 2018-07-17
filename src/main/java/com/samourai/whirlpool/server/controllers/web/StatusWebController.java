@@ -24,6 +24,7 @@ import java.util.Map;
 public class StatusWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status";
+  private static final String STATUS_START_ROUND = "START_ROUND";
 
   private RoundService roundService;
   private RoundLimitsManager roundLimitsManager;
@@ -38,7 +39,7 @@ public class StatusWebController {
   public String status(Model model) throws Exception {
     Round round = roundService.__getCurrentRound();
     model.addAttribute("roundId", round.getRoundId());
-    model.addAttribute("roundStatus", round.getRoundStatus());
+    model.addAttribute("roundStatus", round.getNbInputsMustMix() > 0 ? round.getRoundStatus() : STATUS_START_ROUND);
     model.addAttribute("targetAnonymitySet", round.getTargetAnonymitySet());
     model.addAttribute("maxAnonymitySet", round.getMaxAnonymitySet());
     model.addAttribute("minAnonymitySet", round.getMinAnonymitySet());
@@ -58,7 +59,7 @@ public class StatusWebController {
 
     Map<RoundStatus, Timestamp> timeStatus = round.getTimeStatus();
     List<StatusStep> steps = new ArrayList<>();
-    steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), "START_ROUND", null));
+    steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), STATUS_START_ROUND, null));
     steps.add(computeStep(RoundStatus.REGISTER_INPUT, timeStatus));
     steps.add(computeStep(RoundStatus.REGISTER_OUTPUT, timeStatus));
     if (timeStatus.containsKey(RoundStatus.REVEAL_OUTPUT_OR_BLAME)) {
@@ -77,7 +78,7 @@ public class StatusWebController {
     model.addAttribute("steps", steps);
 
     List<StatusEvent> events = new ArrayList<>();
-    events.add(new StatusEvent(round.getTimeStarted(), "Round started", null));
+    events.add(new StatusEvent(round.getTimeStarted(), STATUS_START_ROUND, null));
     timeStatus.forEach(((roundStatus, timestamp) -> events.add(new StatusEvent(timestamp, roundStatus.toString(), null))));
     model.addAttribute("events", events);
     return "status";
