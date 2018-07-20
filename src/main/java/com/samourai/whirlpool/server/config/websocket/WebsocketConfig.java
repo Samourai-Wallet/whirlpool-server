@@ -39,8 +39,7 @@ public class WebsocketConfig extends WebSocketMessageBrokerConfigurationSupport 
     @Autowired
     private WhirlpoolProtocol whirlpoolProtocol;
 
-    @Autowired
-    private WebSocketSessionService webSocketSessionService;
+    private WebSocketHandler webSocketHandler;
 
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
@@ -119,6 +118,18 @@ public class WebsocketConfig extends WebSocketMessageBrokerConfigurationSupport 
     @Bean
     @Override
     public org.springframework.web.socket.WebSocketHandler subProtocolWebSocketHandler() {
-        return new WebSocketHandler(clientInboundChannel(), clientOutboundChannel(), webSocketSessionService);
+        return getWebSocketHandler();
+    }
+
+    private WebSocketHandler getWebSocketHandler() {
+        if (this.webSocketHandler == null) {
+            this.webSocketHandler = new WebSocketHandler(this);
+        }
+        return this.webSocketHandler;
+    }
+
+    // avoids circular reference
+    public void __setWebSocketHandlerListener(WebSocketSessionService webSocketSessionService) {
+        getWebSocketHandler().__setWebSocketSessionService(webSocketSessionService);
     }
 }

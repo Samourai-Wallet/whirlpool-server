@@ -1,16 +1,17 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.server.config.websocket.WebsocketConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Service
 public class WebSocketSessionService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -18,9 +19,12 @@ public class WebSocketSessionService {
     private RoundService roundService;
 
     @Autowired
-    public WebSocketSessionService(RoundService roundService) {
+    public WebSocketSessionService(RoundService roundService, WebsocketConfig websocketConfig) {
         this.roundService = roundService;
         this.sessions = new HashMap<>();
+
+        // subscribe to websocket activity
+        websocketConfig.__setWebSocketHandlerListener(this);
     }
 
     public synchronized void onConnect(WebSocketSession webSocketSession) {
