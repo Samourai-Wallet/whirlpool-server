@@ -1,4 +1,4 @@
-package com.samourai.whirlpool.server.controllers.v1;
+package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.v1.messages.RegisterInputRequest;
@@ -13,26 +13,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 
 @Controller
-public class RegisterInputController {
+public class RegisterInputController extends AbstractWebSocketController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private WebSocketService webSocketService;
   private RegisterInputService registerInputService;
 
   @Autowired
   public RegisterInputController(WebSocketService webSocketService, RegisterInputService registerInputService) {
-    this.webSocketService = webSocketService;
+    super(webSocketService);
     this.registerInputService = registerInputService;
   }
 
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT)
-  public void registerInputs(@Payload RegisterInputRequest payload, Principal principal) throws Exception {
+  public void registerInputs(@Payload RegisterInputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
+    validateHeaders(headers);
+
     String username = principal.getName();
     if (log.isDebugEnabled()) {
       log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
@@ -52,8 +54,7 @@ public class RegisterInputController {
 
   @MessageExceptionHandler
   public void handleException(Exception exception, Principal principal) {
-    String username = principal.getName();
-    webSocketService.sendPrivateError(username, exception);
+    super.handleException(exception, principal);
   }
 
 }

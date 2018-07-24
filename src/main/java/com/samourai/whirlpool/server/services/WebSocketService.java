@@ -55,6 +55,7 @@ public class WebSocketService {
     private Map<String,Object> buildHeaders(Object payload) {
         Map<String,Object> headers = new HashMap<>();
         headers.put(whirlpoolProtocol.HEADER_MESSAGE_TYPE, payload.getClass().getName());
+        headers.put(whirlpoolProtocol.HEADER_PROTOCOL_VERSION, WhirlpoolProtocol.PROTOCOL_VERSION);
         return headers;
     }
 

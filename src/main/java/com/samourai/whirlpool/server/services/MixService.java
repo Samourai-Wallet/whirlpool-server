@@ -8,7 +8,7 @@ import com.samourai.whirlpool.protocol.v1.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.v1.notifications.*;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.controllers.v1.RegisterOutputController;
+import com.samourai.whirlpool.server.controllers.websocket.RegisterOutputController;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
