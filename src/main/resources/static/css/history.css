@@ -4,6 +4,6 @@ table.history {
 td.rawTx {
     max-width: 300px;
 }
-td.roundId, td.txid, td.rawTx {
+td.mixId, td.txid, td.rawTx {
     font-size: 0.8em;
 }

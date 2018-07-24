@@ -35,7 +35,7 @@ public class RegisterOutputController {
     validate(payload);
 
     // register output
-    registerOutputService.registerOutput(payload.roundId, payload.unblindedSignedBordereau, payload.bordereau, payload.sendAddress, payload.receiveAddress);
+    registerOutputService.registerOutput(payload.mixId, payload.unblindedSignedBordereau, payload.bordereau, payload.sendAddress, payload.receiveAddress);
   }
 
   private void validate(RegisterOutputRequest registerOutputRequest) throws IllegalInputException {

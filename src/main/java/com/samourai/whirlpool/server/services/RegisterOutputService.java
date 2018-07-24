@@ -14,25 +14,25 @@ import java.lang.invoke.MethodHandles;
 public class RegisterOutputService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private RoundService roundService;
+    private MixService mixService;
     private CryptoService cryptoService;
     private DbService dbService;
     private FormatsUtil formatsUtil;
 
     @Autowired
-    public RegisterOutputService(RoundService roundService, CryptoService cryptoService, DbService dbService, FormatsUtil formatsUtil) {
-        this.roundService = roundService;
+    public RegisterOutputService(MixService mixService, CryptoService cryptoService, DbService dbService, FormatsUtil formatsUtil) {
+        this.mixService = mixService;
         this.cryptoService = cryptoService;
         this.dbService = dbService;
         this.formatsUtil = formatsUtil;
     }
 
-    public void registerOutput(String roundId, byte[] unblindedSignedBordereau, String bordereau, String sendAddress, String receiveAddress) throws Exception {
+    public void registerOutput(String mixId, byte[] unblindedSignedBordereau, String bordereau, String sendAddress, String receiveAddress) throws Exception {
         // validate
         validate(unblindedSignedBordereau, bordereau, sendAddress, receiveAddress);
 
         // register
-        roundService.registerOutput(roundId, sendAddress, receiveAddress, bordereau);
+        mixService.registerOutput(mixId, sendAddress, receiveAddress, bordereau);
 
         // register bordereau
         dbService.registerBordereau(bordereau);

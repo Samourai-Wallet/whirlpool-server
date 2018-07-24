@@ -1,10 +1,10 @@
 package com.samourai.whirlpool.server.controllers.web;
 
-import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
+import com.samourai.whirlpool.protocol.v1.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
-import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.services.RoundLimitsService;
-import com.samourai.whirlpool.server.services.RoundService;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.services.MixLimitsService;
+import com.samourai.whirlpool.server.services.MixService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,79 +23,79 @@ import java.util.Map;
 public class StatusWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status";
-  private static final String STATUS_START_ROUND = "START_ROUND";
+  private static final String STATUS_START_MIX = "START_MIX";
 
-  private RoundService roundService;
-  private RoundLimitsService roundLimitsService;
+  private MixService mixService;
+  private MixLimitsService mixLimitsService;
 
   @Autowired
-  public StatusWebController(RoundService roundService, RoundLimitsService roundLimitsService) {
-    this.roundService = roundService;
-    this.roundLimitsService = roundLimitsService;
+  public StatusWebController(MixService mixService, MixLimitsService mixLimitsService) {
+    this.mixService = mixService;
+    this.mixLimitsService = mixLimitsService;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
   public String status(Model model) throws Exception {
-    Round round = roundService.__getCurrentRound();
-    model.addAttribute("roundId", round.getRoundId());
-    model.addAttribute("roundStatus", round.getNbInputsMustMix() > 0 ? round.getRoundStatus() : STATUS_START_ROUND);
-    model.addAttribute("targetAnonymitySet", round.getTargetAnonymitySet());
-    model.addAttribute("maxAnonymitySet", round.getMaxAnonymitySet());
-    model.addAttribute("minAnonymitySet", round.getMinAnonymitySet());
-    model.addAttribute("nbInputs", round.getNbInputs());
-    model.addAttribute("nbInputsMustMix", round.getNbInputsMustMix());
-    model.addAttribute("nbInputsLiquidities", round.getNbInputsLiquidities());
+    Mix mix = mixService.__getCurrentMix();
+    model.addAttribute("mixId", mix.getMixId());
+    model.addAttribute("mixStatus", mix.getNbInputsMustMix() > 0 ? mix.getMixStatus() : STATUS_START_MIX);
+    model.addAttribute("targetAnonymitySet", mix.getTargetAnonymitySet());
+    model.addAttribute("maxAnonymitySet", mix.getMaxAnonymitySet());
+    model.addAttribute("minAnonymitySet", mix.getMinAnonymitySet());
+    model.addAttribute("nbInputs", mix.getNbInputs());
+    model.addAttribute("nbInputsMustMix", mix.getNbInputsMustMix());
+    model.addAttribute("nbInputsLiquidities", mix.getNbInputsLiquidities());
 
-    Long currentStepElapsedTime = toSeconds(this.roundLimitsService.getLimitsWatcherElapsedTime(round));
-    Long currentStepRemainingTime = toSeconds(this.roundLimitsService.getLimitsWatcherTimeToWait(round));
+    Long currentStepElapsedTime = toSeconds(this.mixLimitsService.getLimitsWatcherElapsedTime(mix));
+    Long currentStepRemainingTime = toSeconds(this.mixLimitsService.getLimitsWatcherTimeToWait(mix));
     Double currentStepProgress = currentStepElapsedTime != null && currentStepRemainingTime != null ? Math.ceil(Double.valueOf(currentStepElapsedTime) / (currentStepElapsedTime+currentStepRemainingTime) * 100) : null;
     model.addAttribute("currentStepProgress", currentStepProgress);
 
-    String currentStepProgressLabel = computeCurrentStepProgressLabel(round.getRoundStatus(), currentStepElapsedTime, currentStepRemainingTime);
+    String currentStepProgressLabel = computeCurrentStepProgressLabel(mix.getMixStatus(), currentStepElapsedTime, currentStepRemainingTime);
     model.addAttribute("currentStepProgressLabel", currentStepProgressLabel);
 
-    LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
+    LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
     model.addAttribute("nbLiquiditiesAvailable", liquidityPool.getNbLiquidities());
 
-    Map<RoundStatus, Timestamp> timeStatus = round.getTimeStatus();
+    Map<MixStatus, Timestamp> timeStatus = mix.getTimeStatus();
     List<StatusStep> steps = new ArrayList<>();
-    steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), STATUS_START_ROUND, null));
-    steps.add(computeStep(RoundStatus.REGISTER_INPUT, timeStatus));
-    steps.add(computeStep(RoundStatus.REGISTER_OUTPUT, timeStatus));
-    if (timeStatus.containsKey(RoundStatus.REVEAL_OUTPUT_OR_BLAME)) {
-      steps.add(computeStep(RoundStatus.REVEAL_OUTPUT_OR_BLAME, timeStatus));
-      steps.add(computeStep(RoundStatus.FAIL, timeStatus));
+    steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), STATUS_START_MIX, null));
+    steps.add(computeStep(MixStatus.REGISTER_INPUT, timeStatus));
+    steps.add(computeStep(MixStatus.REGISTER_OUTPUT, timeStatus));
+    if (timeStatus.containsKey(MixStatus.REVEAL_OUTPUT)) {
+      steps.add(computeStep(MixStatus.REVEAL_OUTPUT, timeStatus));
+      steps.add(computeStep(MixStatus.FAIL, timeStatus));
     }
     else {
-      steps.add(computeStep(RoundStatus.SIGNING, timeStatus));
-      if (timeStatus.containsKey(RoundStatus.FAIL)) {
-        steps.add(computeStep(RoundStatus.FAIL, timeStatus));
+      steps.add(computeStep(MixStatus.SIGNING, timeStatus));
+      if (timeStatus.containsKey(MixStatus.FAIL)) {
+        steps.add(computeStep(MixStatus.FAIL, timeStatus));
       }
       else {
-        steps.add(computeStep(RoundStatus.SUCCESS, timeStatus));
+        steps.add(computeStep(MixStatus.SUCCESS, timeStatus));
       }
     }
     model.addAttribute("steps", steps);
 
     List<StatusEvent> events = new ArrayList<>();
-    events.add(new StatusEvent(round.getTimeStarted(), STATUS_START_ROUND, null));
-    timeStatus.forEach(((roundStatus, timestamp) -> events.add(new StatusEvent(timestamp, roundStatus.toString(), null))));
+    events.add(new StatusEvent(mix.getTimeStarted(), STATUS_START_MIX, null));
+    timeStatus.forEach(((mixStatus, timestamp) -> events.add(new StatusEvent(timestamp, mixStatus.toString(), null))));
     model.addAttribute("events", events);
     return "status";
   }
 
-  private StatusStep computeStep(RoundStatus roundStatus, Map<RoundStatus, Timestamp> timeStatus) {
-    boolean isActive = (!timeStatus.isEmpty() && new ArrayList<>(timeStatus.keySet()).indexOf(roundStatus) == (timeStatus.size()-1));
-    boolean isDone = !isActive && timeStatus.containsKey(roundStatus);
-    return new StatusStep(isDone, isActive, roundStatus.toString(), null);
+  private StatusStep computeStep(MixStatus mixStatus, Map<MixStatus, Timestamp> timeStatus) {
+    boolean isActive = (!timeStatus.isEmpty() && new ArrayList<>(timeStatus.keySet()).indexOf(mixStatus) == (timeStatus.size()-1));
+    boolean isDone = !isActive && timeStatus.containsKey(mixStatus);
+    return new StatusStep(isDone, isActive, mixStatus.toString(), null);
   }
 
-  private String computeCurrentStepProgressLabel(RoundStatus roundStatus, Long currentStepElapsedTime, Long currentStepRemainingTime) {
+  private String computeCurrentStepProgressLabel(MixStatus mixStatus, Long currentStepElapsedTime, Long currentStepRemainingTime) {
       String progressLabel = null;
 
       if (currentStepElapsedTime != null && currentStepRemainingTime != null) {
           progressLabel = currentStepElapsedTime + "s elapsed, " + currentStepRemainingTime + "s remaining ";
-          switch (roundStatus) {
+          switch (mixStatus) {
               case REGISTER_INPUT:
                   progressLabel += "before anonymitySet adjustment";
                   break;
@@ -105,7 +105,7 @@ public class StatusWebController {
               case SIGNING:
                   progressLabel += "to sign";
                   break;
-              case REVEAL_OUTPUT_OR_BLAME:
+              case REVEAL_OUTPUT:
                   progressLabel += "to reveal outputs";
                   break;
           }

@@ -1,11 +1,11 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.beans.BlameReason;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.Round;
-import com.samourai.whirlpool.server.persistence.repositories.RoundRepository;
+import com.samourai.whirlpool.server.persistence.repositories.MixRepository;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
-import com.samourai.whirlpool.server.persistence.to.RoundTO;
+import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -20,10 +20,10 @@ public class DbService {
     private Set<String> blindedBordereaux;
     private Set<String> bordereaux;
     private List<BlameTO> blames;
-    private RoundRepository roundRepository;
+    private MixRepository mixRepository;
 
-    public DbService(RoundRepository roundRepository) {
-        this.roundRepository = roundRepository;
+    public DbService(MixRepository mixRepository) {
+        this.mixRepository = mixRepository;
         __reset(); // TODO
     }
 
@@ -49,18 +49,18 @@ public class DbService {
         return bordereaux.contains(bordereau);
     }
 
-    public void saveBlame(RegisteredInput registeredInput, BlameReason blameReason, String roundId) {
-        BlameTO blameTO = new BlameTO(registeredInput, blameReason, roundId);
+    public void saveBlame(RegisteredInput registeredInput, BlameReason blameReason, String mixId) {
+        BlameTO blameTO = new BlameTO(registeredInput, blameReason, mixId);
         blames.add(blameTO);
     }
 
-    public void saveRound(Round round) {
-        RoundTO roundTO = round.computeRoundTO();
-        roundRepository.save(roundTO);
+    public void saveMix(Mix mix) {
+        MixTO mixTO = mix.computeMixTO();
+        mixRepository.save(mixTO);
     }
 
-    public Iterable<RoundTO> findRounds() {
-        return roundRepository.findAll(new Sort(Sort.Direction.DESC, "created"));
+    public Iterable<MixTO> findMixs() {
+        return mixRepository.findAll(new Sort(Sort.Direction.DESC, "created"));
     }
 
     public void __reset() {

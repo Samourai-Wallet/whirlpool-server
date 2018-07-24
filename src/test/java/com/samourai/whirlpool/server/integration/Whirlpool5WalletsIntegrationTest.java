@@ -2,9 +2,9 @@ package com.samourai.whirlpool.server.integration;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
+import com.samourai.whirlpool.protocol.v1.notifications.MixStatus;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.integration.manual.ManualMixer;
 import com.samourai.whirlpool.server.integration.manual.ManualPremixer;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
@@ -35,7 +35,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
 
     // Samourai fee %
     double swFeePct = 0.0175;
-    // mix (round) amount
+    // mix (mix) amount
     double mixAmount = 0.5;
     // Samourai fee
     long swFee = ((long)((mixAmount * swFeePct) * 1e8) + 100000L);  // add 0.001 BTC flat fee per mix
@@ -225,16 +225,16 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         /*
          * MIX
          */
-        List<String> mix = new ArrayList<String>();
-        mix.addAll(firstMixables.keySet());
+        List<String> mixKeys = new ArrayList<String>();
+        mixKeys.addAll(firstMixables.keySet());
 
         List<String> mixers = new ArrayList<String>();
         mixers.addAll(firstMixables.values());
 
         final int NB_CLIENTS = nbMixes;
 
-        // start round
-        String roundId = "foo";
+        // start mix
+        String mixId = "foo";
         long denomination = premixer.biUnitReceiveAmount.longValue();
         long fees = mixFee;
         int minMustMix = NB_CLIENTS;
@@ -243,16 +243,16 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         int maxAnonymitySet = NB_CLIENTS;
         long timeoutAdjustAnonymitySet = 10 * 60; // 10 minutes
         long timeoutAcceptLiquidities = 60;
-        Round round = new Round(roundId, denomination, fees, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
-        roundService.__reset(round);
+        Mix mix = new Mix(mixId, denomination, fees, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        mixService.__reset(mix);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, round);
+        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
         // prepare inputs & outputs
         final IntFunction connectClient = (int i) -> {
             try {
                 // send from address
-                final String fromAddress = mix.get(i);
+                final String fromAddress = mixKeys.get(i);
 
                 final ECKey utxoKey = premixer.toPrivKeys.get(fromAddress);
                 final SegwitAddress segwitAddress = new SegwitAddress(utxoKey, params);
@@ -284,8 +284,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
 
         // connected clients should have registered their inputs...
         Thread.sleep(2000);
-        Assert.assertEquals(RoundStatus.REGISTER_INPUT, round.getRoundStatus());
-        Assert.assertEquals(NB_CLIENTS-1, round.getInputs().size());
+        Assert.assertEquals(MixStatus.REGISTER_INPUT, mix.getMixStatus());
+        Assert.assertEquals(NB_CLIENTS-1, mix.getInputs().size());
 
         // connect last client
         Thread.sleep(500);
@@ -294,30 +294,30 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         Thread.sleep(5000);
 
         // all clients should have registered their inputs
-        Assert.assertEquals(NB_CLIENTS, round.getNbInputs());
+        Assert.assertEquals(NB_CLIENTS, mix.getNbInputs());
 
-        for (RegisteredInput registeredInput : round.getInputs()) {
+        for (RegisteredInput registeredInput : mix.getInputs()) {
             String txOutPointStr = registeredInput.getInput().getHash() + "-" + registeredInput.getInput().getIndex();
            Assert.assertTrue(premixer.toUTXO.values().contains(txOutPointStr));
         }
 
-        // round automatically switches to REGISTER_OUTPUTS, then SIGNING
+        // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
         Thread.sleep(7000);
 
         // all clients should have registered their outputs
-        //assertStatusRegisterInput(round, NB_CLIENTS, false);
+        //assertStatusRegisterInput(mix, NB_CLIENTS, false);
 
         // all clients should have signed
-        multiClientManager.assertRoundStatusSuccess(NB_CLIENTS, false);
+        multiClientManager.assertMixStatusSuccess(NB_CLIENTS, false);
 
         // print transactions
-        //Transaction unsignedTx = round.getTx(); // TODO
+        //Transaction unsignedTx = mix.getTx(); // TODO
         //String unsignedStrTxHash = unsignedTx.getHashAsString();
         //String unsignedHexTx = new String(Hex.encode(unsignedTx.bitcoinSerialize()));
         //System.out.println("unsignedStrTxHash = "+unsignedStrTxHash);
         //System.out.println("unsignedHexTx = "+unsignedHexTx);
 
-        Transaction tx = round.getTx();
+        Transaction tx = mix.getTx();
         String strTxHash = tx.getHashAsString();
         String hexTx = new String(Hex.encode(tx.bitcoinSerialize()));
         System.out.println("strTxHash = "+strTxHash);

@@ -23,7 +23,7 @@ public class WhirlpoolServerConfig {
     private SigningConfig signing;
     private RevealOutputConfig revealOutput;
     private BanConfig ban;
-    private RoundConfig round;
+    private MixConfig mix;
 
 
     public SamouraiFeeConfig getSamouraiFees() {
@@ -102,12 +102,12 @@ public class WhirlpoolServerConfig {
         this.ban = ban;
     }
 
-    public RoundConfig getRound() {
-        return round;
+    public MixConfig getMix() {
+        return mix;
     }
 
-    public void setRound(RoundConfig round) {
-        this.round = round;
+    public void setMix(MixConfig mix) {
+        this.mix = mix;
     }
 
     public static class RegisterInputConfig {
@@ -179,7 +179,7 @@ public class WhirlpoolServerConfig {
         }
     }
 
-    public static class RoundConfig {
+    public static class MixConfig {
         private long denomination;
         private long minerFee;
         private int mustMixMin;

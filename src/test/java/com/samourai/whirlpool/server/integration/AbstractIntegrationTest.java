@@ -3,7 +3,7 @@ package com.samourai.whirlpool.server.integration;
 import com.samourai.wallet.bip47.BIP47Util;
 import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.client.services.ClientCryptoService;
-import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.services.*;
 import com.samourai.whirlpool.server.utils.*;
 import org.junit.After;
@@ -37,7 +37,7 @@ public abstract class AbstractIntegrationTest {
     protected DbService dbService;
 
     @Autowired
-    protected RoundService roundService;
+    protected MixService mixService;
 
     @Autowired
     protected BlockchainDataService blockchainDataService;
@@ -56,7 +56,7 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected TaskExecutor taskExecutor;
 
-    protected RoundLimitsService roundLimitsService;
+    protected MixLimitsService mixLimitsService;
 
     private MultiClientManager multiClientManager;
 
@@ -70,11 +70,11 @@ public abstract class AbstractIntegrationTest {
         messageSignUtil = MessageSignUtil.getInstance(cryptoService.getNetworkParameters());
 
         dbService.__reset();
-        roundService.__nextRound();
-        roundService.__setUseDeterministPaymentCodeMatching(true);
+        mixService.__nextMix();
+        mixService.__setUseDeterministPaymentCodeMatching(true);
         ((MockBlockchainDataService)blockchainDataService).resetMock();
 
-        roundLimitsService = roundService.__getRoundLimitsService();
+        mixLimitsService = mixService.__getMixLimitsService();
     }
 
     @After
@@ -84,8 +84,8 @@ public abstract class AbstractIntegrationTest {
         }
     }
 
-    protected MultiClientManager multiClientManager(int nbClients, Round round) {
-        multiClientManager = new MultiClientManager(nbClients, round, roundService, testUtils, cryptoService, blockchainDataService, roundLimitsService, port);
+    protected MultiClientManager multiClientManager(int nbClients, Mix mix) {
+        multiClientManager = new MultiClientManager(nbClients, mix, mixService, testUtils, cryptoService, mixLimitsService, port);
         return multiClientManager;
     }
 

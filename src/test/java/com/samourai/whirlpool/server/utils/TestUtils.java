@@ -4,7 +4,7 @@ import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
-import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
@@ -76,12 +76,12 @@ public class TestUtils {
         return generateWallet(purpose, seed, "test");
     }
 
-    public long computeSpendAmount(Round round, boolean liquidity) {
+    public long computeSpendAmount(Mix mix, boolean liquidity) {
         if (liquidity) {
             // no minerFees for liquidities
-            return round.getDenomination();
+            return mix.getDenomination();
         }
-        return round.getDenomination() + round.getFees();
+        return mix.getDenomination() + mix.getFees();
     }
 
     public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount) throws Exception {

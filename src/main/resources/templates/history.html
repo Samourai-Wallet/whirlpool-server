@@ -17,7 +17,7 @@
             <thead>
             <tr>
                 <th scope="col">Date</th>
-                <th scope="col">Round id</th>
+                <th scope="col">Mix id</th>
                 <th scope="col">AnonymitySet</th>
                 <th scope="col">Status</th>
                 <th scope="col">Txid</th>
@@ -25,18 +25,18 @@
             </tr>
             </thead>
             <tbody>
-                <tr th:each="round : *{rounds}">
-                    <td class="created"><span th:text="${#dates.format(round.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
-                    <td class="roundId"><pre><code th:text="${round.roundId}"/></pre></td>
-                    <td class="anonymitySet"><span th:text="${round.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${round.nbMustMix}" title="mustMix"/> + <span th:text="${round.nbLiquidities}" title="liquidities"/>)</td>
-                    <td class="status"><span th:text="${round.roundStatus}"/> <span th:text="${round.failReason != null} ? ${'(' + round.failReason + ')'} : ''"/></td>
+                <tr th:each="mix : *{mixs}">
+                    <td class="created"><span th:text="${#dates.format(mix.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
+                    <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
+                    <td class="anonymitySet"><span th:text="${mix.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${mix.nbMustMix}" title="mustMix"/> + <span th:text="${mix.nbLiquidities}" title="liquidities"/>)</td>
+                    <td class="status"><span th:text="${mix.mixStatus}"/> <span th:text="${mix.failReason != null} ? ${'(' + mix.failReason + ')'} : ''"/></td>
                     <td class="txid">
-                        <a th:if="${round.roundLog != null && round.roundLog.txid != null}" th:href="${urlExplorer + round.roundLog.txid}" target="_blank"><pre><code th:text="${round.roundLog.txid}"/></pre></a>
-                        <span th:if="${round.roundLog == null || round.roundLog.txid == null}">...</span>
+                        <a th:if="${mix.mixLog != null && mix.mixLog.txid != null}" th:href="${urlExplorer + mix.mixLog.txid}" target="_blank"><pre><code th:text="${mix.mixLog.txid}"/></pre></a>
+                        <span th:if="${mix.mixLog == null || mix.mixLog.txid == null}">...</span>
                     </td>
                     <td class="rawTx">
-                        <pre><code th:if="${round.roundLog != null && round.roundLog.rawTx != null}" th:text="${round.roundLog.rawTx}"/></pre>
-                        <span th:if="${round.roundLog == null || round.roundLog.rawTx == null}">...</span>
+                        <pre><code th:if="${mix.mixLog != null && mix.mixLog.rawTx != null}" th:text="${mix.mixLog.rawTx}"/></pre>
+                        <span th:if="${mix.mixLog == null || mix.mixLog.rawTx == null}">...</span>
                     </td>
                 </tr>
             </tbody>

@@ -11,16 +11,16 @@ import java.lang.invoke.MethodHandles;
 public class SigningService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private RoundService roundService;
+    private MixService mixService;
 
     @Autowired
-    public SigningService(RoundService roundService) {
-        this.roundService = roundService;
+    public SigningService(MixService mixService) {
+        this.mixService = mixService;
     }
 
-    public void signing(String roundId, String username, byte[][] witness) throws Exception {
+    public void signing(String mixId, String username, byte[][] witness) throws Exception {
         // signing
-        roundService.registerSignature(roundId, username, witness);
+        mixService.registerSignature(mixId, username, witness);
     }
 
 }

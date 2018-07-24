@@ -14,22 +14,22 @@ public class BlameTO extends EntityTO {
     @Enumerated(EnumType.STRING)
     private BlameReason blameReason;
 
-    private String roundId;
+    private String mixId;
 
     public BlameTO() {
     }
 
-    public BlameTO(RegisteredInput registeredInput, BlameReason blameReason, String roundId) {
+    public BlameTO(RegisteredInput registeredInput, BlameReason blameReason, String mixId) {
         super();
         this.blameReason = blameReason;
-        this.roundId = roundId;
+        this.mixId = mixId;
     }
 
     public BlameReason getBlameReason() {
         return blameReason;
     }
 
-    public String getRoundId() {
-        return roundId;
+    public String getMixId() {
+        return mixId;
     }
 }

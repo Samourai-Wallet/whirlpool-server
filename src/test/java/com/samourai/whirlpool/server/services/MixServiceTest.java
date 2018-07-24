@@ -1,8 +1,8 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.v1.messages.PeersPaymentCodesResponse;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.Round;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.junit.Assert;
@@ -26,11 +26,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-public class RoundServiceTest {
+public class MixServiceTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Autowired
-    private RoundService roundService;
+    private MixService mixService;
 
     @Autowired
     private DbService dbService;
@@ -38,92 +38,92 @@ public class RoundServiceTest {
     @Before
     public void setUp() throws Exception {
         dbService.__reset();
-        roundService.__nextRound();
+        mixService.__nextMix();
     }
 
     @Test
     public void isRegisterInputReady_noLiquidity() throws Exception {
-        RoundService spyRoundService = Mockito.spy(roundService);
+        MixService spyMixService = Mockito.spy(mixService);
         int minMustMix = 1;
         int targetAnonymitySet = 2;
         int minAnonymitySet = 2;
         int maxAnonymitySet = 2;
         long timeoutAdjustAnonymitySet = 10 * 60;
         long timeoutAcceptLiquidities = 60; // TODO no liquidity
-        Round round = new Round("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        Mix mix = new Mix("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
 
         // 0 mustMix => false
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 mustMix => false
-        round.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, null, false));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, null, false));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 mustMix => true
-        round.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, null, false));
-        Assert.assertTrue(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, null, false));
+        Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
     @Test
     public void isRegisterInputReady_withLiquidityBefore() throws Exception {
-        RoundService spyRoundService = Mockito.spy(roundService);
+        MixService spyMixService = Mockito.spy(mixService);
         int minMustMix = 1;
         int targetAnonymitySet = 2;
         int minAnonymitySet = 2;
         int maxAnonymitySet = 2;
         long timeoutAdjustAnonymitySet = 10 * 60;
         long timeoutAcceptLiquidities = 60; // TODO with liquidity
-        Round round = new Round("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        Mix mix = new Mix("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
 
         // 0 liquidity => false
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 liquidity => false
-        round.registerInput(new RegisteredInput("liquidity1", generateInputsList(1).get(0), null, null, true));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("liquidity1", generateInputsList(1).get(0), null, null, true));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 liquidity => false
-        round.registerInput(new RegisteredInput("liquidity2", generateInputsList(1).get(0), null, null, true));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("liquidity2", generateInputsList(1).get(0), null, null, true));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 mustMix => false
-        round.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, null, false));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, null, false));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 mustMix => true
-        round.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, null, false));
-        Assert.assertTrue(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, null, false));
+        Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
     @Test
     public void isRegisterInputReady_withLiquidityAfter() throws Exception {
-        RoundService spyRoundService = Mockito.spy(roundService);
+        MixService spyMixService = Mockito.spy(mixService);
         int minMustMix = 1;
         int targetAnonymitySet = 2;
         int minAnonymitySet = 2;
         int maxAnonymitySet = 2;
         long timeoutAdjustAnonymitySet = 10 * 60;
         long timeoutAcceptLiquidities = 60; // TODO with liquidity
-        Round round = new Round("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        Mix mix = new Mix("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
 
         // 0 mustMix => false
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 mustMix => false
-        round.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, null, false));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, null, false));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 mustMix => false
-        round.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, null, false));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, null, false));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 liquidity => false
-        round.registerInput(new RegisteredInput("liquidity1", generateInputsList(1).get(0), null, null, true));
-        Assert.assertFalse(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("liquidity1", generateInputsList(1).get(0), null, null, true));
+        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 liquidity => true
-        round.registerInput(new RegisteredInput("liquidity2", generateInputsList(1).get(0), null, null, true));
-        Assert.assertTrue(spyRoundService.isRegisterInputReady(round));
+        mix.registerInput(new RegisteredInput("liquidity2", generateInputsList(1).get(0), null, null, true));
+        Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
     @Test
@@ -146,7 +146,7 @@ public class RoundServiceTest {
         for (int i=1; i<=nbUsers; i++) {
             paymentCodesByUser.put("user"+i, "paymentCode"+i);
         }
-        Map<String,PeersPaymentCodesResponse> paymentCodeConfrontations = roundService.computePaymentCodesConfrontations(paymentCodesByUser);
+        Map<String,PeersPaymentCodesResponse> paymentCodeConfrontations = mixService.computePaymentCodesConfrontations(paymentCodesByUser);
         verifyPaymentCodeConfrontations(paymentCodeConfrontations, paymentCodesByUser, shouldSucceed);
     }
 

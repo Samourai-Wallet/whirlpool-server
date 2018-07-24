@@ -22,9 +22,9 @@ public class BlameService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public void blame(RegisteredInput registeredInput, BlameReason reason, String roundId) {
+    public void blame(RegisteredInput registeredInput, BlameReason reason, String mixId) {
         log.info("blameForNoSigning "+registeredInput.getUsername());
-        dbService.saveBlame(registeredInput, reason, roundId);
+        dbService.saveBlame(registeredInput, reason, mixId);
     }
 
     public boolean isBannedUTXO(String utxoHash, long utxoIndex) {

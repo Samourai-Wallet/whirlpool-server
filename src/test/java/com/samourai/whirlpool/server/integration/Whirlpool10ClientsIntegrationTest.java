@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +21,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void whirlpool_10clients() throws Exception {
         final int NB_CLIENTS = 10;
-        // start round
-        String roundId = "foo";
+        // start mix
+        String mixId = "foo";
         long denomination = 200000000;
         long fees = 100000;
         int minMustMix = NB_CLIENTS;
@@ -31,10 +31,10 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         int maxAnonymitySet = NB_CLIENTS;
         long timeoutAdjustAnonymitySet = 10 * 60; // 10 minutes
         long timeoutAcceptLiquidities = 60;
-        Round round = new Round(roundId, denomination, fees, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
-        roundService.__reset(round);
+        Mix mix = new Mix(mixId, denomination, fees, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        mixService.__reset(mix);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, round);
+        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
         // connect all clients except one, to stay in REGISTER_INPUTS
         log.info("# Connect first clients...");
@@ -44,17 +44,17 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         }
 
         // connected clients should have registered their inputs...
-        multiClientManager.assertRoundStatusRegisterInput(NB_CLIENTS-1, false);
+        multiClientManager.assertMixStatusRegisterInput(NB_CLIENTS-1, false);
 
         // connect last client
         log.info("# Connect last client...");
         taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(NB_CLIENTS-1, false, 1));
 
         // all clients should have registered their inputs
-        // round automatically switches to REGISTER_OUTPUTS, then SIGNING
+        // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
 
         // all clients should have registered their outputs and signed
-        multiClientManager.assertRoundStatusSuccess(NB_CLIENTS, false);
+        multiClientManager.assertMixStatusSuccess(NB_CLIENTS, false);
     }
 
 }

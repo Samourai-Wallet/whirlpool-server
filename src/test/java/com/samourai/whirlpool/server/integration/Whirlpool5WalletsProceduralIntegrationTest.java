@@ -41,7 +41,7 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
 
     // Samourai fee %
     double swFeePct = 0.0175;
-    // mix (round) amount
+    // mix amount
     double mixAmount = 0.5;
     // Samourai fee
     long swFee = ((long)((mixAmount * swFeePct) * 1e8) + 100000L);  // add 0.001 BTC flat fee per mix

@@ -2,22 +2,21 @@ package com.samourai.whirlpool.server.utils;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.whirlpool.client.RoundParams;
 import com.samourai.whirlpool.client.WhirlpoolClient;
-import com.samourai.whirlpool.client.WhirlpoolMultiRoundClient;
-import com.samourai.whirlpool.client.WhirlpoolMultiRoundClientListener;
-import com.samourai.whirlpool.client.beans.RoundResultSuccess;
-import com.samourai.whirlpool.client.simple.ISimpleWhirlpoolClient;
-import com.samourai.whirlpool.client.simple.SimpleWhirlpoolClient;
-import com.samourai.whirlpool.client.utils.WhirlpoolClientConfig;
-import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
+import com.samourai.whirlpool.client.WhirlpoolClientConfig;
+import com.samourai.whirlpool.client.WhirlpoolClientListener;
+import com.samourai.whirlpool.client.beans.MixSuccess;
+import com.samourai.whirlpool.client.mix.MixClient;
+import com.samourai.whirlpool.client.mix.MixParams;
+import com.samourai.whirlpool.client.mix.handler.IMixHandler;
+import com.samourai.whirlpool.client.mix.handler.MixHandler;
+import com.samourai.whirlpool.protocol.v1.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
-import com.samourai.whirlpool.server.beans.Round;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.RoundLimitsService;
-import com.samourai.whirlpool.server.services.RoundService;
+import com.samourai.whirlpool.server.services.MixLimitsService;
+import com.samourai.whirlpool.server.services.MixService;
 import org.bitcoinj.core.ECKey;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -28,42 +27,40 @@ import java.lang.invoke.MethodHandles;
 public class MultiClientManager {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private RoundService roundService;
+    private MixService mixService;
     private TestUtils testUtils;
     private CryptoService cryptoService;
-    private BlockchainDataService blockchainDataService;
-    private RoundLimitsService roundLimitsService;
+    private MixLimitsService mixLimitsService;
     private int port;
 
-    private Round round;
+    private Mix mix;
 
     private TxOutPoint[] inputs;
     private ECKey[] inputKeys;
     private BIP47Wallet[] bip47Wallets;
-    private WhirlpoolMultiRoundClient[] multiRoundClients;
-    private WhirlpoolMultiRoundClientListener[] listeners;
+    private WhirlpoolClient[] clients;
+    private WhirlpoolClientListener[] listeners;
 
 
-    public MultiClientManager(int nbClients, Round round, RoundService roundService, TestUtils testUtils, CryptoService cryptoService, BlockchainDataService blockchainDataService, RoundLimitsService roundLimitsService, int port) {
-        this.round = round;
-        this.roundService = roundService;
+    public MultiClientManager(int nbClients, Mix mix, MixService mixService, TestUtils testUtils, CryptoService cryptoService, MixLimitsService mixLimitsService, int port) {
+        this.mix = mix;
+        this.mixService = mixService;
         this.testUtils = testUtils;
         this.cryptoService = cryptoService;
-        this.blockchainDataService = blockchainDataService;
-        this.roundLimitsService = roundLimitsService;
+        this.mixLimitsService = mixLimitsService;
         this.port = port;
 
         inputs = new TxOutPoint[nbClients];
         inputKeys = new ECKey[nbClients];
         bip47Wallets = new BIP47Wallet[nbClients];
-        multiRoundClients = new WhirlpoolMultiRoundClient[nbClients];
-        listeners = new WhirlpoolMultiRoundClientListener[nbClients];
+        clients = new WhirlpoolClient[nbClients];
+        listeners = new WhirlpoolClientListener[nbClients];
     }
 
-    private WhirlpoolMultiRoundClient createClient() {
+    private WhirlpoolClient createClient() {
         String wsUrl = "ws://127.0.0.1:" + port;
         WhirlpoolClientConfig config = new WhirlpoolClientConfig(wsUrl, cryptoService.getNetworkParameters());
-        return new WhirlpoolMultiRoundClient(config);
+        return new WhirlpoolClient(config);
     }
 
     private void prepareClientWithMock(int i, boolean liquidity) throws Exception {
@@ -74,7 +71,7 @@ public class MultiClientManager {
 
     private void prepareClientWithMock(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
         // prepare input & output and mock input
-        long amount = testUtils.computeSpendAmount(round, liquidity);
+        long amount = testUtils.computeSpendAmount(mix, liquidity);
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, amount, nbConfirmations, utxoHash, utxoIndex);
         ECKey utxoKey = inputAddress.getECKey();
 
@@ -82,16 +79,16 @@ public class MultiClientManager {
     }
 
     private void prepareClient(int i, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
-        multiRoundClients[i] = createClient();
-        multiRoundClients[i].setLogPrefix("multiClient#"+i);
+        clients[i] = createClient();
+        clients[i].setLogPrefix("multiClient#"+i);
         bip47Wallets[i] = bip47Wallet;
         inputs[i] = utxo;
         inputKeys[i] = utxoKey;
     }
 
-    public void connectWithMockOrFail(int i, boolean liquidity, int rounds) {
+    public void connectWithMockOrFail(int i, boolean liquidity, int mixs) {
         try {
-            connectWithMock(i, liquidity, rounds);
+            connectWithMock(i, liquidity, mixs);
         }
         catch(Exception e) {
             log.error("", e);
@@ -99,54 +96,54 @@ public class MultiClientManager {
         }
     }
 
-    public void connectWithMock(int i, boolean liquidity, int rounds) throws Exception {
+    public void connectWithMock(int i, boolean liquidity, int mixs) throws Exception {
         prepareClientWithMock(i, liquidity);
-        whirlpool(i, liquidity, rounds);
+        whirlpool(i, liquidity, mixs);
     }
 
-    public void connectWithMock(int i, boolean liquidity, int rounds, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
+    public void connectWithMock(int i, boolean liquidity, int mixs, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
         prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex);
-        whirlpool(i, liquidity, rounds);
+        whirlpool(i, liquidity, mixs);
     }
 
-    public void connect(int i, boolean liquidity, int rounds, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
+    public void connect(int i, boolean liquidity, int mixs, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
         prepareClient(i, utxo, utxoKey, bip47Wallet);
-        whirlpool(i, liquidity, rounds);
+        whirlpool(i, liquidity, mixs);
     }
 
-    private void whirlpool(int i, boolean liquidity, int rounds) {
+    private void whirlpool(int i, boolean liquidity, int mixs) {
 
-        WhirlpoolMultiRoundClient multiRoundClient = multiRoundClients[i];
+        WhirlpoolClient whirlpoolClient = clients[i];
         TxOutPoint utxo = inputs[i];
         ECKey ecKey = inputKeys[i];
 
         BIP47Wallet bip47Wallet = bip47Wallets[i];
         String paymentCode = bip47Wallet.getAccount(0).getPaymentCode();
 
-        ISimpleWhirlpoolClient keySigner = new SimpleWhirlpoolClient(ecKey, bip47Wallet);
+        IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet);
 
-        RoundParams roundParams = new RoundParams(utxo.getHash(), utxo.getIndex(), paymentCode, keySigner, liquidity);
-        WhirlpoolMultiRoundClientListener listener = computeListener();
-        multiRoundClient.whirlpool(roundParams, rounds, listener);
+        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), paymentCode, mixHandler, liquidity);
+        WhirlpoolClientListener listener = computeListener();
+        whirlpoolClient.whirlpool(mixParams, mixs, listener);
     }
 
-    private WhirlpoolMultiRoundClientListener computeListener() {
-        WhirlpoolMultiRoundClientListener listener = new WhirlpoolMultiRoundClientListener() {
+    private WhirlpoolClientListener computeListener() {
+        WhirlpoolClientListener listener = new WhirlpoolClientListener() {
             @Override
-            public void success(int nbRounds) {
+            public void success(int nbMixs) {
             }
 
             @Override
-            public void fail(int currentRound, int nbRounds) {
+            public void fail(int currentMix, int nbMixs) {
 
             }
 
             @Override
-            public void roundSuccess(int currentRound, int nbRounds, RoundResultSuccess roundResultSuccess) {
+            public void mixSuccess(int currentMix, int nbMixs, MixSuccess mixSuccess) {
             }
 
             @Override
-            public void progress(int currentRound, int nbRounds, RoundStatus roundStatus, int currentStep, int nbSteps) {
+            public void progress(int currentMix, int nbMixs, MixStatus mixStatus, int currentStep, int nbSteps) {
 
             }
         };
@@ -157,8 +154,8 @@ public class MultiClientManager {
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
         for (int i=0; i<MAX_WAITS; i++) {
-            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for registered inputs: " + round.getNbInputs() + " vs " + nbInputsExpected;
-            if (round.getNbInputs() != nbInputsExpected) {
+            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for registered inputs: " + mix.getNbInputs() + " vs " + nbInputsExpected;
+            if (mix.getNbInputs() != nbInputsExpected) {
                 log.info(msg + " : waiting longer...");
                 Thread.sleep(WAIT_DURATION);
             }
@@ -169,15 +166,15 @@ public class MultiClientManager {
         }
 
         // debug on failure
-        log.info("# (LAST) Waiting for registered inputs: "+round.getNbInputs()+" vs "+nbInputsExpected);
-        if (round.getNbInputs() != nbInputsExpected) {
+        log.info("# (LAST) Waiting for registered inputs: "+ mix.getNbInputs()+" vs "+nbInputsExpected);
+        if (mix.getNbInputs() != nbInputsExpected) {
             debugClients();
         }
-        Assert.assertEquals(nbInputsExpected, round.getNbInputs());
+        Assert.assertEquals(nbInputsExpected, mix.getNbInputs());
     }
 
     public void waitLiquiditiesInPool(int nbLiquiditiesInPoolExpected) throws Exception {
-        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
+        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
 
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
@@ -201,12 +198,12 @@ public class MultiClientManager {
         Assert.assertEquals(nbLiquiditiesInPoolExpected, liquidityPool.getNbLiquidities());
     }
 
-    public void waitRoundStatus(RoundStatus roundStatusExpected) throws Exception {
+    public void waitMixStatus(MixStatus mixStatusExpected) throws Exception {
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
         for (int i=0; i<MAX_WAITS; i++) {
-            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for roundStatus: " + round.getRoundStatus() + " vs " + roundStatusExpected;
-            if (!round.getRoundStatus().equals(roundStatusExpected)) {
+            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for mixStatus: " + mix.getMixStatus() + " vs " + mixStatusExpected;
+            if (!mix.getMixStatus().equals(mixStatusExpected)) {
                 log.info(msg + " : waiting longer...");
                 Thread.sleep(WAIT_DURATION);
             }
@@ -216,66 +213,66 @@ public class MultiClientManager {
             }
         }
 
-        log.info("# (LAST) Waiting for roundStatus: " + round.getRoundStatus() + " vs " + roundStatusExpected);
-        Assert.assertEquals(roundStatusExpected, round.getRoundStatus());
+        log.info("# (LAST) Waiting for mixStatus: " + mix.getMixStatus() + " vs " + mixStatusExpected);
+        Assert.assertEquals(mixStatusExpected, mix.getMixStatus());
     }
 
-    public void setRoundNext() {
-        Round nextRound = roundService.__getCurrentRound();
-        Assert.assertNotEquals(round, nextRound);
-        setRound(nextRound);
-        log.info("============= NEW ROUND DETECTED: " + nextRound.getRoundId() + " =============");
+    public void setMixNext() {
+        Mix nextMix = mixService.__getCurrentMix();
+        Assert.assertNotEquals(mix, nextMix);
+        setMix(nextMix);
+        log.info("============= NEW MIX DETECTED: " + nextMix.getMixId() + " =============");
     }
 
-    public void assertRoundStatusRegisterInput(int nbInputsExpected, boolean hasLiquidityExpected) throws Exception {
+    public void assertMixStatusRegisterInput(int nbInputsExpected, boolean hasLiquidityExpected) throws Exception {
         // wait inputs to register
         waitRegisteredInputs(nbInputsExpected);
 
-        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
-        System.out.println("=> roundStatus="+round.getRoundStatus()+", nbInputs="+round.getNbInputs());
+        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
+        System.out.println("=> mixStatus="+ mix.getMixStatus()+", nbInputs="+ mix.getNbInputs());
 
         // all clients should have registered their outputs
-        Assert.assertEquals(RoundStatus.REGISTER_INPUT, round.getRoundStatus());
-        Assert.assertEquals(nbInputsExpected, round.getNbInputs());
+        Assert.assertEquals(MixStatus.REGISTER_INPUT, mix.getMixStatus());
+        Assert.assertEquals(nbInputsExpected, mix.getNbInputs());
         Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasLiquidity());
     }
 
-    public void assertRoundStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected) throws Exception {
-        assertRoundStatusSuccess(nbAllRegisteredExpected, hasLiquidityExpected, 1);
+    public void assertMixStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected) throws Exception {
+        assertMixStatusSuccess(nbAllRegisteredExpected, hasLiquidityExpected, 1);
     }
 
-    public void assertRoundStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected, int numRound) throws Exception {
+    public void assertMixStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected, int numMix) throws Exception {
         // wait inputs to register
         waitRegisteredInputs(nbAllRegisteredExpected);
 
         Thread.sleep(2000);
 
-        // round automatically switches to REGISTER_OUTPUTS, then SIGNING, then SUCCESS
-        waitRoundStatus(RoundStatus.SUCCESS);
-        Assert.assertEquals(RoundStatus.SUCCESS, round.getRoundStatus());
-        Assert.assertEquals(nbAllRegisteredExpected, round.getNbInputs());
+        // mix automatically switches to REGISTER_OUTPUTS, then SIGNING, then SUCCESS
+        waitMixStatus(MixStatus.SUCCESS);
+        Assert.assertEquals(MixStatus.SUCCESS, mix.getMixStatus());
+        Assert.assertEquals(nbAllRegisteredExpected, mix.getNbInputs());
 
-        LiquidityPool liquidityPool = roundLimitsService.getLiquidityPool(round);
+        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
         Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasLiquidity());
 
         // all clients should have registered their outputs
-        Assert.assertEquals(nbAllRegisteredExpected, round.getSendAddresses().size());
-        Assert.assertEquals(nbAllRegisteredExpected, round.getReceiveAddresses().size());
+        Assert.assertEquals(nbAllRegisteredExpected, mix.getSendAddresses().size());
+        Assert.assertEquals(nbAllRegisteredExpected, mix.getReceiveAddresses().size());
 
         // all clients should have signed
-        Assert.assertEquals(nbAllRegisteredExpected, round.getNbSignatures());
+        Assert.assertEquals(nbAllRegisteredExpected, mix.getNbSignatures());
 
         // all clients should be SUCCESS
-        assertClientsSuccess(nbAllRegisteredExpected, numRound);
+        assertClientsSuccess(nbAllRegisteredExpected, numMix);
     }
 
-    private void assertClientsSuccess(int nbAllRegisteredExpected, int numRound) {
+    private void assertClientsSuccess(int nbAllRegisteredExpected, int numMix) {
         // clients shoud have success status
         int nbSuccess = 0;
-        for (int i=0; i<multiRoundClients.length; i++) {
-            WhirlpoolMultiRoundClient multiRoundClient = multiRoundClients[i];
-            WhirlpoolClient whirlpoolClient = multiRoundClient.getClient(numRound);
-            if (RoundStatus.SUCCESS.equals(whirlpoolClient.__getRoundStatusNotification().status) && whirlpoolClient.isDone()) {
+        for (int i = 0; i< clients.length; i++) {
+            WhirlpoolClient whirlpoolClient = clients[i];
+            MixClient mixClient = whirlpoolClient.getMixClient(numMix);
+            if (MixStatus.SUCCESS.equals(mixClient.__getMixStatusNotification().status) && mixClient.isDone()) {
                 nbSuccess++;
             }
         }
@@ -285,29 +282,29 @@ public class MultiClientManager {
         Assert.assertEquals(nbAllRegisteredExpected, nbSuccess);
     }
 
-    public void roundNextTargetAnonymitySetAdjustment() throws Exception {
-        int targetAnonymitySetExpected = round.getTargetAnonymitySet() - 1;
-        if (targetAnonymitySetExpected < round.getMinAnonymitySet()) {
+    public void nextTargetAnonymitySetAdjustment() throws Exception {
+        int targetAnonymitySetExpected = mix.getTargetAnonymitySet() - 1;
+        if (targetAnonymitySetExpected < mix.getMinAnonymitySet()) {
             throw new Exception("targetAnonymitySetExpected < minAnonymitySet");
         }
 
-        log.info("roundNextTargetAnonymitySetAdjustment: "+ (targetAnonymitySetExpected+1) + " -> " + targetAnonymitySetExpected);
+        log.info("nextTargetAnonymitySetAdjustment: "+ (targetAnonymitySetExpected+1) + " -> " + targetAnonymitySetExpected);
 
-        // simulate 9min58 elapsed... round targetAnonymitySet should remain unchanged
-        roundLimitsService.__simulateElapsedTime(round, round.getTimeoutAdjustAnonymitySet()-2);
+        // simulate 9min58 elapsed... mix targetAnonymitySet should remain unchanged
+        mixLimitsService.__simulateElapsedTime(mix, mix.getTimeoutAdjustAnonymitySet()-2);
         Thread.sleep(1000);
-        Assert.assertEquals(targetAnonymitySetExpected + 1, round.getTargetAnonymitySet());
+        Assert.assertEquals(targetAnonymitySetExpected + 1, mix.getTargetAnonymitySet());
 
-        // a few seconds more, round targetAnonymitySet should be decreased
-        waitRoundTargetAnonymitySet(targetAnonymitySetExpected);
+        // a few seconds more, mix targetAnonymitySet should be decreased
+        waitMixTargetAnonymitySet(targetAnonymitySetExpected);
     }
 
-    public void waitRoundTargetAnonymitySet(int targetAnonymitySetExpected) throws Exception {
+    public void waitMixTargetAnonymitySet(int targetAnonymitySetExpected) throws Exception {
         int MAX_WAITS = 5;
         int WAIT_DURATION = 1000;
         for (int i=0; i<MAX_WAITS; i++) {
-            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for roundTargetAnonymitySet: " + round.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected;
-            if (round.getTargetAnonymitySet() != targetAnonymitySetExpected) {
+            String msg = "# ("+(i+1)+"/"+MAX_WAITS+") Waiting for mixTargetAnonymitySet: " + mix.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected;
+            if (mix.getTargetAnonymitySet() != targetAnonymitySetExpected) {
                 log.info(msg + " : waiting longer...");
                 Thread.sleep(WAIT_DURATION);
             }
@@ -317,22 +314,22 @@ public class MultiClientManager {
             }
         }
 
-        log.info("# (LAST) Waiting for roundTargetAnonymitySet: " + round.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected);
-        Assert.assertEquals(targetAnonymitySetExpected, round.getTargetAnonymitySet());
+        log.info("# (LAST) Waiting for mixTargetAnonymitySet: " + mix.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected);
+        Assert.assertEquals(targetAnonymitySetExpected, mix.getTargetAnonymitySet());
     }
 
-    public Round getRound() {
-        return round;
+    public Mix getMix() {
+        return mix;
     }
 
-    public void setRound(Round round) {
-        this.round = round;
+    public void setMix(Mix mix) {
+        this.mix = mix;
     }
 
     public void exit() {
-        for (WhirlpoolMultiRoundClient multiRoundClient : multiRoundClients) {
-            if (multiRoundClient != null) {
-                multiRoundClient.exit();
+        for (WhirlpoolClient whirlpoolClient : clients) {
+            if (whirlpoolClient != null) {
+                whirlpoolClient.exit();
             }
         }
     }
@@ -340,9 +337,9 @@ public class MultiClientManager {
     private void debugClients() {
         if (log.isDebugEnabled()) {
             log.debug("%%% debugging clients states... %%%");
-            for (WhirlpoolMultiRoundClient multiRoundClient : multiRoundClients) {
-                if (multiRoundClient != null) {
-                    multiRoundClient.debugState();
+            for (WhirlpoolClient whirlpoolClient : clients) {
+                if (whirlpoolClient != null) {
+                    whirlpoolClient.debugState();
                 }
             }
         }

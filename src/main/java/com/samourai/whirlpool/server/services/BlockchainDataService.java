@@ -4,7 +4,7 @@ import com.samourai.whirlpool.server.beans.RpcIn;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.RoundException;
+import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.Transaction;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class BlockchainDataService {
         }
         catch(Exception e) {
             log.error("Unable to broadcast tx " + txid, e);
-            throw new RoundException("Unable to broadcast tx");
+            throw new MixException("Unable to broadcast tx");
         }
     }
 

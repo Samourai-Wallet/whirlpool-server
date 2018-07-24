@@ -30,27 +30,27 @@ The node will be used to verify UTXO and broadcast tx.
 
 ### UTXO amounts
 ```
-server.round.denomination: amount in satoshis
-server.round.miner-fee: miner fee (only paid by mustMix)
+server.mix.denomination: amount in satoshis
+server.mix.miner-fee: miner fee (only paid by mustMix)
 ```
-UTXO for mustMix should be founded with *server.round.denomination*<br/>
-UTXO for liquidities should be founded with *server.round.denomination*+*server.round.miner-fee*
+UTXO for mustMix should be founded with *server.mix.denomination*<br/>
+UTXO for liquidities should be founded with *server.mix.denomination*+*server.mix.miner-fee*
 
-### Round limits
+### Mix limits
 ```
-server.round.anonymity-set-target = 10
-server.round.anonymity-set-min = 6
-server.round.anonymity-set-max = 20
-server.round.anonymity-set-adjust-timeout = 120
+server.mix.anonymity-set-target = 10
+server.mix.anonymity-set-min = 6
+server.mix.anonymity-set-max = 20
+server.mix.anonymity-set-adjust-timeout = 120
 
-server.round.must-mix-min = 1
-server.round.liquidity-timeout = 60
+server.mix.must-mix-min = 1
+server.mix.liquidity-timeout = 60
 ```
-Round will start when *server.round.anonymity-set-target* (mustMix + liquidities) are registered.<br/>
-If this target is not met after *server.round.anonymity-set-adjust-timeout*, it will be gradually decreased to *server.round.anonymity-set-min*.<br/>
+Mix will start when *server.mix.anonymity-set-target* (mustMix + liquidities) are registered.<br/>
+If this target is not met after *server.mix.anonymity-set-adjust-timeout*, it will be gradually decreased to *server.mix.anonymity-set-min*.<br/>
 
-At the beginning of the round, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
-After *server.round.liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *server.round.must-mix-min* is reached, up to *server.round.anonymity-set-max* inputs for the round.
+At the beginning of the mix, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
+After *server.mix.liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *server.mix.must-mix-min* is reached, up to *server.mix.anonymity-set-max* inputs for the mix.
 
 ### Testing
 ```

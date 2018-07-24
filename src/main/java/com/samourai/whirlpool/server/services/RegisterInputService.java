@@ -16,7 +16,7 @@ import java.lang.invoke.MethodHandles;
 public class RegisterInputService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private RoundService roundService;
+    private MixService mixService;
     private CryptoService cryptoService;
     private BlockchainService blockchainService;
     private DbService dbService;
@@ -25,8 +25,8 @@ public class RegisterInputService {
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
     @Autowired
-    public RegisterInputService(RoundService roundService, CryptoService cryptoService, BlockchainService blockchainService, DbService dbService, BlameService blameService, FormatsUtil formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig) {
-        this.roundService = roundService;
+    public RegisterInputService(MixService mixService, CryptoService cryptoService, BlockchainService blockchainService, DbService dbService, BlameService blameService, FormatsUtil formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig) {
+        this.mixService = mixService;
         this.cryptoService = cryptoService;
         this.blockchainService = blockchainService;
         this.dbService = dbService;
@@ -35,7 +35,7 @@ public class RegisterInputService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public synchronized void registerInput(String roundId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, String paymentCode, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, RoundException {
+    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, String paymentCode, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
         // validate paymentCode
         if (!formatsUtil.isValidPaymentCode(paymentCode)) {
             throw new IllegalInputException("Invalid paymentCode");
@@ -64,25 +64,25 @@ public class RegisterInputService {
         TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, inputMinConfirmations, samouraiFees, liquidity);
 
         // verify signature
-        checkInputSignature(roundId, pubkey, signature);
+        checkInputSignature(mixId, pubkey, signature);
 
         // prepare signedBordereau
         byte[] signedBordereauToReply = cryptoService.signBlindedOutput(blindedBordereau);
 
         // register input and send back signedBordereau
-        roundService.registerInput(roundId, username, txOutPoint, pubkey, paymentCode, signedBordereauToReply, liquidity);
+        mixService.registerInput(mixId, username, txOutPoint, pubkey, paymentCode, signedBordereauToReply, liquidity);
 
         // register blindedBordereau
         dbService.registerBlindedBordereau(blindedBordereau);
     }
 
-    private void checkInputSignature(String roundId, byte[] pubkeyHex, String signature) throws IllegalInputException {
+    private void checkInputSignature(String mixId, byte[] pubkeyHex, String signature) throws IllegalInputException {
         if (log.isDebugEnabled()) {
-            log.debug("Verifying signature: " + signature + "\n  for pubkey: " + Utils.HEX.encode(pubkeyHex) + "\n  for roundId: " + roundId);
+            log.debug("Verifying signature: " + signature + "\n  for pubkey: " + Utils.HEX.encode(pubkeyHex) + "\n  for mixId: " + mixId);
         }
 
-        // verify signature of 'roundId' for pubkey
-        if (!cryptoService.verifyMessageSignature(pubkeyHex, roundId, signature)) {
+        // verify signature of 'mixId' for pubkey
+        if (!cryptoService.verifyMessageSignature(pubkeyHex, mixId, signature)) {
             throw new IllegalInputException("Invalid signature");
         }
     }

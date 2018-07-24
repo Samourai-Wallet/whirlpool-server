@@ -37,7 +37,7 @@ public class SigningController {
     }
 
     // signing
-    signingService.signing(payload.roundId, username, payload.witness);
+    signingService.signing(payload.mixId, username, payload.witness);
   }
 
   @MessageExceptionHandler

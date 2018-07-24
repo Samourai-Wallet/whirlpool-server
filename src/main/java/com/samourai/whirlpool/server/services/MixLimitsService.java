@@ -1,9 +1,9 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.protocol.v1.notifications.RoundStatus;
+import com.samourai.whirlpool.protocol.v1.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.RoundException;
+import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
 import org.slf4j.Logger;
@@ -18,9 +18,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class RoundLimitsService {
+public class MixLimitsService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private RoundService roundService;
+    private MixService mixService;
     private BlameService blameService;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
@@ -29,7 +29,7 @@ public class RoundLimitsService {
     private Map<String, TimeoutWatcher> liquidityWatchers;
 
     @Autowired
-    public RoundLimitsService(BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public MixLimitsService(BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.blameService = blameService;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
 
@@ -39,81 +39,81 @@ public class RoundLimitsService {
     }
 
     // avoids circular reference
-    public void setRoundService(RoundService roundService) {
-        this.roundService = roundService;
+    public void setMixService(MixService mixService) {
+        this.mixService = mixService;
     }
 
-    private TimeoutWatcher getLimitsWatcher(Round round) {
-        String roundId = round.getRoundId();
-        return limitsWatchers.get(roundId);
+    private TimeoutWatcher getLimitsWatcher(Mix mix) {
+        String mixId = mix.getMixId();
+        return limitsWatchers.get(mixId);
     }
 
-    private TimeoutWatcher getLiquidityWatcher(Round round) {
-        String roundId = round.getRoundId();
-        return liquidityWatchers.get(roundId);
+    private TimeoutWatcher getLiquidityWatcher(Mix mix) {
+        String mixId = mix.getMixId();
+        return liquidityWatchers.get(mixId);
     }
 
-    public void manage(Round round) {
-        String roundId = round.getRoundId();
+    public void manage(Mix mix) {
+        String mixId = mix.getMixId();
 
         // create liquidityPool
-        if (liquidityPools.containsKey(roundId)) {
-            log.error("already managing round "+roundId);
+        if (liquidityPools.containsKey(mixId)) {
+            log.error("already managing mix "+mixId);
             return;
         }
 
         LiquidityPool liquidityPool = new LiquidityPool();
-        liquidityPools.put(roundId, liquidityPool);
+        liquidityPools.put(mixId, liquidityPool);
 
         // wait first mustMix before instanciating limitsWatcher & liquidityWatchers
     }
 
-    public void unmanage(Round round) {
-        String roundId = round.getRoundId();
-        liquidityPools.remove(roundId);
+    public void unmanage(Mix mix) {
+        String mixId = mix.getMixId();
+        liquidityPools.remove(mixId);
 
-        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
         if (limitsWatcher != null) {
             limitsWatcher.stop();
-            limitsWatchers.remove(roundId);
+            limitsWatchers.remove(mixId);
         }
 
-        TimeoutWatcher liquidityWatcher = getLiquidityWatcher(round);
+        TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
         if (liquidityWatcher != null) {
             liquidityWatcher.stop();
-            liquidityWatchers.remove(roundId);
+            liquidityWatchers.remove(mixId);
         }
     }
 
-    public void onRoundStatusChange(Round round) {
-        // reset timeout for new roundStatus
-        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+    public void onMixStatusChange(Mix mix) {
+        // reset timeout for new mixStatus
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
         limitsWatcher.resetTimeout();
 
         // clear liquidityWatcher when REGISTER_INPUT completed
-        if (!RoundStatus.REGISTER_INPUT.equals(round.getRoundStatus())) {
-            TimeoutWatcher liquidityWatcher = getLiquidityWatcher(round);
+        if (!MixStatus.REGISTER_INPUT.equals(mix.getMixStatus())) {
+            TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
             if (liquidityWatcher != null) {
-                String roundId = round.getRoundId();
+                String mixId = mix.getMixId();
 
                 liquidityWatcher.stop();
-                liquidityWatchers.remove(roundId);
+                liquidityWatchers.remove(mixId);
             }
         }
     }
 
-    private TimeoutWatcher computeLimitsWatcher(Round round) {
+    private TimeoutWatcher computeLimitsWatcher(Mix mix) {
         ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
             @Override
             public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
                 long elapsedTime = timeoutWatcher.computeElapsedTime();
 
                 Long timeToWait = null;
-                switch(round.getRoundStatus()) {
+                switch(mix.getMixStatus()) {
                     case REGISTER_INPUT:
-                        if (round.getTargetAnonymitySet() > round.getMinAnonymitySet()) {
+                        if (mix.getTargetAnonymitySet() > mix.getMinAnonymitySet()) {
                             // timeout before next targetAnonymitySet adjustment
-                            timeToWait = round.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
+                            timeToWait = mix.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
                         }
                         break;
 
@@ -125,7 +125,7 @@ public class RoundLimitsService {
                         timeToWait = whirlpoolServerConfig.getSigning().getTimeout() * 1000 - elapsedTime;
                         break;
 
-                    case REVEAL_OUTPUT_OR_BLAME:
+                    case REVEAL_OUTPUT:
                         timeToWait = whirlpoolServerConfig.getRevealOutput().getTimeout() * 1000 - elapsedTime;
                         break;
 
@@ -141,37 +141,37 @@ public class RoundLimitsService {
                 if (log.isDebugEnabled()) {
                     log.debug("limitsWatcher.onTimeout");
                 }
-                switch(round.getRoundStatus()) {
+                switch(mix.getMixStatus()) {
                     case REGISTER_INPUT:
                         // adjust targetAnonymitySet
-                        adjustTargetAnonymitySet(round, timeoutWatcher);
+                        adjustTargetAnonymitySet(mix, timeoutWatcher);
                         break;
 
                     case REGISTER_OUTPUT:
-                        roundService.goRevealOutputOrBlame(round.getRoundId());
+                        mixService.goRevealOutput(mix.getMixId());
                         break;
 
-                    case REVEAL_OUTPUT_OR_BLAME:
-                        blameForRevealOutputAndResetRound(round);
+                    case REVEAL_OUTPUT:
+                        blameForRevealOutputAndResetMix(mix);
                         break;
 
                     case SIGNING:
-                        blameForSigningAndResetRound(round);
+                        blameForSigningAndResetMix(mix);
                         break;
                 }
             }
         };
 
-        TimeoutWatcher roundLimitsWatcher = new TimeoutWatcher(listener);
-        return roundLimitsWatcher;
+        TimeoutWatcher mixLimitsWatcher = new TimeoutWatcher(listener);
+        return mixLimitsWatcher;
     }
 
-    private TimeoutWatcher computeLiquidityWatcher(Round round) {
+    private TimeoutWatcher computeLiquidityWatcher(Mix mix) {
         ITimeoutWatcherListener listener = new ITimeoutWatcherListener() {
             @Override
             public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
                 long elapsedTime = timeoutWatcher.computeElapsedTime();
-                long timeToWait = round.getLiquidityTimeout()*1000 - elapsedTime;
+                long timeToWait = mix.getLiquidityTimeout()*1000 - elapsedTime;
                 return timeToWait;
             }
 
@@ -180,113 +180,113 @@ public class RoundLimitsService {
                 if (log.isDebugEnabled()) {
                     log.debug("liquidityWatcher.onTimeout");
                 }
-                if (RoundStatus.REGISTER_INPUT.equals(round.getRoundStatus()) && !round.isAcceptLiquidities()) {
+                if (MixStatus.REGISTER_INPUT.equals(mix.getMixStatus()) && !mix.isAcceptLiquidities()) {
                     // accept liquidities
                     if (log.isDebugEnabled()) {
                         log.debug("accepting liquidities now (liquidityTimeout elapsed)");
                     }
-                    round.setAcceptLiquidities(true);
-                    addLiquidities(round);
+                    mix.setAcceptLiquidities(true);
+                    addLiquidities(mix);
                 }
             }
         };
 
-        TimeoutWatcher roundLimitsWatcher = new TimeoutWatcher(listener);
-        return roundLimitsWatcher;
+        TimeoutWatcher mixLimitsWatcher = new TimeoutWatcher(listener);
+        return mixLimitsWatcher;
     }
 
     // REGISTER_INPUTS
 
-    private void adjustTargetAnonymitySet(Round round, TimeoutWatcher timeoutWatcher) {
+    private void adjustTargetAnonymitySet(Mix mix, TimeoutWatcher timeoutWatcher) {
         // no input registered yet => nothing to do
-        if (round.getNbInputs() == 0) {
+        if (mix.getNbInputs() == 0) {
             return;
         }
 
         // anonymitySet already at minimum
-        if (round.getMinAnonymitySet() >= round.getTargetAnonymitySet()) {
+        if (mix.getMinAnonymitySet() >= mix.getTargetAnonymitySet()) {
             return;
         }
 
         // adjust mustMix
-        int nextTargetAnonymitySet = round.getTargetAnonymitySet() - 1;
+        int nextTargetAnonymitySet = mix.getTargetAnonymitySet() - 1;
         log.info(" • must-mix-adjust-timeout over, adjusting targetAnonymitySet: "+nextTargetAnonymitySet);
-        round.setTargetAnonymitySet(nextTargetAnonymitySet);
+        mix.setTargetAnonymitySet(nextTargetAnonymitySet);
         timeoutWatcher.resetTimeout();
 
-        // is round ready now?
-        if (roundService.isRegisterInputReady(round)) {
+        // is mix ready now?
+        if (mixService.isRegisterInputReady(mix)) {
             // add liquidities first
-            checkAddLiquidities(round);
+            checkAddLiquidities(mix);
 
-            // start round
-            roundService.checkRegisterInputReady(round);
+            // start mix
+            mixService.checkRegisterInputReady(mix);
         }
     }
 
-    public LiquidityPool getLiquidityPool(Round round) throws RoundException {
-        String roundId = round.getRoundId();
-        LiquidityPool liquidityPool = liquidityPools.get(roundId);
+    public LiquidityPool getLiquidityPool(Mix mix) throws MixException {
+        String mixId = mix.getMixId();
+        LiquidityPool liquidityPool = liquidityPools.get(mixId);
         if (liquidityPool == null) {
-            throw new RoundException("LiquidityPool not found for roundId="+roundId);
+            throw new MixException("LiquidityPool not found for mixId="+mixId);
         }
         return liquidityPool;
     }
 
-    public synchronized void onInputRegistered(Round round) {
+    public synchronized void onInputRegistered(Mix mix) {
         // first mustMix registered => instanciate limitsWatcher & liquidityWatcher
-        if (round.getNbInputs() == 1) {
-            String roundId = round.getRoundId();
-            TimeoutWatcher limitsWatcher = computeLimitsWatcher(round);
-            this.limitsWatchers.put(roundId, limitsWatcher);
+        if (mix.getNbInputs() == 1) {
+            String mixId = mix.getMixId();
+            TimeoutWatcher limitsWatcher = computeLimitsWatcher(mix);
+            this.limitsWatchers.put(mixId, limitsWatcher);
 
-            TimeoutWatcher liquidityWatcher = computeLiquidityWatcher(round);
-            this.liquidityWatchers.put(roundId, liquidityWatcher);
+            TimeoutWatcher liquidityWatcher = computeLiquidityWatcher(mix);
+            this.liquidityWatchers.put(mixId, liquidityWatcher);
         }
 
         // maybe we can add liquidities now
-        checkAddLiquidities(round);
+        checkAddLiquidities(mix);
     }
 
-    private void checkAddLiquidities(Round round) {
+    private void checkAddLiquidities(Mix mix) {
         // avoid concurrent liquidity management
-        if (round.getNbInputsLiquidities() == 0) {
+        if (mix.getNbInputsLiquidities() == 0) {
 
-            if (!round.isAcceptLiquidities()) {
-                if (roundService.isRegisterInputReady(round)) {
-                    // round is ready to start => add liquidities now
+            if (!mix.isAcceptLiquidities()) {
+                if (mixService.isRegisterInputReady(mix)) {
+                    // mix is ready to start => add liquidities now
 
                     if (log.isDebugEnabled()) {
-                        log.debug("adding liquidities now (round is ready to start)");
+                        log.debug("adding liquidities now (mix is ready to start)");
                     }
-                    round.setAcceptLiquidities(true);
-                    addLiquidities(round);
+                    mix.setAcceptLiquidities(true);
+                    addLiquidities(mix);
                 }
             }
             else {
-                if (round.hasMinMustMixReached()) {
-                    // round is not ready to start but minMustMix reached and liquidities accepted => ad liquidities now
+                if (mix.hasMinMustMixReached()) {
+                    // mix is not ready to start but minMustMix reached and liquidities accepted => ad liquidities now
                     if (log.isDebugEnabled()) {
                         log.debug("adding liquidities now (minMustMix reached and acceptLiquidities=true)");
                     }
-                    addLiquidities(round);
+                    addLiquidities(mix);
                 }
             }
         }
     }
 
-    private void addLiquidities(Round round) {
-        if (!round.hasMinMustMixReached()) {
+    private void addLiquidities(Mix mix) {
+        if (!mix.hasMinMustMixReached()) {
             // will retry to add on onInputRegistered
             log.info("Cannot add liquidities yet, minMustMix not reached");
             return;
         }
 
-        int liquiditiesToAdd = round.getMaxAnonymitySet() - round.getNbInputs();
+        int liquiditiesToAdd = mix.getMaxAnonymitySet() - mix.getNbInputs();
         if (liquiditiesToAdd > 0) {
-            // round needs liquidities
+            // mix needs liquidities
             try {
-                LiquidityPool liquidityPool = getLiquidityPool(round);
+                LiquidityPool liquidityPool = getLiquidityPool(mix);
                 if (log.isDebugEnabled()) {
                     log.debug("Adding up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
                 }
@@ -296,7 +296,7 @@ public class RoundLimitsService {
                     log.info("Adding liquidity " + (liquiditiesAdded + 1) + "(" + liquiditiesToAdd + " max.)");
                     RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
                     try {
-                        roundService.addLiquidity(round, randomLiquidity);
+                        mixService.addLiquidity(mix, randomLiquidity);
                         liquiditiesAdded++;
                     } catch (Exception e) {
                         log.error("registerInput error when adding liquidity", e);
@@ -310,52 +310,52 @@ public class RoundLimitsService {
         }
     }
 
-    public void blameForRevealOutputAndResetRound(Round round) {
-        String roundId = round.getRoundId();
+    public void blameForRevealOutputAndResetMix(Mix mix) {
+        String mixId = mix.getMixId();
 
         // blame users who didn't register outputs
-        Set<RegisteredInput> registeredInputsToBlame = round.getInputs().parallelStream().filter(input -> !round.getRevealedOutputUsers().contains(input.getUsername())).collect(Collectors.toSet());
-        registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_REGISTER_OUTPUT, roundId));
+        Set<RegisteredInput> registeredInputsToBlame = mix.getInputs().parallelStream().filter(input -> !mix.getRevealedOutputUsers().contains(input.getUsername())).collect(Collectors.toSet());
+        registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
 
-        // reset round
-        roundService.goFail(round, FailReason.FAIL_REGISTER_OUTPUTS);
+        // reset mix
+        mixService.goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
     }
 
-    public void blameForSigningAndResetRound(Round round) {
-        log.info(" • SIGNING time over (round failed, blaming users who didn't sign...)");
-        String roundId = round.getRoundId();
+    public void blameForSigningAndResetMix(Mix mix) {
+        log.info(" • SIGNING time over (mix failed, blaming users who didn't sign...)");
+        String mixId = mix.getMixId();
 
         // blame users who didn't sign
-        Set<RegisteredInput> registeredInputsToBlame = round.getInputs().parallelStream().filter(input -> round.getSignatureByUsername(input.getUsername()) == null).collect(Collectors.toSet());
-        registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_SIGNING, roundId));
+        Set<RegisteredInput> registeredInputsToBlame = mix.getInputs().parallelStream().filter(input -> mix.getSignatureByUsername(input.getUsername()) == null).collect(Collectors.toSet());
+        registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_SIGNING, mixId));
 
-        // reset round
-        roundService.goFail(round, FailReason.FAIL_SIGNING);
+        // reset mix
+        mixService.goFail(mix, FailReason.FAIL_SIGNING);
     }
 
-    public Long getLimitsWatcherTimeToWait(Round round) {
-        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+    public Long getLimitsWatcherTimeToWait(Mix mix) {
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
         if (limitsWatcher != null) {
             return limitsWatcher.computeTimeToWait();
         }
         return null;
     }
 
-    public Long getLimitsWatcherElapsedTime(Round round) {
-        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+    public Long getLimitsWatcherElapsedTime(Mix mix) {
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
         if (limitsWatcher != null) {
             return limitsWatcher.computeElapsedTime();
         }
         return null;
     }
 
-    public void __simulateElapsedTime(Round round, long elapsedTimeSeconds) {
-        String roundId = round.getRoundId();
-        log.info("__simulateElapsedTime for roundId="+roundId);
-        TimeoutWatcher limitsWatcher = getLimitsWatcher(round);
+    public void __simulateElapsedTime(Mix mix, long elapsedTimeSeconds) {
+        String mixId = mix.getMixId();
+        log.info("__simulateElapsedTime for mixId="+mixId);
+        TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
         limitsWatcher.__simulateElapsedTime(elapsedTimeSeconds);
 
-        TimeoutWatcher liquidityWatcher = getLiquidityWatcher(round);
+        TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
         if (liquidityWatcher != null) {
             liquidityWatcher.__simulateElapsedTime(elapsedTimeSeconds);
         }

@@ -2,8 +2,8 @@ package com.samourai.whirlpool.server.controllers.web;
 
 import com.google.common.collect.Lists;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.persistence.to.RoundLogTO;
-import com.samourai.whirlpool.server.persistence.to.RoundTO;
+import com.samourai.whirlpool.server.persistence.to.MixLogTO;
+import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.services.DbService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,22 +33,22 @@ public class HistoryWebController {
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
   public String history(Model model, WhirlpoolServerConfig whirlpoolServerConfig) throws Exception {
-    Iterable<RoundTO> rounds = Lists.newArrayList(dbService.findRounds());
-    model.addAttribute("rounds", rounds);
+    Iterable<MixTO> mixs = Lists.newArrayList(dbService.findMixs());
+    model.addAttribute("mixs", mixs);
     model.addAttribute("urlExplorer", computeUrlExplorer());
 
     // getters used in template
     if (false) {
-      for (RoundTO roundTO : rounds) {
-        roundTO.getRoundId();
-        roundTO.getAnonymitySet();
-        roundTO.getNbMustMix();
-        roundTO.getNbLiquidities();
-        roundTO.getRoundStatus();
-        roundTO.getFailReason();
-        RoundLogTO roundLogTO = roundTO.getRoundLog();
-        roundLogTO.getTxid();
-        roundLogTO.getRawTx();
+      for (MixTO mixTO : mixs) {
+        mixTO.getMixId();
+        mixTO.getAnonymitySet();
+        mixTO.getNbMustMix();
+        mixTO.getNbLiquidities();
+        mixTO.getMixStatus();
+        mixTO.getFailReason();
+        MixLogTO mixLogTO = mixTO.getMixLog();
+        mixLogTO.getTxid();
+        mixLogTO.getRawTx();
       }
     }
     return "history";

@@ -16,11 +16,11 @@ public class WebSocketSessionService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private Map<String, Map<String, WebSocketSession>> sessions;
-    private RoundService roundService;
+    private MixService mixService;
 
     @Autowired
-    public WebSocketSessionService(RoundService roundService, WebsocketConfig websocketConfig) {
-        this.roundService = roundService;
+    public WebSocketSessionService(MixService mixService, WebsocketConfig websocketConfig) {
+        this.mixService = mixService;
         this.sessions = new HashMap<>();
 
         // subscribe to websocket activity
@@ -53,7 +53,7 @@ public class WebSocketSessionService {
             log.debug("(--> "+ username + ") : disconnect (sessionId=" + sessionId + ")");
         }
         if (sessions.getOrDefault(username, new HashMap<>()).containsKey(sessionId)) {
-            roundService.onClientDisconnect(username);
+            mixService.onClientDisconnect(username);
             sessions.getOrDefault(username, new HashMap<>()).remove(sessionId);
         }
         else {
