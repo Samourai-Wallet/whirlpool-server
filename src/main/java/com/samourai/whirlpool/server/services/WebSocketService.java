@@ -34,14 +34,14 @@ public class WebSocketService {
         if (log.isDebugEnabled()) {
             log.debug("(broadcast) --> "+ Utils.toJsonString(payload));
         }
-        taskExecutor.execute(() -> messagingTemplate.convertAndSend(whirlpoolProtocol.SOCKET_SUBSCRIBE_QUEUE, payload, buildHeaders(payload)));
+        taskExecutor.execute(() -> messagingTemplate.convertAndSend(whirlpoolProtocol.SOCKET_SUBSCRIBE_QUEUE, payload, computeHeaders(payload)));
     }
 
     public void sendPrivate(String username, Object payload){
         if (log.isDebugEnabled()) {
             log.debug("(--> "+ username + ") : " + Utils.toJsonString(payload));
         }
-        taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, buildHeaders(payload)));
+        taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, computeHeaders(payload)));
     }
 
     public void sendPrivateError(String username, Exception exception) {
@@ -52,7 +52,7 @@ public class WebSocketService {
         sendPrivate(username, errorResponse);
     }
 
-    private Map<String,Object> buildHeaders(Object payload) {
+    private Map<String,Object> computeHeaders(Object payload) {
         Map<String,Object> headers = new HashMap<>();
         headers.put(whirlpoolProtocol.HEADER_MESSAGE_TYPE, payload.getClass().getName());
         headers.put(whirlpoolProtocol.HEADER_PROTOCOL_VERSION, WhirlpoolProtocol.PROTOCOL_VERSION);

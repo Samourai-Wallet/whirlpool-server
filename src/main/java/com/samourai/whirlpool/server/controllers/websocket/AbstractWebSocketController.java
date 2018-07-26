@@ -5,8 +5,6 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 import java.lang.invoke.MethodHandles;
@@ -22,9 +20,9 @@ public abstract class AbstractWebSocketController {
   }
 
   protected void validateHeaders(StompHeaderAccessor headers) throws Exception {
-    String clientProtocolVersion = WhirlpoolProtocol.PROTOCOL_VERSION; // TODO headers.getFirstNativeHeader(WhirlpoolProtocol.HEADER_PROTOCOL_VERSION);
+    String clientProtocolVersion = headers.getFirstNativeHeader(WhirlpoolProtocol.HEADER_PROTOCOL_VERSION);
     if (!WhirlpoolProtocol.PROTOCOL_VERSION.equals(clientProtocolVersion)) {
-      throw new IllegalInputException("Invalid protocol version: clientProtocolVersion=" + clientProtocolVersion + ", serverProtocolVersion=" + WhirlpoolProtocol.PROTOCOL_VERSION);
+      throw new IllegalInputException("Version mismatch: server=" +  WhirlpoolProtocol.PROTOCOL_VERSION + ", client=" + (clientProtocolVersion != null ? clientProtocolVersion : "unknown"));
     }
   }
 
