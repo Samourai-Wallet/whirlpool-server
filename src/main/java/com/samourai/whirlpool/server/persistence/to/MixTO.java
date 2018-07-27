@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.persistence.to;
 
-import com.samourai.whirlpool.protocol.v1.notifications.MixStatus;
+import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.FailReason;
 

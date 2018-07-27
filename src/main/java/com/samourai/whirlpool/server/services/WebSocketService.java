@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.v1.messages.ErrorResponse;
+import com.samourai.whirlpool.protocol.websocket.messages.ErrorResponse;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

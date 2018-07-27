@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.v1.messages.RegisterInputRequest;
+import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputRequest;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import com.samourai.whirlpool.server.services.RegisterInputService;

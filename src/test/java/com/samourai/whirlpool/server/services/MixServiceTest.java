@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.protocol.v1.messages.PeersPaymentCodesResponse;
+import com.samourai.whirlpool.protocol.websocket.messages.PeersPaymentCodesResponse;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.TxOutPoint;

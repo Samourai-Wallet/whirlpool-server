@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.v1.messages.RegisterOutputRequest;
+import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;

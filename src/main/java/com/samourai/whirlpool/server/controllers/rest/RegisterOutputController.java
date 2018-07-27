@@ -1,6 +1,6 @@
-package com.samourai.whirlpool.server.controllers.websocket;
+package com.samourai.whirlpool.server.controllers.rest;
 
-import com.samourai.whirlpool.protocol.v1.messages.RegisterOutputRequest;
+import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
 import com.samourai.whirlpool.server.utils.Utils;

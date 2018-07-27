@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.v1.messages.SigningRequest;
+import com.samourai.whirlpool.protocol.websocket.messages.SigningRequest;
 import com.samourai.whirlpool.server.services.SigningService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;
