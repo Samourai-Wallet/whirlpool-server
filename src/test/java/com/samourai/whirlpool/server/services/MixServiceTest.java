@@ -4,6 +4,7 @@ import com.samourai.whirlpool.protocol.websocket.messages.PeersPaymentCodesRespo
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,31 +27,21 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-public class MixServiceTest {
+public class MixServiceTest extends AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-    @Autowired
-    private MixService mixService;
-
-    @Autowired
-    private DbService dbService;
-
-    @Before
-    public void setUp() throws Exception {
-        dbService.__reset();
-        mixService.__nextMix();
-    }
 
     @Test
     public void isRegisterInputReady_noLiquidity() throws Exception {
         MixService spyMixService = Mockito.spy(mixService);
-        int minMustMix = 1;
-        int targetAnonymitySet = 2;
-        int minAnonymitySet = 2;
-        int maxAnonymitySet = 2;
-        long timeoutAdjustAnonymitySet = 10 * 60;
-        long timeoutAcceptLiquidities = 60; // TODO no liquidity
-        Mix mix = new Mix("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        long denomination = 200000000;
+        long minerFee = 100000;
+        int mustMixMin = 1;
+        int anonymitySetTarget = 2;
+        int anonymitySetMin = 2;
+        int anonymitySetMax = 2;
+        long anonymitySetAdjustTimeout = 10 * 60;
+        long liquidityTimeout = 60; // TODO no liquidity
+        Mix mix = __nextMix("foo", denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 mustMix => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -67,13 +58,15 @@ public class MixServiceTest {
     @Test
     public void isRegisterInputReady_withLiquidityBefore() throws Exception {
         MixService spyMixService = Mockito.spy(mixService);
-        int minMustMix = 1;
-        int targetAnonymitySet = 2;
-        int minAnonymitySet = 2;
-        int maxAnonymitySet = 2;
-        long timeoutAdjustAnonymitySet = 10 * 60;
-        long timeoutAcceptLiquidities = 60; // TODO with liquidity
-        Mix mix = new Mix("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        long denomination = 200000000;
+        long minerFee = 100000;
+        int mustMixMin = 1;
+        int anonymitySetTarget = 2;
+        int anonymitySetMin = 2;
+        int anonymitySetMax = 2;
+        long anonymitySetAdjustTimeout = 10 * 60;
+        long liquidityTimeout = 60; // TODO with liquidity
+        Mix mix = __nextMix("foo", denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 liquidity => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -98,13 +91,15 @@ public class MixServiceTest {
     @Test
     public void isRegisterInputReady_withLiquidityAfter() throws Exception {
         MixService spyMixService = Mockito.spy(mixService);
-        int minMustMix = 1;
-        int targetAnonymitySet = 2;
-        int minAnonymitySet = 2;
-        int maxAnonymitySet = 2;
-        long timeoutAdjustAnonymitySet = 10 * 60;
-        long timeoutAcceptLiquidities = 60; // TODO with liquidity
-        Mix mix = new Mix("foo", 0, 0, minMustMix,  targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
+        long denomination = 200000000;
+        long minerFee = 100000;
+        int mustMixMin = 1;
+        int anonymitySetTarget = 2;
+        int anonymitySetMin = 2;
+        int anonymitySetMax = 2;
+        long anonymitySetAdjustTimeout = 10 * 60;
+        long liquidityTimeout = 60; // TODO with liquidity
+        Mix mix = __nextMix("foo", denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 mustMix => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));

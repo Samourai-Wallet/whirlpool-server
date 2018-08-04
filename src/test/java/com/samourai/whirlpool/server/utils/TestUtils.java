@@ -76,14 +76,6 @@ public class TestUtils {
         return generateWallet(purpose, seed, "test");
     }
 
-    public long computeSpendAmount(Mix mix, boolean liquidity) {
-        if (liquidity) {
-            // no minerFees for liquidities
-            return mix.getDenomination();
-        }
-        return mix.getDenomination() + mix.getFees();
-    }
-
     public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount) throws Exception {
         return createAndMockTxOutPoint(address, amount, null, null, null);
     }

@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.*;

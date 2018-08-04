@@ -1,7 +1,9 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.services.MixService;
+import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +21,13 @@ public class MixStatusController extends AbstractWebSocketController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private MixService mixService;
+  private PoolService poolService;
 
   @Autowired
-  public MixStatusController(MixService mixService, WebSocketService webSocketService) {
+  public MixStatusController(MixService mixService, PoolService poolService, WebSocketService webSocketService) {
     super(webSocketService);
     this.mixService = mixService;
+    this.poolService = poolService;
   }
 
   @SubscribeMapping(WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY)
@@ -35,9 +39,14 @@ public class MixStatusController extends AbstractWebSocketController {
       log.info("[controller] subscribe:"+ WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY + ": username=" + username);
     }
 
+    // validate poolId
+    String headerPoolId = headers.getFirstNativeHeader(WhirlpoolProtocol.HEADER_POOL_ID);
+    Pool pool = poolService.getPool(headerPoolId); // exception if not found
+
     try {
       Thread.sleep(1000); // wait to make sure client subscription is ready
-      getWebSocketService().sendPrivate(username, mixService.computeMixStatusNotification());
+      String mixId = pool.getCurrentMix().getMixId();
+      getWebSocketService().sendPrivate(username, mixService.computeMixStatusNotification(mixId));
     }
     catch(Exception e) {
       log.error("", e);

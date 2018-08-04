@@ -8,8 +8,12 @@ import javax.persistence.*;
 
 @Entity(name = "mix")
 public class MixTO extends EntityTO {
+    private String poolId;
+
     @Column(unique = true)
     private String mixId;
+
+    private long denomination;
 
     private int anonymitySet;
     private int nbMustMix;
@@ -30,7 +34,9 @@ public class MixTO extends EntityTO {
     }
 
     public void update(Mix mix) {
+        this.poolId = mix.getPool().getPoolId();
         this.mixId = mix.getMixId();
+        this.denomination = mix.getPool().getDenomination();
         this.anonymitySet = mix.getNbInputs();
         this.nbMustMix = mix.getNbInputsMustMix();
         this.nbLiquidities = mix.getNbInputsLiquidities();
@@ -43,8 +49,16 @@ public class MixTO extends EntityTO {
         this.mixLog.update(mix, this);
     }
 
+    public String getPoolId() {
+        return poolId;
+    }
+
     public String getMixId() {
         return mixId;
+    }
+
+    public long getDenomination() {
+        return denomination;
     }
 
     public int getAnonymitySet() {

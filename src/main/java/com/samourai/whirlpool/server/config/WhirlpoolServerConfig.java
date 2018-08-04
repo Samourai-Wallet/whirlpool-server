@@ -23,7 +23,7 @@ public class WhirlpoolServerConfig {
     private SigningConfig signing;
     private RevealOutputConfig revealOutput;
     private BanConfig ban;
-    private MixConfig mix;
+    private PoolConfig[] pools;
 
 
     public SamouraiFeeConfig getSamouraiFees() {
@@ -102,12 +102,12 @@ public class WhirlpoolServerConfig {
         this.ban = ban;
     }
 
-    public MixConfig getMix() {
-        return mix;
+    public PoolConfig[] getPools() {
+        return pools;
     }
 
-    public void setMix(MixConfig mix) {
-        this.mix = mix;
+    public void setPools(PoolConfig[] pools) {
+        this.pools = pools;
     }
 
     public static class RegisterInputConfig {
@@ -179,7 +179,8 @@ public class WhirlpoolServerConfig {
         }
     }
 
-    public static class MixConfig {
+    public static class PoolConfig {
+        private String id;
         private long denomination;
         private long minerFee;
         private int mustMixMin;
@@ -188,6 +189,14 @@ public class WhirlpoolServerConfig {
         private int anonymitySetMax;
         private long anonymitySetAdjustTimeout;
         private long liquidityTimeout;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
 
         public long getDenomination() {
             return denomination;

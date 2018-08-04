@@ -20,17 +20,16 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private MultiClientManager runMustmixWithLiquidities(int minMustMix, int minAnonymitySet, int targetAnonymitySet, int maxAnonymitySet, int NB_MUSTMIX_CONNECTING, int NB_LIQUIDITIES_CONNECTING) throws Exception {
+    private MultiClientManager runMustmixWithLiquidities(int mustMixMin, int anonymitySetMin, int anonymitySetTarget, int anonymitySetMax, int NB_MUSTMIX_CONNECTING, int NB_LIQUIDITIES_CONNECTING) throws Exception {
         final int NB_ALL_CONNECTING = NB_MUSTMIX_CONNECTING + NB_LIQUIDITIES_CONNECTING;
 
         // start mix
         String mixId = "foo";
         long denomination = 200000000;
-        long fees = 100000;
-        long timeoutAdjustAnonymitySet = 10 * 60; // 10 minutes
-        long timeoutAcceptLiquidities = 60;
-        Mix mix = new Mix(mixId, denomination, fees, minMustMix, targetAnonymitySet, minAnonymitySet, maxAnonymitySet, timeoutAdjustAnonymitySet, timeoutAcceptLiquidities);
-        mixService.__reset(mix);
+        long minerFee = 100000;
+        long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
+        long liquidityTimeout = 60;
+        Mix mix = __nextMix(mixId, denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_ALL_CONNECTING, mix);
 

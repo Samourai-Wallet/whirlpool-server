@@ -10,8 +10,8 @@ import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.controllers.rest.RegisterOutputController;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
+import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
@@ -35,13 +35,13 @@ public class MixService {
     private MixLimitsService mixLimitsService;
     private Bech32Util bech32Util;
     private WhirlpoolServerConfig whirlpoolServerConfig;
-
-    private Mix currentMix;
+    private PoolService poolService;
 
     private boolean deterministPaymentCodeMatching; // for testing purpose only
+    private Map<String,Mix> currentMixs;
 
     @Autowired
-    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService) {
+    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService) {
         this.cryptoService = cryptoService;
         this.blameService = blameService;
         this.dbService = dbService;
@@ -51,21 +51,12 @@ public class MixService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
         mixLimitsService.setMixService(this); // avoids circular reference
         this.mixLimitsService = mixLimitsService;
+        this.poolService = poolService;
 
         this.deterministPaymentCodeMatching = false;
+        this.currentMixs = new HashMap<>();
 
-        WhirlpoolServerConfig.MixConfig mixConfig = whirlpoolServerConfig.getMix();
-        String mixId = generateMixId();
-        long denomination = whirlpoolServerConfig.getMix().getDenomination();
-        long fees = mixConfig.getMinerFee();
-        int minMustMix = mixConfig.getMustMixMin();
-        int targetAnonymitySet = mixConfig.getAnonymitySetTarget();
-        int minAnonymitySet = mixConfig.getAnonymitySetMin();
-        int maxAnonymitySet = mixConfig.getAnonymitySetMax();
-        long mustMixAdjustTimeout = mixConfig.getAnonymitySetAdjustTimeout();
-        long liquidityTimeout = mixConfig.getLiquidityTimeout();
-        Mix mix = new Mix(mixId, denomination, fees, minMustMix, targetAnonymitySet, minAnonymitySet, maxAnonymitySet, mustMixAdjustTimeout, liquidityTimeout);
-        this.__reset(mix);
+        this.__reset();
     }
 
     private String generateMixId() {
@@ -78,12 +69,12 @@ public class MixService {
         }
         Mix mix = getMix(mixId, MixStatus.REGISTER_INPUT);
         if (!checkInputBalance(input, mix, liquidity)) {
-            throw new IllegalInputException("Invalid input balance (expected: "+computeSpendAmount(mix, liquidity)+", actual:"+input.getValue()+")");
+            throw new IllegalInputException("Invalid input balance (expected: " + mix.computeSpendAmount(liquidity) + ", actual:"+input.getValue()+")");
         }
 
         RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, paymentCode, liquidity);
         if (liquidity) {
-            if (!isRegisterLiquiditiesOpen(mix) || isMixFull(mix)) {
+            if (!isRegisterLiquiditiesOpen(mix) || mix.isFull()) {
                 // place liquidity on queue instead of rejecting it
                 queueLiquidity(mix, registeredInput, signedBordereauToReply);
             }
@@ -132,7 +123,7 @@ public class MixService {
         TxOutPoint input = registeredInput.getInput();
         String username = registeredInput.getUsername();
 
-        if (isMixFull(mix)) {
+        if (mix.isFull()) {
             throw new QueueInputException("Mix is full, please wait for next mix");
         }
         if (isLiquidity && !isRegisterLiquiditiesOpen(mix)) {
@@ -170,21 +161,9 @@ public class MixService {
         return true;
     }
 
-    private boolean isMixFull(Mix mix) {
-        return (mix.getNbInputs() >= mix.getMaxAnonymitySet());
-    }
-
-    private long computeSpendAmount(Mix mix, boolean liquidity) {
-        if (liquidity) {
-            // no minersFees for liquidities
-            return mix.getDenomination();
-        }
-        return mix.getDenomination() + mix.getFees();
-    }
-
     private boolean checkInputBalance(TxOutPoint input, Mix mix, boolean liquidity) {
         // input balance should match exactly this amount, because we don't generate change
-        long spendAmount = computeSpendAmount(mix, liquidity);
+        long spendAmount = mix.computeSpendAmount(liquidity);
         return (input.getValue() == spendAmount);
     }
 
@@ -229,7 +208,7 @@ public class MixService {
         } catch(Exception e) {
             // no liquidityPool instanciated yet
         }
-        log.info(mix.getNbInputsMustMix()+"/"+ mix.getMinMustMix()+" mustMix, "+ mix.getNbInputs()+"/"+ mix.getTargetAnonymitySet()+" anonymitySet, "+liquiditiesInPool+" liquidities in pool");
+        log.info(mix.getNbInputsMustMix()+"/"+ mix.getPool().getMinMustMix()+" mustMix, "+ mix.getNbInputs()+"/"+ mix.getTargetAnonymitySet()+" anonymitySet, "+liquiditiesInPool+" liquidities in pool");
 
         // update mix status in database
         if (mix.getNbInputsMustMix() > 0) {
@@ -311,18 +290,11 @@ public class MixService {
         return (mix.getNbSignatures() == mix.getNbInputs());
     }
 
-    public String getCurrentMixdId() {
-        return currentMix.getMixId();
-    }
-
-    public Mix __getCurrentMix() {
-        return currentMix;
-    }
-
     public void changeMixStatus(String mixId, MixStatus mixStatus) {
         log.info("[MIX "+mixId+"] => " + mixStatus);
+        Mix mix = null;
         try {
-            Mix mix = getMix(mixId);
+            mix = getMix(mixId);
             if (mixStatus.equals(mix.getMixStatus())) {
                 // just in case...
                 log.error("mixStatus inconsistency detected! (already " + mixStatus + ")", new IllegalStateException());
@@ -356,19 +328,21 @@ public class MixService {
             }
             mixLimitsService.onMixStatusChange(mix);
 
-            MixStatusNotification mixStatusNotification = computeMixStatusNotification();
+            MixStatusNotification mixStatusNotification = computeMixStatusNotification(mixId);
             webSocketService.broadcast(mixStatusNotification);
 
             // start next mix (after notifying clients for success)
             if (mixStatus == MixStatus.SUCCESS) {
-                __nextMix();
+                __nextMix(mix.getPool());
             } else if (mixStatus == MixStatus.FAIL) {
-                __nextMix();
+                __nextMix(mix.getPool());
             }
         }
         catch(MixException e) {
             log.error("Unexpected mix error", e);
-            __nextMix();
+            if (mix != null) {
+                __nextMix(mix.getPool());
+            }
         }
     }
 
@@ -423,15 +397,14 @@ public class MixService {
         return peersPaymentCodesResponsesByUser;
     }
 
-    public MixStatusNotification computeMixStatusNotification() throws MixException {
-        String mixId = getCurrentMixdId();
+    public MixStatusNotification computeMixStatusNotification(String mixId) throws MixException {
         Mix mix = getMix(mixId);
         MixStatusNotification mixStatusNotification = null;
         switch(mix.getMixStatus()) {
             case REGISTER_INPUT:
                 try {
                     byte[] publicKey = cryptoService.getPublicKey().getEncoded();
-                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getDenomination(), mix.getFees());
+                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFee());
                 }
                 catch(Exception e) {
                     throw new MixException("unexpected error"); // TODO
@@ -463,12 +436,11 @@ public class MixService {
     }
 
     private Mix getMix(String mixId) throws MixException {
-        //Mix mix = mixs.get(mixId);
-        //if (mix == null) {
-        if (!currentMix.getMixId().equals(mixId)) {
-            throw new MixException("Invalid mixId");
+        Mix mix = currentMixs.get(mixId);
+        if (mix == null) {
+            throw new MixException("Mix not found");
         }
-        return currentMix;
+        return mix;
     }
 
     private Mix getMix(String mixId, MixStatus mixStatus) throws MixException {
@@ -487,7 +459,7 @@ public class MixService {
 
         tx.clearOutputs();
         for (String receiveAddress : mix.getReceiveAddresses()) {
-            TransactionOutput txOutSpend = bech32Util.getTransactionOutput(receiveAddress, mix.getDenomination(), params);
+            TransactionOutput txOutSpend = bech32Util.getTransactionOutput(receiveAddress, mix.getPool().getDenomination(), params);
             if (txOutSpend == null) {
                 throw new Exception("unable to create output for "+receiveAddress);
             }
@@ -507,7 +479,7 @@ public class MixService {
         //
         for (RegisteredInput registeredInput : mix.getInputs()) {
             // send from bech32 input
-            long spendAmount = computeSpendAmount(mix, registeredInput.isLiquidity());
+            long spendAmount = mix.computeSpendAmount(registeredInput.isLiquidity());
             TxOutPoint registeredOutPoint = registeredInput.getInput();
             TransactionOutPoint outPoint = new TransactionOutPoint(params, registeredOutPoint.getIndex(), Sha256Hash.wrap(registeredOutPoint.getHash()), Coin.valueOf(spendAmount));
             TransactionInput txInput = new TransactionInput(params, null, new byte[]{}, outPoint, Coin.valueOf(spendAmount));
@@ -578,32 +550,45 @@ public class MixService {
         }
     }
 
-    private List<Mix> getCurrentMixs() {
-        List<Mix> currentMixes = new ArrayList<>();
-        currentMixes.add(__getCurrentMix());
-        return currentMixes;
+    private Collection<Mix> getCurrentMixs() {
+        return currentMixs.values();
     }
 
-    public void __reset(String mixId) {
-        Mix copyMix = new Mix(mixId, this.currentMix);
-        __reset(copyMix);
+    public void __reset() {
+        currentMixs = new HashMap<>();
+        mixLimitsService.__reset();
+        poolService.getPools().forEach(pool -> {
+            __nextMix(pool);
+        });
     }
 
-    public void __nextMix() {
+    private Mix __nextMix(Pool pool) {
         String mixId = generateMixId();
-        __reset(mixId);
+        return __nextMix(pool, mixId);
     }
 
-    public void __reset(Mix mix) {
-        if (this.currentMix != null) {
+    public Mix __nextMix(Pool pool, String mixId) {
+        Mix mix = new Mix(mixId, pool);
+        startMix(mix);
+        return mix;
+    }
+
+    private synchronized void startMix(Mix mix) {
+        Pool pool = mix.getPool();
+        Mix currentMix = pool.getCurrentMix();
+        if (currentMix != null) {
             mixLimitsService.unmanage(mix);
+            currentMixs.remove(currentMix.getMixId());
+            // TODO disconnect all clients (except liquidities?)
         }
+
+        String mixId = mix.getMixId();
+        currentMixs.put(mixId, mix);
+        pool.setCurrentMix(mix);
+        mixLimitsService.manage(mix);
 
         log.info("[NEW MIX "+ mix.getMixId()+"]");
         logMixStatus(mix);
-        this.currentMix = mix;
-        // TODO disconnect all clients (except liquidities?)
-        mixLimitsService.manage(mix);
     }
 
     public MixLimitsService __getMixLimitsService() {

@@ -14,16 +14,10 @@ public class Mix {
     private String mixId;
     private Timestamp timeStarted;
     private Map<MixStatus,Timestamp> timeStatus;
-    private long denomination; // in satoshis
-    private long fees; // in satoshis
-    private int minMustMix;
-    private int targetAnonymitySetInitial;
+
+    private Pool pool;
     private int targetAnonymitySet;
-    private int minAnonymitySet;
-    private int maxAnonymitySet;
-    private long timeoutAdjustAnonymitySet; // wait X seconds for decreasing anonymitySet
     private boolean acceptLiquidities;
-    private long liquidityTimeout; // wait X seconds for accepting liquidities
 
     private MixStatus mixStatus;
     private Map<String,RegisteredInput> inputsById;
@@ -37,21 +31,15 @@ public class Mix {
     private Transaction tx;
     private FailReason failReason;
 
-    public Mix(String mixId, long denomination, long fees, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
+    public Mix(String mixId, Pool pool) {
         this.mixTO = null;
         this.mixId = mixId;
         this.timeStarted = new Timestamp(System.currentTimeMillis());
         this.timeStatus = new HashMap<>();
-        this.denomination = denomination;
-        this.fees = fees;
-        this.minMustMix = minMustMix;
-        this.targetAnonymitySetInitial = targetAnonymitySet;
-        this.targetAnonymitySet = targetAnonymitySet;
-        this.minAnonymitySet = minAnonymitySet;
-        this.maxAnonymitySet = maxAnonymitySet;
-        this.timeoutAdjustAnonymitySet = timeoutAdjustAnonymitySet;
+
+        this.pool = pool;
+        this.targetAnonymitySet = pool.getTargetAnonymitySet();
         this.acceptLiquidities = false;
-        this.liquidityTimeout = liquidityTimeout;
 
         this.mixStatus = MixStatus.REGISTER_INPUT;
         this.inputsById = new HashMap<>();
@@ -67,7 +55,7 @@ public class Mix {
     }
 
     public Mix(String mixId, Mix copyMix) {
-        this(mixId, copyMix.getDenomination(), copyMix.getFees(), copyMix.getMinMustMix(), copyMix.getTargetAnonymitySetInitial(), copyMix.getMinAnonymitySet(), copyMix.getMaxAnonymitySet(), copyMix.getTimeoutAdjustAnonymitySet(), copyMix.getLiquidityTimeout());
+        this(mixId, copyMix.getPool());
     }
 
     public MixTO computeMixTO() {
@@ -79,7 +67,19 @@ public class Mix {
     }
 
     public boolean hasMinMustMixReached() {
-        return getNbInputsMustMix() >= getMinMustMix();
+        return getNbInputsMustMix() >= pool.getMinMustMix();
+    }
+
+    public boolean isFull() {
+        return (getNbInputs() >= pool.getMaxAnonymitySet());
+    }
+
+    public long computeSpendAmount(boolean liquidity) {
+        if (liquidity) {
+            // no minersFees for liquidities
+            return pool.getDenomination();
+        }
+        return pool.getDenomination() + pool.getMinerFee();
     }
 
     public String getMixId() {
@@ -94,20 +94,8 @@ public class Mix {
         return timeStatus;
     }
 
-    public long getDenomination() {
-        return denomination;
-    }
-
-    public long getFees() {
-        return fees;
-    }
-
-    public int getMinMustMix() {
-        return minMustMix;
-    }
-
-    public int getTargetAnonymitySetInitial() {
-        return targetAnonymitySetInitial;
+    public Pool getPool() {
+        return pool;
     }
 
     public int getTargetAnonymitySet() {
@@ -118,28 +106,12 @@ public class Mix {
         this.targetAnonymitySet = targetAnonymitySet;
     }
 
-    public int getMinAnonymitySet() {
-        return minAnonymitySet;
-    }
-
-    public int getMaxAnonymitySet() {
-        return maxAnonymitySet;
-    }
-
-    public long getTimeoutAdjustAnonymitySet() {
-        return timeoutAdjustAnonymitySet;
-    }
-
     public boolean isAcceptLiquidities() {
         return acceptLiquidities;
     }
 
     public void setAcceptLiquidities(boolean acceptLiquidities) {
         this.acceptLiquidities = acceptLiquidities;
-    }
-
-    public long getLiquidityTimeout() {
-        return liquidityTimeout;
     }
 
     public MixStatus getMixStatus() {
@@ -174,7 +146,7 @@ public class Mix {
         }
         inputsById.put(inputId, registeredInput);
 
-        if (timeStatus.get(MixStatus.REGISTER_INPUT) == null && !registeredInput.isLiquidity()) {
+        if (!registeredInput.isLiquidity() && getNbInputsMustMix() == 1) {
             timeStatus.put(MixStatus.REGISTER_INPUT, new Timestamp(System.currentTimeMillis()));
         }
     }
@@ -192,6 +164,13 @@ public class Mix {
         sendAddresses.add(sendAddress);
         receiveAddresses.add(receiveAddress);
         registeredBordereaux.add(bordereau);
+    }
+
+    public long getElapsedTime() {
+        // return first input registration time when 1 mustMix already connected, otherwise return mix started time
+        long timeStarted = getTimeStatus().getOrDefault(MixStatus.REGISTER_INPUT, getTimeStarted()).getTime();
+        long elapsedTime = System.currentTimeMillis() - timeStarted;
+        return elapsedTime;
     }
 
     public List<String> getSendAddresses() {

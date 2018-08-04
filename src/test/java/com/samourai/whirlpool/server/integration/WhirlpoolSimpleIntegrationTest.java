@@ -59,10 +59,10 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
         SegwitAddress inputP2SH_P2WPKH = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
 
-        Mix mix = mixService.__getCurrentMix();
+        Mix mix = __getCurrentMix();
 
         // mock TransactionOutPoint
-        long inputBalance = testUtils.computeSpendAmount(mix, false);
+        long inputBalance = mix.computeSpendAmount(false);
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
 
         MultiClientManager multiClientManager = multiClientManager(1, mix);

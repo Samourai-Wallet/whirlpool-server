@@ -24,7 +24,6 @@ public class RegisterOutputsServiceTest extends AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        mixService.__reset("12345678");
     }
 
     // TODO test bordereau already registered

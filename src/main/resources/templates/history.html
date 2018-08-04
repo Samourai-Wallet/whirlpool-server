@@ -17,7 +17,9 @@
             <thead>
             <tr>
                 <th scope="col">Date</th>
+                <th scope="col">Pool id</th>
                 <th scope="col">Mix id</th>
+                <th scope="col">Denomination</th>
                 <th scope="col">AnonymitySet</th>
                 <th scope="col">Status</th>
                 <th scope="col">Txid</th>
@@ -27,7 +29,9 @@
             <tbody>
                 <tr th:each="mix : *{mixs}">
                     <td class="created"><span th:text="${#dates.format(mix.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
+                    <td class="poolId"><pre><code th:text="${mix.poolId}"/></pre></td>
                     <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
+                    <td class="denomination"><pre><code th:text="${mix.denomination}"/></pre></td>
                     <td class="anonymitySet"><span th:text="${mix.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${mix.nbMustMix}" title="mustMix"/> + <span th:text="${mix.nbLiquidities}" title="liquidities"/>)</td>
                     <td class="status"><span th:text="${mix.mixStatus}"/> <span th:text="${mix.failReason != null} ? ${'(' + mix.failReason + ')'} : ''"/></td>
                     <td class="txid">

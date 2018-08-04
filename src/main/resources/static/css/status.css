@@ -1,3 +1,6 @@
+.sw-main ul.step-anchor>li>a:hover {
+    color: #ccc;
+}
 .sw-main ul.step-anchor>li.active>a {
     color: #b71c1c;
 }
@@ -13,12 +16,13 @@
 .nav-tabs .nav-item {
     width: 180px;
 }
-.sw-main ul.step-anchor>li>a {
-    cursor: default;
-}
 .sw-main ul.step-anchor::before {
     top: 42px;
 }
 .progress-bar {
     background: #700606 !important;
+}
+.card {
+    margin-bottom:15px;
+    cursor: pointer;
 }

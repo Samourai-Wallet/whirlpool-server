@@ -58,8 +58,8 @@ public class MultiClientManager {
     }
 
     private WhirlpoolClient createClient() {
-        String wsUrl = "ws://127.0.0.1:" + port;
-        WhirlpoolClientConfig config = new WhirlpoolClientConfig(wsUrl, cryptoService.getNetworkParameters());
+        String server = "127.0.0.1:" + port;
+        WhirlpoolClientConfig config = new WhirlpoolClientConfig(server, cryptoService.getNetworkParameters());
         return new WhirlpoolClient(config);
     }
 
@@ -71,7 +71,7 @@ public class MultiClientManager {
 
     private void prepareClientWithMock(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
         // prepare input & output and mock input
-        long amount = testUtils.computeSpendAmount(mix, liquidity);
+        long amount = mix.computeSpendAmount(liquidity);
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, amount, nbConfirmations, utxoHash, utxoIndex);
         ECKey utxoKey = inputAddress.getECKey();
 
@@ -112,7 +112,7 @@ public class MultiClientManager {
     }
 
     private void whirlpool(int i, boolean liquidity, int mixs) {
-
+        String poolId = mix.getPool().getPoolId();
         WhirlpoolClient whirlpoolClient = clients[i];
         TxOutPoint utxo = inputs[i];
         ECKey ecKey = inputKeys[i];
@@ -124,7 +124,7 @@ public class MultiClientManager {
 
         MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), paymentCode, mixHandler, liquidity);
         WhirlpoolClientListener listener = computeListener();
-        whirlpoolClient.whirlpool(mixParams, mixs, listener);
+        whirlpoolClient.whirlpool(poolId, mixParams, mixs, listener);
     }
 
     private WhirlpoolClientListener computeListener() {
@@ -218,9 +218,9 @@ public class MultiClientManager {
     }
 
     public void setMixNext() {
-        Mix nextMix = mixService.__getCurrentMix();
+        Mix nextMix = mix.getPool().getCurrentMix();
         Assert.assertNotEquals(mix, nextMix);
-        setMix(nextMix);
+        this.mix = nextMix;
         log.info("============= NEW MIX DETECTED: " + nextMix.getMixId() + " =============");
     }
 
@@ -284,14 +284,14 @@ public class MultiClientManager {
 
     public void nextTargetAnonymitySetAdjustment() throws Exception {
         int targetAnonymitySetExpected = mix.getTargetAnonymitySet() - 1;
-        if (targetAnonymitySetExpected < mix.getMinAnonymitySet()) {
+        if (targetAnonymitySetExpected < mix.getPool().getMinAnonymitySet()) {
             throw new Exception("targetAnonymitySetExpected < minAnonymitySet");
         }
 
         log.info("nextTargetAnonymitySetAdjustment: "+ (targetAnonymitySetExpected+1) + " -> " + targetAnonymitySetExpected);
 
         // simulate 9min58 elapsed... mix targetAnonymitySet should remain unchanged
-        mixLimitsService.__simulateElapsedTime(mix, mix.getTimeoutAdjustAnonymitySet()-2);
+        mixLimitsService.__simulateElapsedTime(mix, mix.getPool().getTimeoutAdjustAnonymitySet()-2);
         Thread.sleep(1000);
         Assert.assertEquals(targetAnonymitySetExpected + 1, mix.getTargetAnonymitySet());
 
@@ -316,14 +316,6 @@ public class MultiClientManager {
 
         log.info("# (LAST) Waiting for mixTargetAnonymitySet: " + mix.getTargetAnonymitySet() + " vs " + targetAnonymitySetExpected);
         Assert.assertEquals(targetAnonymitySetExpected, mix.getTargetAnonymitySet());
-    }
-
-    public Mix getMix() {
-        return mix;
-    }
-
-    public void setMix(Mix mix) {
-        this.mix = mix;
     }
 
     public void exit() {

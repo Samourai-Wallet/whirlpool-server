@@ -33,9 +33,7 @@ public class MixLimitsService {
         this.blameService = blameService;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
 
-        this.liquidityPools = new HashMap<>();
-        this.limitsWatchers = new HashMap<>();
-        this.liquidityWatchers = new HashMap<>();
+        this.__reset();
     }
 
     // avoids circular reference
@@ -111,9 +109,9 @@ public class MixLimitsService {
                 Long timeToWait = null;
                 switch(mix.getMixStatus()) {
                     case REGISTER_INPUT:
-                        if (mix.getTargetAnonymitySet() > mix.getMinAnonymitySet()) {
+                        if (mix.getTargetAnonymitySet() > mix.getPool().getMinAnonymitySet()) {
                             // timeout before next targetAnonymitySet adjustment
-                            timeToWait = mix.getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
+                            timeToWait = mix.getPool().getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
                         }
                         break;
 
@@ -171,7 +169,7 @@ public class MixLimitsService {
             @Override
             public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
                 long elapsedTime = timeoutWatcher.computeElapsedTime();
-                long timeToWait = mix.getLiquidityTimeout()*1000 - elapsedTime;
+                long timeToWait = mix.getPool().getLiquidityTimeout()*1000 - elapsedTime;
                 return timeToWait;
             }
 
@@ -204,7 +202,7 @@ public class MixLimitsService {
         }
 
         // anonymitySet already at minimum
-        if (mix.getMinAnonymitySet() >= mix.getTargetAnonymitySet()) {
+        if (mix.getPool().getMinAnonymitySet() >= mix.getTargetAnonymitySet()) {
             return;
         }
 
@@ -282,7 +280,7 @@ public class MixLimitsService {
             return;
         }
 
-        int liquiditiesToAdd = mix.getMaxAnonymitySet() - mix.getNbInputs();
+        int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
         if (liquiditiesToAdd > 0) {
             // mix needs liquidities
             try {
@@ -359,5 +357,18 @@ public class MixLimitsService {
         if (liquidityWatcher != null) {
             liquidityWatcher.__simulateElapsedTime(elapsedTimeSeconds);
         }
+    }
+
+    public void __reset() {
+        if (liquidityWatchers != null) {
+            liquidityWatchers.values().forEach(watcher -> watcher.stop());
+        }
+        if (limitsWatchers != null) {
+            limitsWatchers.values().forEach(watcher -> watcher.stop());
+        }
+
+        this.liquidityPools = new HashMap<>();
+        this.limitsWatchers = new HashMap<>();
+        this.liquidityWatchers = new HashMap<>();
     }
 }

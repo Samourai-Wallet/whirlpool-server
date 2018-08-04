@@ -12,72 +12,79 @@
 </head>
 <body>
     <div layout:fragment="main">
-        <h1 class="h2">Status</h1>
-
-        <div class="row">
-            <div class="col-sm">
-                <div class="card">
-                    <div class="card-body" style="height:85px">
-                        <div class="float-right" style="width:20px; height:20px">
-                            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="lds-eclipse">
-                                <path stroke="none" d="M10 50A40 40 0 0 0 90 50A40 42 0 0 1 10 50" fill="#bd4030">
-                                    <animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 51;360 50 51" keyTimes="0;1" dur="1s" begin="0s" repeatCount="indefinite"></animateTransform>
-                                </path>
-                            </svg>
-                        </div>
-                        Current mix: <span th:text="${mixId}"/><br/>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                Status: <span th:text="${mixStatus}" style="font-weight:bold"/>
-                            </div>
-                            <div class="col-sm-8">
-                                <div th:if="${currentStepProgress != null}" class="progress" style="height:10px">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+currentStepProgress+'%'}"></div>
-                                </div>
-                                <div th:if="${currentStepProgressLabel != null}" class="text-center">
-                                    <small><span th:text="${currentStepProgressLabel}"/></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm">
-                <div class="card" style="height:85px">
-                    <div class="card-body">
-                        Connected: <span th:text="${nbInputs}" style="font-weight:bold"/> (<span th:text="${nbInputsMustMix}"/> mustMix + <span th:text="${nbInputsLiquidities}"/> liquidities) / <span th:text="${targetAnonymitySet}"/><br/>
-                        <span th:if="${nbLiquiditiesAvailable > 0}"><span th:text="${nbLiquiditiesAvailable}"/> more liquidities queued</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <br/>
-
-        <div class="sw-main sw-theme-dots">
-            <ul class="nav nav-tabs step-anchor">
-                <li th:each="step : *{steps}" th:class="${step.done} ? 'nav-item done' : (${step.active} ? 'nav-item active' : 'nav-item')"><a href="#" class="nav-link" th:text="${step.title}"/></li>
-            </ul>
-        </div>
-
-        <br/>
+        <h1 class="h2">Status
+            <svg width="20px" height="20px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="lds-eclipse">
+                <path stroke="none" d="M10 50A40 40 0 0 0 90 50A40 42 0 0 1 10 50" fill="#bd4030">
+                    <animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 51;360 50 51" keyTimes="0;1" dur="1s" begin="0s" repeatCount="indefinite"></animateTransform>
+                </path>
+            </svg>
+        </h1>
 
         <table class="table">
             <thead>
-            <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Event</th>
-                <th scope="col">Details</th>
-            </tr>
+                <th class="align-middle">PoolId</th>
+                <th class="align-middle">Denom.<br/>(btc)</th>
+                <th class="align-middle">Status</th>
+                <th class="align-middle">Users<br/>(mustMix + liquidities)</th>
+                <th class="align-middle">Elapsed time<br/>(mix)</br.></th>
+                <th class="align-middle">Anonymity set<br/>(mix target / min / max)</th>
+                <th class="align-middle">Miner fee<br/>(sat)</th>
             </thead>
             <tbody>
-                <tr th:each="event : *{events}">
-                    <td><span th:text="${#dates.format(event.date, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
-                    <td><span th:text="${event.title}"/></td>
-                    <td><span th:if="${event.details != null}" th:text="${event.details}"/></td>
+            <div th:each="pool,poolIter : *{pools}">
+                <tr th:onclick="${'$(''#'+poolIter.index+'_details'').toggle()'}">
+                <th class="align-middle" rowspan="2"><span th:text="${pool.poolId}"/></th>
+                <td><span th:text="${pool.denomination}"/></td>
+                <td>
+                    <span th:text="${pool.mixStatus}"/><br/>
+                    <div th:if="${pool.currentStepProgress != null}" class="progress" style="height:10px">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+pool.currentStepProgress+'%'}"></div>
+                    </div>
+                    <div th:if="${pool.currentStepProgressLabel != null}" class="text-center">
+                        <small><span th:text="${pool.currentStepProgressLabel}"/></small>
+                    </div>
+                </td>
+                <td>
+                    <span th:text="${pool.nbInputs}" style="font-weight:bold"/> (<span th:text="${pool.nbInputsMustMix}"/> + <span th:text="${pool.nbInputsLiquidities}"/>)<br/>
+                    <span th:if="${pool.nbLiquiditiesAvailable > 0}"><span th:text="${pool.nbLiquiditiesAvailable}"/> more liquidities queued</span>
+                </td>
+                <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
+                <td>
+                    <span th:text="${pool.targetAnonymitySet}" style="font-weight:bold"/> / <span th:text="${pool.minAnonymitySet}"/> / <span th:text="${pool.maxAnonymitySet}"/>
+                </td>
+                <td><span th:text="${pool.minerFee}"/></td>
                 </tr>
+                <tr>
+                    <td colspan="6" th:id="${poolIter.index+'_details'}" style="display:none; border:none">
+                        <div class="row">
+                            <div class="col-sm-1"></div>
+                            <div class="col-sm-10">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="sw-main sw-theme-dots">
+                                            <ul class="nav nav-tabs step-anchor">
+                                                <li th:each="step : *{pool.steps}" th:class="${step.done} ? 'nav-item done' : (${step.active} ? 'nav-item active' : 'nav-item')"><a href="#" class="nav-link" th:text="${step.title}"/></li>
+                                            </ul>
+                                        </div>
+                                        <table class="table table-borderless" style="margin:0">
+                                            <tbody>
+                                            <tr th:each="event : *{pool.events}">
+                                                <td><span th:text="${#dates.format(event.date, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
+                                                <td><span th:text="${event.title}"/></td>
+                                                <td><span th:if="${event.details != null}" th:text="${event.details}"/></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </div>
             </tbody>
         </table>
+
     </div>
 </body>
-
 </html>
