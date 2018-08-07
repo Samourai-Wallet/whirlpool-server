@@ -31,10 +31,12 @@ The node will be used to verify UTXO and broadcast tx.
 ### UTXO amounts
 ```
 server.mix.denomination: amount in satoshis
-server.mix.miner-fee: miner fee (only paid by mustMix)
+server.mix.miner-fee-min: minimum miner-fee to pay by mustMix
+server.mix.miner-fee-max: maximum miner-fee to pay
 ```
-UTXO for mustMix should be founded with *server.mix.denomination*<br/>
-UTXO for liquidities should be founded with *server.mix.denomination*+*server.mix.miner-fee*
+UTXO should be founded with:<br/>
+for mustMix: (*server.mix.denomination* + *server.mix.miner-fee-min*) to (*server.mix.denomination* + *server.mix.miner-fee-max*)<br/>
+for liquidities: (*server.mix.denomination*) to (*server.mix.denomination* + *server.mix.miner-fee-max*)
 
 ### Mix limits
 ```
