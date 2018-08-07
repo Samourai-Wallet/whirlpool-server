@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.controllers.rest;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.PoolInfo;
 import com.samourai.whirlpool.protocol.rest.PoolsResponse;
-import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.services.PoolService;
@@ -39,7 +38,8 @@ public class PoolsController {
     PoolInfo poolInfo = new PoolInfo();
     poolInfo.poolId = pool.getPoolId();
     poolInfo.denomination = pool.getDenomination();
-    poolInfo.minerFee = pool.getMinerFee();
+    poolInfo.minerFeeMin = pool.getMinerFeeMin();
+    poolInfo.minerFeeMax = pool.getMinerFeeMax();
     poolInfo.minAnonymitySet = pool.getMinAnonymitySet();
     poolInfo.mixAnonymitySet = currentMix.getTargetAnonymitySet();
     poolInfo.mixStatus = currentMix.getMixStatus();

@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.web;
 
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -48,7 +49,8 @@ public class StatusWebController {
         poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());
         poolAttributes.put("minAnonymitySet", pool.getMinAnonymitySet());
         poolAttributes.put("minMustMix", pool.getMinMustMix());
-        poolAttributes.put("minerFee", pool.getMinerFee());
+        poolAttributes.put("minerFeeMin", pool.getMinerFeeMin());
+        poolAttributes.put("minerFeeMax", pool.getMinerFeeMax());
         poolAttributes.put("nbInputs", mix.getNbInputs());
         poolAttributes.put("nbInputsMustMix", mix.getNbInputsMustMix());
         poolAttributes.put("nbInputsLiquidities", mix.getNbInputsLiquidities());
@@ -91,6 +93,7 @@ public class StatusWebController {
         pools.add(poolAttributes);
     });
     model.addAttribute("pools", pools);
+    model.addAttribute("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
     return "status";
   }
 

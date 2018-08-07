@@ -69,7 +69,9 @@ public class MixService {
         }
         Mix mix = getMix(mixId, MixStatus.REGISTER_INPUT);
         if (!checkInputBalance(input, mix, liquidity)) {
-            throw new IllegalInputException("Invalid input balance (expected: " + mix.computeSpendAmount(liquidity) + ", actual:"+input.getValue()+")");
+            long balanceMin = mix.computeInputBalanceMin(liquidity);
+            long balanceMax = mix.computeInputBalanceMax();
+            throw new IllegalInputException("Invalid input balance (expected: " + balanceMin + "-" + balanceMax + ", actual:"+input.getValue()+")");
         }
 
         RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, paymentCode, liquidity);
@@ -162,9 +164,8 @@ public class MixService {
     }
 
     private boolean checkInputBalance(TxOutPoint input, Mix mix, boolean liquidity) {
-        // input balance should match exactly this amount, because we don't generate change
-        long spendAmount = mix.computeSpendAmount(liquidity);
-        return (input.getValue() == spendAmount);
+        long inputBalance = input.getValue();
+        return mix.checkInputBalance(inputBalance, liquidity);
     }
 
     public boolean isRegisterInputReady(Mix mix) {
@@ -404,7 +405,7 @@ public class MixService {
             case REGISTER_INPUT:
                 try {
                     byte[] publicKey = cryptoService.getPublicKey().getEncoded();
-                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFee());
+                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFeeMin(), mix.getPool().getMinerFeeMax());
                 }
                 catch(Exception e) {
                     throw new MixException("unexpected error"); // TODO
@@ -479,7 +480,7 @@ public class MixService {
         //
         for (RegisteredInput registeredInput : mix.getInputs()) {
             // send from bech32 input
-            long spendAmount = mix.computeSpendAmount(registeredInput.isLiquidity());
+            long spendAmount = registeredInput.getInput().getValue();
             TxOutPoint registeredOutPoint = registeredInput.getInput();
             TransactionOutPoint outPoint = new TransactionOutPoint(params, registeredOutPoint.getIndex(), Sha256Hash.wrap(registeredOutPoint.getHash()), Coin.valueOf(spendAmount));
             TransactionInput txInput = new TransactionInput(params, null, new byte[]{}, outPoint, Coin.valueOf(spendAmount));

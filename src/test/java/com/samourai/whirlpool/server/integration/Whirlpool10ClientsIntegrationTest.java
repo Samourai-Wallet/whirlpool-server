@@ -24,14 +24,15 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         // start mix
         String mixId = "foo";
         long denomination = 200000000;
-        long minerFee = 100000;
+        long minerFeeMin = 100;
+        long minerFeeMax = 10000;
         int mustMixMin = NB_CLIENTS;
         int anonymitySetTarget = NB_CLIENTS;
         int anonymitySetMin = NB_CLIENTS;
         int anonymitySetMax = NB_CLIENTS;
         long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
         long liquidityTimeout = 60;
-        Mix mix = __nextMix(mixId, denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
@@ -40,6 +41,47 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         for (int i=0; i<NB_CLIENTS-1; i++) {
             final int clientIndice = i;
             taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 1));
+        }
+
+        // connected clients should have registered their inputs...
+        multiClientManager.assertMixStatusRegisterInput(NB_CLIENTS-1, false);
+
+        // connect last client
+        log.info("# Connect last client...");
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(NB_CLIENTS-1, false, 1));
+
+        // all clients should have registered their inputs
+        // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
+
+        // all clients should have registered their outputs and signed
+        multiClientManager.assertMixStatusSuccess(NB_CLIENTS, false);
+    }
+
+    @Test
+    public void whirlpool_10clientsMixedAmounts() throws Exception {
+        final int NB_CLIENTS = 10;
+        // start mix
+        String mixId = "foo";
+        long denomination = 1000000;
+        long minerFeeMin = 100;
+        long minerFeeMax = 10000;
+        int mustMixMin = NB_CLIENTS;
+        int anonymitySetTarget = NB_CLIENTS;
+        int anonymitySetMin = NB_CLIENTS;
+        int anonymitySetMax = NB_CLIENTS;
+        long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
+        long liquidityTimeout = 60;
+        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+
+        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
+        long inputBalanceMin = mix.computeInputBalanceMin(false);
+
+        // connect all clients except one, to stay in REGISTER_INPUTS
+        log.info("# Connect first clients...");
+        for (int i=0; i<NB_CLIENTS-1; i++) {
+            final int clientIndice = i;
+            long inputBalance = inputBalanceMin + (100 * i); // mixed amounts
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 1, inputBalance));
         }
 
         // connected clients should have registered their inputs...

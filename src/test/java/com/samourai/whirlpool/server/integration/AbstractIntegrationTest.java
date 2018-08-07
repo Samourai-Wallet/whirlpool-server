@@ -98,11 +98,12 @@ public abstract class AbstractIntegrationTest {
         return mixService.__nextMix(pool, mixId);
     }
 
-    protected Mix __nextMix(String mixId, long denomination, long minerFee, int mustMixMin, int anonymitySetTarget, int anonymitySetMin, int anonymitySetMax, long anonymitySetAdjustTimeout, long liquidityTimeout) throws MixException {
+    protected Mix __nextMix(String mixId, long denomination, long minerFeeMin, long minerFeeMax, int mustMixMin, int anonymitySetTarget, int anonymitySetMin, int anonymitySetMax, long anonymitySetAdjustTimeout, long liquidityTimeout) throws MixException {
         WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
         poolConfig.setId(mixId);
         poolConfig.setDenomination(denomination);
-        poolConfig.setMinerFee(minerFee);
+        poolConfig.setMinerFeeMin(minerFeeMin);
+        poolConfig.setMinerFeeMax(minerFeeMax);
         poolConfig.setMustMixMin(mustMixMin);
         poolConfig.setAnonymitySetTarget(anonymitySetTarget);
         poolConfig.setAnonymitySetMin(anonymitySetMin);

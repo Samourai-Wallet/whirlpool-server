@@ -36,7 +36,8 @@ public class PoolService {
         for (WhirlpoolServerConfig.PoolConfig poolConfig : poolConfigs) {
             String poolId = poolConfig.getId();
             long denomination = poolConfig.getDenomination();
-            long fees = poolConfig.getMinerFee();
+            long minerFeeMin = poolConfig.getMinerFeeMin();
+            long minerFeeMax = poolConfig.getMinerFeeMax();
             int minMustMix = poolConfig.getMustMixMin();
             int targetAnonymitySet = poolConfig.getAnonymitySetTarget();
             int minAnonymitySet = poolConfig.getAnonymitySetMin();
@@ -46,7 +47,7 @@ public class PoolService {
 
             Assert.notNull(poolId, "Pool configuration: poolId must not be NULL");
             Assert.isTrue(!pools.containsKey(poolId), "Pool configuration: poolId must not be duplicate");
-            Pool pool = new Pool(poolId, denomination, fees, minMustMix, targetAnonymitySet, minAnonymitySet, maxAnonymitySet, mustMixAdjustTimeout, liquidityTimeout);
+            Pool pool = new Pool(poolId, denomination, minerFeeMin, minerFeeMax, minMustMix, targetAnonymitySet, minAnonymitySet, maxAnonymitySet, mustMixAdjustTimeout, liquidityTimeout);
             pools.put(poolId, pool);
         }
     }

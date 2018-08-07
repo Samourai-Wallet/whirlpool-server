@@ -62,7 +62,7 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         Mix mix = __getCurrentMix();
 
         // mock TransactionOutPoint
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
 
         MultiClientManager multiClientManager = multiClientManager(1, mix);

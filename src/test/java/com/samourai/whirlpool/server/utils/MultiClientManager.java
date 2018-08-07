@@ -63,16 +63,18 @@ public class MultiClientManager {
         return new WhirlpoolClient(config);
     }
 
-    private void prepareClientWithMock(int i, boolean liquidity) throws Exception {
+    private void prepareClientWithMock(int i, boolean liquidity, Long inputBalance) throws Exception {
         SegwitAddress inputAddress = testUtils.createSegwitAddress();
         BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
-        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, null, null, null);
+        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, null, null, null, inputBalance);
     }
 
-    private void prepareClientWithMock(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
+    private void prepareClientWithMock(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex, Long inputBalance) throws Exception {
         // prepare input & output and mock input
-        long amount = mix.computeSpendAmount(liquidity);
-        TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, amount, nbConfirmations, utxoHash, utxoIndex);
+        if (inputBalance == null) {
+            inputBalance = mix.computeInputBalanceMin(liquidity);
+        }
+        TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
         ECKey utxoKey = inputAddress.getECKey();
 
         prepareClient(i, utxo, utxoKey, bip47Wallet);
@@ -87,8 +89,12 @@ public class MultiClientManager {
     }
 
     public void connectWithMockOrFail(int i, boolean liquidity, int mixs) {
+        connectWithMockOrFail(i, liquidity, mixs, null);
+    }
+
+    public void connectWithMockOrFail(int i, boolean liquidity, int mixs, Long inputBalance) {
         try {
-            connectWithMock(i, liquidity, mixs);
+            connectWithMock(i, liquidity, mixs, inputBalance);
         }
         catch(Exception e) {
             log.error("", e);
@@ -97,12 +103,16 @@ public class MultiClientManager {
     }
 
     public void connectWithMock(int i, boolean liquidity, int mixs) throws Exception {
-        prepareClientWithMock(i, liquidity);
+        connectWithMock(i, liquidity, mixs, null);
+    }
+
+    public void connectWithMock(int i, boolean liquidity, int mixs, Long inputBalance) throws Exception {
+        prepareClientWithMock(i, liquidity, inputBalance);
         whirlpool(i, liquidity, mixs);
     }
 
     public void connectWithMock(int i, boolean liquidity, int mixs, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
-        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex);
+        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex, null);
         whirlpool(i, liquidity, mixs);
     }
 

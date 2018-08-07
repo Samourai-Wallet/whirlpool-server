@@ -34,14 +34,15 @@ public class MixServiceTest extends AbstractIntegrationTest {
     public void isRegisterInputReady_noLiquidity() throws Exception {
         MixService spyMixService = Mockito.spy(mixService);
         long denomination = 200000000;
-        long minerFee = 100000;
+        long minerFeeMin = 100;
+        long minerFeeMax = 10000;
         int mustMixMin = 1;
         int anonymitySetTarget = 2;
         int anonymitySetMin = 2;
         int anonymitySetMax = 2;
         long anonymitySetAdjustTimeout = 10 * 60;
         long liquidityTimeout = 60; // TODO no liquidity
-        Mix mix = __nextMix("foo", denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix("foo", denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 mustMix => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -59,14 +60,15 @@ public class MixServiceTest extends AbstractIntegrationTest {
     public void isRegisterInputReady_withLiquidityBefore() throws Exception {
         MixService spyMixService = Mockito.spy(mixService);
         long denomination = 200000000;
-        long minerFee = 100000;
+        long minerFeeMin = 100;
+        long minerFeeMax = 10000;
         int mustMixMin = 1;
         int anonymitySetTarget = 2;
         int anonymitySetMin = 2;
         int anonymitySetMax = 2;
         long anonymitySetAdjustTimeout = 10 * 60;
         long liquidityTimeout = 60; // TODO with liquidity
-        Mix mix = __nextMix("foo", denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix("foo", denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 liquidity => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -92,14 +94,15 @@ public class MixServiceTest extends AbstractIntegrationTest {
     public void isRegisterInputReady_withLiquidityAfter() throws Exception {
         MixService spyMixService = Mockito.spy(mixService);
         long denomination = 200000000;
-        long minerFee = 100000;
+        long minerFeeMin = 100;
+        long minerFeeMax = 10000;
         int mustMixMin = 1;
         int anonymitySetTarget = 2;
         int anonymitySetMin = 2;
         int anonymitySetMax = 2;
         long anonymitySetAdjustTimeout = 10 * 60;
         long liquidityTimeout = 60; // TODO with liquidity
-        Mix mix = __nextMix("foo", denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix("foo", denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 mustMix => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));

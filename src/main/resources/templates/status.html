@@ -53,8 +53,8 @@
                 </td>
                 <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
                 <td>
-                    Miner fee: <span th:text="${pool.minerFee}"/>sat<br/>
-                    AnonymitySet min-max: <span th:text="${pool.minAnonymitySet}"/> - <span th:text="${pool.maxAnonymitySet}"/>
+                    Miner fee min-max: <span th:text="${pool.minerFeeMin}"/>-<span th:text="${pool.minerFeeMax}"/><br/>
+                    AnonymitySet min-max: <span th:text="${pool.minAnonymitySet}"/>-<span th:text="${pool.maxAnonymitySet}"/>
                 </td>
                 </tr>
                 <tr>
@@ -87,7 +87,7 @@
             </div>
             </tbody>
         </table>
-
+        <p><small>ProtocolVersion: <span th:text="${protocolVersion}" style="font-weight:bold"/></small></p>
     </div>
 </body>
 </html>

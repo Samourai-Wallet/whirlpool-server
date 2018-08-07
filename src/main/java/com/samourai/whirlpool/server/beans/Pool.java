@@ -3,7 +3,8 @@ package com.samourai.whirlpool.server.beans;
 public class Pool {
     private String poolId;
     private long denomination; // in satoshis
-    private long minerFee; // in satoshis
+    private long minerFeeMin; // in satoshis
+    private long minerFeeMax; // in satoshis
     private int minMustMix;
     private int targetAnonymitySet;
     private int minAnonymitySet;
@@ -13,10 +14,11 @@ public class Pool {
 
     private Mix currentMix;
 
-    public Pool(String poolId, long denomination, long minerFee, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
+    public Pool(String poolId, long denomination, long minerFeeMin, long minerFeeMax, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
         this.poolId = poolId;
         this.denomination = denomination;
-        this.minerFee = minerFee;
+        this.minerFeeMin = minerFeeMin;
+        this.minerFeeMax = minerFeeMax;
         this.minMustMix = minMustMix;
         this.targetAnonymitySet = targetAnonymitySet;
         this.minAnonymitySet = minAnonymitySet;
@@ -33,8 +35,12 @@ public class Pool {
         return denomination;
     }
 
-    public long getMinerFee() {
-        return minerFee;
+    public long getMinerFeeMin() {
+        return minerFeeMin;
+    }
+
+    public long getMinerFeeMax() {
+        return minerFeeMax;
     }
 
     public int getMinMustMix() {
@@ -43,10 +49,6 @@ public class Pool {
 
     public int getTargetAnonymitySet() {
         return targetAnonymitySet;
-    }
-
-    public void setTargetAnonymitySet(int targetAnonymitySet) {
-        this.targetAnonymitySet = targetAnonymitySet;
     }
 
     public int getMinAnonymitySet() {

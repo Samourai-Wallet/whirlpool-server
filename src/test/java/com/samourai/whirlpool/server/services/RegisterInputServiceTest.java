@@ -61,7 +61,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
             validBlindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
-            long inputBalance = mix.computeSpendAmount(liquidity);
+            long inputBalance = mix.computeInputBalanceMin(liquidity);
             txOutPoint = testUtils.createAndMockTxOutPoint(new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance);
 
             // TEST
@@ -134,7 +134,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -165,7 +165,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -195,7 +195,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
         Mix mix = __getCurrentMix();
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -232,7 +232,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -263,7 +263,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -293,7 +293,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -325,7 +325,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] blindedBordereau1 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
         byte[] blindedBordereau2 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBZ", blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
@@ -358,7 +358,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false) - 1; // BALANCE TOO LOW
+        long inputBalance = mix.computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
         thrown.expect(IllegalInputException.class);
         registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
@@ -385,7 +385,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false) + 1;// BALANCE TOO HIGH
+        long inputBalance = mix.computeInputBalanceMin(false) + 1;// BALANCE TOO HIGH
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
         thrown.expect(IllegalInputException.class);
         registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
@@ -412,7 +412,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         // mock input with 0 confirmations
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, 0);
 
@@ -446,7 +446,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
 
-        long inputBalance = mix.computeSpendAmount(false);
+        long inputBalance = mix.computeInputBalanceMin(false);
         // mock input with 2000 confirmations
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, 2000);
 

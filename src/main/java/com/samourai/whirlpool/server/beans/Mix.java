@@ -74,12 +74,23 @@ public class Mix {
         return (getNbInputs() >= pool.getMaxAnonymitySet());
     }
 
-    public long computeSpendAmount(boolean liquidity) {
+    public boolean checkInputBalance(long inputBalance, boolean liquidity) {
+        long minBalance = computeInputBalanceMin(liquidity);
+        long maxBalance = computeInputBalanceMax();
+        return inputBalance >= minBalance && inputBalance <= maxBalance;
+    }
+
+    public long computeInputBalanceMin(boolean liquidity) {
+        long amount = getPool().getDenomination();
         if (liquidity) {
-            // no minersFees for liquidities
-            return pool.getDenomination();
+            amount += getPool().getMinerFeeMin();
         }
-        return pool.getDenomination() + pool.getMinerFee();
+        return amount;
+    }
+
+    public long computeInputBalanceMax() {
+        long amount = getPool().getDenomination() + getPool().getMinerFeeMax();
+        return amount;
     }
 
     public String getMixId() {

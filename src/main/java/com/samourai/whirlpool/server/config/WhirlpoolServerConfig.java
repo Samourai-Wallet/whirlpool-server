@@ -182,7 +182,8 @@ public class WhirlpoolServerConfig {
     public static class PoolConfig {
         private String id;
         private long denomination;
-        private long minerFee;
+        private long minerFeeMin;
+        private long minerFeeMax;
         private int mustMixMin;
         private int anonymitySetTarget;
         private int anonymitySetMin;
@@ -206,12 +207,20 @@ public class WhirlpoolServerConfig {
             this.denomination = denomination;
         }
 
-        public long getMinerFee() {
-            return minerFee;
+        public long getMinerFeeMin() {
+            return minerFeeMin;
         }
 
-        public void setMinerFee(long minerFee) {
-            this.minerFee = minerFee;
+        public void setMinerFeeMin(long minerFeeMin) {
+            this.minerFeeMin = minerFeeMin;
+        }
+
+        public long getMinerFeeMax() {
+            return minerFeeMax;
+        }
+
+        public void setMinerFeeMax(long minerFeeMax) {
+            this.minerFeeMax = minerFeeMax;
         }
 
         public int getMustMixMin() {

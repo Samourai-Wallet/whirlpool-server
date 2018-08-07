@@ -236,14 +236,15 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         // start mix
         String mixId = "foo";
         long denomination = premixer.biUnitReceiveAmount.longValue();
-        long minerFee = mixFee;
+        long minerFeeMin = mixFee;
+        long minerFeeMax = mixFee * 10;
         int mustMixMin = NB_CLIENTS;
         int anonymitySetTarget = NB_CLIENTS;
         int anonymitySetMin = NB_CLIENTS;
         int anonymitySetMax = NB_CLIENTS;
         long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
         long liquidityTimeout = 60;
-        Mix mix = __nextMix(mixId, denomination, minerFee, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
