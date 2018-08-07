@@ -70,7 +70,7 @@ public class MixService {
         Mix mix = getMix(mixId, MixStatus.REGISTER_INPUT);
         if (!checkInputBalance(input, mix, liquidity)) {
             long balanceMin = mix.computeInputBalanceMin(liquidity);
-            long balanceMax = mix.computeInputBalanceMax();
+            long balanceMax = mix.computeInputBalanceMax(liquidity);
             throw new IllegalInputException("Invalid input balance (expected: " + balanceMin + "-" + balanceMax + ", actual:"+input.getValue()+")");
         }
 

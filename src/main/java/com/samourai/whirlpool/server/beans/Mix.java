@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
@@ -76,21 +77,15 @@ public class Mix {
 
     public boolean checkInputBalance(long inputBalance, boolean liquidity) {
         long minBalance = computeInputBalanceMin(liquidity);
-        long maxBalance = computeInputBalanceMax();
+        long maxBalance = computeInputBalanceMax(liquidity);
         return inputBalance >= minBalance && inputBalance <= maxBalance;
     }
-
     public long computeInputBalanceMin(boolean liquidity) {
-        long amount = getPool().getDenomination();
-        if (liquidity) {
-            amount += getPool().getMinerFeeMin();
-        }
-        return amount;
+        return WhirlpoolProtocol.computeInputBalanceMin(getPool().getDenomination(), liquidity, getPool().getMinerFeeMin());
     }
 
-    public long computeInputBalanceMax() {
-        long amount = getPool().getDenomination() + getPool().getMinerFeeMax();
-        return amount;
+    public long computeInputBalanceMax(boolean liquidity) {
+        return WhirlpoolProtocol.computeInputBalanceMax(getPool().getDenomination(), liquidity, getPool().getMinerFeeMax());
     }
 
     public String getMixId() {
