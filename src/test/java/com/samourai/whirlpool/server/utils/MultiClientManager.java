@@ -18,6 +18,8 @@ import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.MixService;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.Transaction;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,7 +134,7 @@ public class MultiClientManager {
 
         IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet);
 
-        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), paymentCode, mixHandler, liquidity);
+        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), paymentCode, mixHandler, liquidity);
         WhirlpoolClientListener listener = computeListener();
         whirlpoolClient.whirlpool(poolId, mixParams, mixs, listener);
     }
@@ -274,6 +276,14 @@ public class MultiClientManager {
 
         // all clients should be SUCCESS
         assertClientsSuccess(nbAllRegisteredExpected, numMix);
+    }
+
+    public void assertMixTx(String expectedTxHash, String expectedTxHex) {
+        Transaction tx = mix.getTx();
+        String txHash = tx.getHashAsString();
+        String txHex = new String(Hex.encode(tx.bitcoinSerialize()));
+        Assert.assertEquals(expectedTxHash, txHash);
+        Assert.assertEquals(expectedTxHex, txHex);
     }
 
     private void assertClientsSuccess(int nbAllRegisteredExpected, int numMix) {
