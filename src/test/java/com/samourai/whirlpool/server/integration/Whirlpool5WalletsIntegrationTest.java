@@ -317,19 +317,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         //System.out.println("unsignedStrTxHash = "+unsignedStrTxHash);
         //System.out.println("unsignedHexTx = "+unsignedHexTx);
 
-        Transaction tx = mix.getTx();
-        String strTxHash = tx.getHashAsString();
-        String hexTx = new String(Hex.encode(tx.bitcoinSerialize()));
-        System.out.println("strTxHash = "+strTxHash);
-        System.out.println("hexTx = "+hexTx);
-
-        // verify transaction to sign // TODO
-        //Assert.assertEquals(expectedUnsignedStrTxHash, unsignedStrTxHash);
-        //Assert.assertEquals(expectedUnsignedHexTx, unsignedHexTx);
-
-        // verify final transaction
-        Assert.assertEquals(expectedStrTxHash, strTxHash);
-        Assert.assertEquals(expectedHexTx, hexTx);
+        multiClientManager.assertMixTx(expectedStrTxHash, expectedHexTx);
     }
 
     private Map<String,String> getFirstEntries(Map<String,String> map, int limit) {
