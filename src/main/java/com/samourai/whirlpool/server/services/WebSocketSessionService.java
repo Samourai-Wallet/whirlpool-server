@@ -31,7 +31,7 @@ public class WebSocketSessionService {
         String sessionId = webSocketSession.getId();
         String username = webSocketSession.getPrincipal().getName();
         if (log.isDebugEnabled()) {
-            log.debug("(--> "+ username + ") : connect");
+            log.debug("(--> "+ username + ") : connect (sessionId=" + sessionId + ")");
         }
         Map<String, WebSocketSession> usernameSessions = sessions.get(username);
         if (usernameSessions == null) {
