@@ -25,7 +25,7 @@ import java.util.Map;
 public class StatusWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status";
-  private static final String STATUS_START_MIX = "START_MIX";
+  private static final String STATUS_READY = "READY";
 
   private PoolService poolService;
   private MixLimitsService mixLimitsService;
@@ -44,7 +44,7 @@ public class StatusWebController {
         Map<String,Object> poolAttributes = new HashMap<>();
         poolAttributes.put("poolId", pool.getPoolId());
         poolAttributes.put("denomination", satToBtc(pool.getDenomination()));
-        poolAttributes.put("mixStatus", mix.getNbInputsMustMix() > 0 ? mix.getMixStatus() : STATUS_START_MIX);
+        poolAttributes.put("mixStatus", mix.getNbInputsMustMix() > 0 ? mix.getMixStatus() : STATUS_READY);
         poolAttributes.put("targetAnonymitySet", mix.getTargetAnonymitySet());
         poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());
         poolAttributes.put("minAnonymitySet", pool.getMinAnonymitySet());
@@ -68,7 +68,7 @@ public class StatusWebController {
 
         Map<MixStatus, Timestamp> timeStatus = mix.getTimeStatus();
         List<StatusStep> steps = new ArrayList<>();
-        steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), STATUS_START_MIX, null));
+        steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), STATUS_READY, null));
         steps.add(computeStep(MixStatus.REGISTER_INPUT, timeStatus));
         steps.add(computeStep(MixStatus.REGISTER_OUTPUT, timeStatus));
         if (timeStatus.containsKey(MixStatus.REVEAL_OUTPUT)) {
@@ -87,7 +87,7 @@ public class StatusWebController {
         poolAttributes.put("steps", steps);
 
         List<StatusEvent> events = new ArrayList<>();
-        events.add(new StatusEvent(mix.getTimeStarted(), STATUS_START_MIX, "Mix id: "+mix.getMixId()));
+        events.add(new StatusEvent(mix.getTimeStarted(), STATUS_READY, "Mix id: "+mix.getMixId()));
         timeStatus.forEach(((mixStatus, timestamp) -> events.add(new StatusEvent(timestamp, mixStatus.toString(), null))));
         poolAttributes.put("events", events);
         pools.add(poolAttributes);
