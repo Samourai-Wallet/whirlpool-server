@@ -21,10 +21,7 @@ import org.slf4j.event.Level;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -38,6 +35,10 @@ public class Utils {
                         .filteredBy(CharacterPredicates.ASCII_ALPHA_NUMERALS)
                         .build();
         return randomStringGenerator.generate(length);
+    }
+
+    public static String generateUniqueString() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     public static boolean listEqualsIgnoreOrder(List first, List second) {

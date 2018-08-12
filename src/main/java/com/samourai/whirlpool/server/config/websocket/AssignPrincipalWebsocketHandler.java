@@ -30,6 +30,6 @@ public class AssignPrincipalWebsocketHandler extends DefaultHandshakeHandler {
         }
 
         private String generateRandomUsername() {
-            return Utils.getRandomString(32);
+            return Utils.generateUniqueString();
         }
     }
