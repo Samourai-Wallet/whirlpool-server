@@ -10,6 +10,7 @@ import com.samourai.whirlpool.client.mix.MixClient;
 import com.samourai.whirlpool.client.mix.MixParams;
 import com.samourai.whirlpool.client.mix.handler.IMixHandler;
 import com.samourai.whirlpool.client.mix.handler.MixHandler;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -65,17 +66,14 @@ public class MultiClientManager {
         return new WhirlpoolClient(config);
     }
 
-    private void prepareClientWithMock(int i, boolean liquidity, Long inputBalance) throws Exception {
+    private void prepareClientWithMock(int i, long inputBalance) throws Exception {
         SegwitAddress inputAddress = testUtils.createSegwitAddress();
         BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
-        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, null, null, null, inputBalance);
+        prepareClientWithMock(i, inputAddress, bip47Wallet, null, null, null, inputBalance);
     }
 
-    private void prepareClientWithMock(int i, boolean liquidity, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex, Long inputBalance) throws Exception {
+    private void prepareClientWithMock(int i, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
         // prepare input & output and mock input
-        if (inputBalance == null) {
-            inputBalance = mix.computeInputBalanceMin(liquidity);
-        }
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
         ECKey utxoKey = inputAddress.getECKey();
 
@@ -90,13 +88,19 @@ public class MultiClientManager {
         inputKeys[i] = utxoKey;
     }
 
-    public void connectWithMockOrFail(int i, boolean liquidity, int mixs) {
-        connectWithMockOrFail(i, liquidity, mixs, null);
+    private long computeInputBalanceMin(boolean liquidity) {
+        long inputBalance = WhirlpoolProtocol.computeInputBalanceMin(mix.getPool().getDenomination(), liquidity, mix.getPool().getMinerFeeMin());
+        return inputBalance;
     }
 
-    public void connectWithMockOrFail(int i, boolean liquidity, int mixs, Long inputBalance) {
+    public void connectWithMockOrFail(int i, boolean liquidity, int mixs) {
+        long inputBalance = computeInputBalanceMin(liquidity);
+        connectWithMockOrFail(i, mixs, inputBalance);
+    }
+
+    public void connectWithMockOrFail(int i, int mixs, long inputBalance) {
         try {
-            connectWithMock(i, liquidity, mixs, inputBalance);
+            connectWithMock(i, mixs, inputBalance);
         }
         catch(Exception e) {
             log.error("", e);
@@ -104,26 +108,22 @@ public class MultiClientManager {
         }
     }
 
-    public void connectWithMock(int i, boolean liquidity, int mixs) throws Exception {
-        connectWithMock(i, liquidity, mixs, null);
+    public void connectWithMock(int i, int mixs, long inputBalance) throws Exception {
+        prepareClientWithMock(i, inputBalance);
+        whirlpool(i, mixs);
     }
 
-    public void connectWithMock(int i, boolean liquidity, int mixs, Long inputBalance) throws Exception {
-        prepareClientWithMock(i, liquidity, inputBalance);
-        whirlpool(i, liquidity, mixs);
+    public void connectWithMock(int i, int mixs, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
+        prepareClientWithMock(i, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex, inputBalance);
+        whirlpool(i, mixs);
     }
 
-    public void connectWithMock(int i, boolean liquidity, int mixs, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception {
-        prepareClientWithMock(i, liquidity, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex, null);
-        whirlpool(i, liquidity, mixs);
-    }
-
-    public void connect(int i, boolean liquidity, int mixs, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
+    public void connect(int i, int mixs, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
         prepareClient(i, utxo, utxoKey, bip47Wallet);
-        whirlpool(i, liquidity, mixs);
+        whirlpool(i, mixs);
     }
 
-    private void whirlpool(int i, boolean liquidity, int mixs) {
+    private void whirlpool(int i, int mixs) {
         String poolId = mix.getPool().getPoolId();
         WhirlpoolClient whirlpoolClient = clients[i];
         TxOutPoint utxo = inputs[i];
@@ -134,7 +134,7 @@ public class MultiClientManager {
 
         IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet);
 
-        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), paymentCode, mixHandler, liquidity);
+        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), paymentCode, mixHandler);
         WhirlpoolClientListener listener = computeListener();
         whirlpoolClient.whirlpool(poolId, mixParams, mixs, listener);
     }

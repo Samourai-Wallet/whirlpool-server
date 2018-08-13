@@ -82,7 +82,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         for (int i=0; i<NB_CLIENTS-1; i++) {
             final int clientIndice = i;
             long inputBalance = inputBalanceMin + (100 * i); // mixed amounts
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 1, inputBalance));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, 1, inputBalance));
         }
 
         // connected clients should have registered their inputs...
@@ -128,7 +128,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             boolean liquidity = (i < mustMixMin ? false : true);
             long inputBalanceMin = mix.computeInputBalanceMin(liquidity);
             long inputBalance = (liquidity ? inputBalanceMin : inputBalanceMin + (100 * i)); // mixed amounts
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, liquidity, 1, inputBalance));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, 1, inputBalance));
         }
 
         // connected clients should have registered their inputs...

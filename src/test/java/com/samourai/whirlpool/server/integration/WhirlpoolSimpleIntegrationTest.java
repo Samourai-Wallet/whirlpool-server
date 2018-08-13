@@ -66,7 +66,7 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
 
         MultiClientManager multiClientManager = multiClientManager(1, mix);
-        multiClientManager.connectWithMock(0, false, 1, inputP2SH_P2WPKH, bip47OutputWallet, 1000, utxo.getHash(), (int)utxo.getIndex());
+        multiClientManager.connectWithMock(0, 1, inputP2SH_P2WPKH, bip47OutputWallet, 1000, utxo.getHash(), (int)utxo.getIndex(), inputBalance);
 
         // register inputs...
         multiClientManager.assertMixStatusRegisterInput(1, false);
