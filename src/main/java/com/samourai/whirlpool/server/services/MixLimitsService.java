@@ -186,6 +186,7 @@ public class MixLimitsService {
                     mix.setAcceptLiquidities(true);
                     addLiquidities(mix);
                 }
+                timeoutWatcher.stop();
             }
         };
 
