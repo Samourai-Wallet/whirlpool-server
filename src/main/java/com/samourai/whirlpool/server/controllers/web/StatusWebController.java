@@ -6,6 +6,7 @@ import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.PoolService;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class StatusWebController {
         Mix mix = pool.getCurrentMix();
         Map<String,Object> poolAttributes = new HashMap<>();
         poolAttributes.put("poolId", pool.getPoolId());
-        poolAttributes.put("denomination", satToBtc(pool.getDenomination()));
+        poolAttributes.put("denomination", Utils.satoshisToBtc(pool.getDenomination()).setScale(2).doubleValue());
         poolAttributes.put("mixStatus", mix.getNbInputsMustMix() > 0 ? mix.getMixStatus() : STATUS_READY);
         poolAttributes.put("targetAnonymitySet", mix.getTargetAnonymitySet());
         poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());
@@ -142,10 +143,6 @@ public class StatusWebController {
       return null;
     }
     return milliseconds/1000;
-  }
-
-  private double satToBtc(long sat) {
-    return sat / 100000000.0;
   }
 
 }

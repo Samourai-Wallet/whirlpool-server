@@ -37,13 +37,13 @@ public class BlockchainDataService {
 
         for (BitcoindRpcClient.RawTransaction.In in : rawTransaction.vIn()) {
             BitcoindRpcClient.RawTransaction.Out out = in.getTransactionOutput();
-            long amount = computeValueSatoshis(out.value());
+            long amount = Utils.btcToSatoshis(out.value());
             RpcOut fromOut = new RpcOut(out.n(), amount, org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             RpcIn rpcIn = new RpcIn(fromOut, rpcTransaction);
             rpcTransaction.addRpcIn(rpcIn);
         }
         for (BitcoindRpcClient.RawTransaction.Out out : rawTransaction.vOut()) {
-            long amount = computeValueSatoshis(out.value());
+            long amount = Utils.btcToSatoshis(out.value());
             RpcOut rpcOut = new RpcOut(out.n(), amount, org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             rpcTransaction.addRpcOut(rpcOut);
         }
@@ -92,10 +92,5 @@ public class BlockchainDataService {
 
     private String getRpcChain(boolean isTestnet) {
         return isTestnet ? "test" : "main";
-    }
-
-    private long computeValueSatoshis(BigDecimal valueBtc) {
-        long amount = valueBtc.multiply(new BigDecimal(100000000)).setScale(0).longValueExact();
-        return amount;
     }
 }

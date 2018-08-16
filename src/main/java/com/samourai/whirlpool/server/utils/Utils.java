@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
 import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
@@ -28,6 +29,8 @@ public class Utils {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static int BTC_TO_SATOSHIS = 100000000;
 
     public static String getRandomString(int length) {
         RandomStringGenerator randomStringGenerator =
@@ -125,5 +128,13 @@ public class Utils {
 
     public static void setLoggerDebug(String logger) {
         LogbackUtils.setLogLevel(logger, Level.DEBUG.toString());
+    }
+
+    public static long btcToSatoshis(BigDecimal valueBtc) {
+        return valueBtc.multiply(new BigDecimal(BTC_TO_SATOSHIS)).setScale(0).longValueExact();
+    }
+
+    public static BigDecimal satoshisToBtc(long satoshis) {
+        return new BigDecimal(satoshis).divide(new BigDecimal(BTC_TO_SATOSHIS));
     }
 }
