@@ -42,6 +42,7 @@ public class MultiClientManager {
     private TxOutPoint[] inputs;
     private ECKey[] inputKeys;
     private BIP47Wallet[] bip47Wallets;
+    private int[] paymentCodeIndexs;
     private WhirlpoolClient[] clients;
     private WhirlpoolClientListener[] listeners;
 
@@ -57,6 +58,7 @@ public class MultiClientManager {
         inputs = new TxOutPoint[nbClients];
         inputKeys = new ECKey[nbClients];
         bip47Wallets = new BIP47Wallet[nbClients];
+        paymentCodeIndexs = new int[nbClients];
         clients = new WhirlpoolClient[nbClients];
         listeners = new WhirlpoolClientListener[nbClients];
     }
@@ -70,21 +72,23 @@ public class MultiClientManager {
     private void prepareClientWithMock(int i, long inputBalance) throws Exception {
         SegwitAddress inputAddress = testUtils.createSegwitAddress();
         BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
-        prepareClientWithMock(i, inputAddress, bip47Wallet, null, null, null, inputBalance);
+        int paymentCodeIndex = 0;
+        prepareClientWithMock(i, inputAddress, bip47Wallet, paymentCodeIndex, null, null, null, inputBalance);
     }
 
-    private void prepareClientWithMock(int i, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
+    private void prepareClientWithMock(int i, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, int paymentCodeIndex, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
         // prepare input & output and mock input
         TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
         ECKey utxoKey = inputAddress.getECKey();
 
-        prepareClient(i, utxo, utxoKey, bip47Wallet);
+        prepareClient(i, utxo, utxoKey, bip47Wallet, paymentCodeIndex);
     }
 
-    private void prepareClient(int i, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
+    private void prepareClient(int i, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet, int paymentCodeIndex) {
         clients[i] = createClient();
         ((WhirlpoolClientImpl)clients[i]).setLogPrefix("multiClient#"+i);
         bip47Wallets[i] = bip47Wallet;
+        paymentCodeIndexs[i] = paymentCodeIndex;
         inputs[i] = utxo;
         inputKeys[i] = utxoKey;
     }
@@ -114,13 +118,13 @@ public class MultiClientManager {
         whirlpool(i, mixs);
     }
 
-    public void connectWithMock(int i, int mixs, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
-        prepareClientWithMock(i, inputAddress, bip47Wallet, nbConfirmations, utxoHash, utxoIndex, inputBalance);
+    public void connectWithMock(int i, int mixs, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, int paymentCodeIndex, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
+        prepareClientWithMock(i, inputAddress, bip47Wallet, paymentCodeIndex, nbConfirmations, utxoHash, utxoIndex, inputBalance);
         whirlpool(i, mixs);
     }
 
-    public void connect(int i, int mixs, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
-        prepareClient(i, utxo, utxoKey, bip47Wallet);
+    public void connect(int i, int mixs, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet, int paymentCodeIndex) {
+        prepareClient(i, utxo, utxoKey, bip47Wallet, paymentCodeIndex);
         whirlpool(i, mixs);
     }
 
@@ -129,11 +133,12 @@ public class MultiClientManager {
         WhirlpoolClient whirlpoolClient = clients[i];
         TxOutPoint utxo = inputs[i];
         ECKey ecKey = inputKeys[i];
+        int paymentCodeIndex = 0;
 
         BIP47Wallet bip47Wallet = bip47Wallets[i];
         String paymentCode = bip47Wallet.getAccount(0).getPaymentCode();
 
-        IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet);
+        IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet, paymentCodeIndex);
 
         MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), paymentCode, mixHandler);
         WhirlpoolClientListener listener = computeListener();
