@@ -4,6 +4,7 @@ import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.WhirlpoolClientConfig;
+import com.samourai.whirlpool.client.WhirlpoolClientImpl;
 import com.samourai.whirlpool.client.WhirlpoolClientListener;
 import com.samourai.whirlpool.client.beans.MixSuccess;
 import com.samourai.whirlpool.client.mix.MixClient;
@@ -63,7 +64,7 @@ public class MultiClientManager {
     private WhirlpoolClient createClient() {
         String server = "127.0.0.1:" + port;
         WhirlpoolClientConfig config = new WhirlpoolClientConfig(server, cryptoService.getNetworkParameters());
-        return new WhirlpoolClient(config);
+        return WhirlpoolClientImpl.newClient(config);
     }
 
     private void prepareClientWithMock(int i, long inputBalance) throws Exception {
@@ -82,7 +83,7 @@ public class MultiClientManager {
 
     private void prepareClient(int i, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet) {
         clients[i] = createClient();
-        clients[i].setLogPrefix("multiClient#"+i);
+        ((WhirlpoolClientImpl)clients[i]).setLogPrefix("multiClient#"+i);
         bip47Wallets[i] = bip47Wallet;
         inputs[i] = utxo;
         inputKeys[i] = utxoKey;
@@ -291,7 +292,7 @@ public class MultiClientManager {
         int nbSuccess = 0;
         for (int i = 0; i< clients.length; i++) {
             WhirlpoolClient whirlpoolClient = clients[i];
-            MixClient mixClient = whirlpoolClient.getMixClient(numMix);
+            MixClient mixClient = ((WhirlpoolClientImpl)whirlpoolClient).getMixClient(numMix);
             if (MixStatus.SUCCESS.equals(mixClient.__getMixStatusNotification().status) && mixClient.isDone()) {
                 nbSuccess++;
             }
@@ -351,7 +352,7 @@ public class MultiClientManager {
             log.debug("%%% debugging clients states... %%%");
             for (WhirlpoolClient whirlpoolClient : clients) {
                 if (whirlpoolClient != null) {
-                    whirlpoolClient.debugState();
+                    ((WhirlpoolClientImpl)whirlpoolClient).debugState();
                 }
             }
         }

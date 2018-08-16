@@ -29,7 +29,7 @@ if [ "$?" -ne 0 ]; then
   echo 'git clone error'; exit $rc
 fi
 cd whirlpool-client
-mvn install
+mvn install -Dmaven.test.skip=true
 if [ "$?" -ne 0 ]; then
   echo 'mvn install error'; exit $rc
 fi
