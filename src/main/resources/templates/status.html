@@ -26,9 +26,9 @@
                 <th class="align-middle">Denom.<br/>(btc)</th>
                 <th class="align-middle">Status</th>
                 <th class="align-middle">Users / target<br/>(mustMix + liquidities)</th>
+                <th class="align-middle">Liquidities<br/>available</th>
                 <th class="align-middle">mustMix / min</th>
                 <th class="align-middle">Elapsed time<br/>(mix)</br.></th>
-                <th class="align-middle">Liquidities<br/>available</th>
                 <th class="align-middle">Configuration</th>
             </thead>
             <tbody>
@@ -51,8 +51,8 @@
                 <td>
                     <span th:text="${pool.nbInputsMustMix}" style="font-weight:bold"/> / <span th:text="${pool.minMustMix}"/>
                 </td>
-                <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
                 <td><span th:text="${pool.nbLiquiditiesAvailable}"/></td>
+                <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
                 <td>
                     Miner fee: <span th:text="${pool.minerFeeMin}"/>-<span th:text="${pool.minerFeeMax}"/><br/>
                     AnonymitySet: <span th:text="${pool.minAnonymitySet}"/>-<span th:text="${pool.maxAnonymitySet}"/>

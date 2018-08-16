@@ -266,7 +266,7 @@ public class MixLimitsService {
             int liquiditiesAdded = 0;
             while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
                 RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
-                log.info(" • pick liquidity " + (liquiditiesAdded + 1) +": " + randomLiquidity.getRegisteredInput().getInput());
+                log.info(" • pick liquidity #" + (liquiditiesAdded + 1) +": " + randomLiquidity.getRegisteredInput().getInput());
                 try {
                     mixService.addLiquidity(mix, randomLiquidity);
                     liquiditiesAdded++;
@@ -274,6 +274,10 @@ public class MixLimitsService {
                     log.error("registerInput error when adding liquidity", e);
                     // ignore the error and continue with more liquidity
                 }
+            }
+            if (liquiditiesAdded > 0) {
+                // start mix if ready
+                mixService.checkRegisterInputReady(mix);
             }
         }
     }
