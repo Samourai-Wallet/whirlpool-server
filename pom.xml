@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>wf.bitcoin</groupId>
 			<artifactId>JavaBitcoindRpcClient</artifactId>
-			<version>0.9.17</version>
+			<version>0.17.0.Alpha2</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -163,4 +163,15 @@
 			</plugin>
 		</plugins>
 	</build>
+	<!-- BitcoindRpcClient snapshot -->
+	<repositories>
+		<repository>
+			<id>jboss-thirdparty-releases</id>
+			<name>jboss-thirdparty-releases</name>
+			<url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
 </project>

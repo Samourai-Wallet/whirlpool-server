@@ -14,6 +14,7 @@ import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 
 import java.lang.invoke.MethodHandles;
+import java.math.BigDecimal;
 
 @Service
 public class BlockchainDataService {
@@ -36,12 +37,14 @@ public class BlockchainDataService {
 
         for (BitcoindRpcClient.RawTransaction.In in : rawTransaction.vIn()) {
             BitcoindRpcClient.RawTransaction.Out out = in.getTransactionOutput();
-            RpcOut fromOut = new RpcOut(out.n(), (long)(out.value()*100000000), org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
+            long amount = computeValueSatoshis(out.value());
+            RpcOut fromOut = new RpcOut(out.n(), amount, org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             RpcIn rpcIn = new RpcIn(fromOut, rpcTransaction);
             rpcTransaction.addRpcIn(rpcIn);
         }
         for (BitcoindRpcClient.RawTransaction.Out out : rawTransaction.vOut()) {
-            RpcOut rpcOut = new RpcOut(out.n(), (long)(out.value()*100000000), org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
+            long amount = computeValueSatoshis(out.value());
+            RpcOut rpcOut = new RpcOut(out.n(), amount, org.bitcoinj.core.Utils.HEX.decode(out.scriptPubKey().hex()), out.scriptPubKey().addresses());
             rpcTransaction.addRpcOut(rpcOut);
         }
         return rpcTransaction;
@@ -91,4 +94,8 @@ public class BlockchainDataService {
         return isTestnet ? "test" : "main";
     }
 
+    private long computeValueSatoshis(BigDecimal valueBtc) {
+        long amount = valueBtc.multiply(new BigDecimal(100000000)).setScale(0).longValueExact();
+        return amount;
+    }
 }
