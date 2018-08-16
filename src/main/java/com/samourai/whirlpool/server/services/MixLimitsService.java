@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +23,6 @@ public class MixLimitsService {
     private BlameService blameService;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
-    private Map<String, LiquidityPool> liquidityPools;
     private Map<String, TimeoutWatcher> limitsWatchers;
     private Map<String, TimeoutWatcher> liquidityWatchers;
 
@@ -51,24 +49,8 @@ public class MixLimitsService {
         return liquidityWatchers.get(mixId);
     }
 
-    public void manage(Mix mix) {
-        String mixId = mix.getMixId();
-
-        // create liquidityPool
-        if (liquidityPools.containsKey(mixId)) {
-            log.error("already managing mix "+mixId);
-            return;
-        }
-
-        LiquidityPool liquidityPool = new LiquidityPool();
-        liquidityPools.put(mixId, liquidityPool);
-
-        // wait first mustMix before instanciating limitsWatcher & liquidityWatchers
-    }
-
     public void unmanage(Mix mix) {
         String mixId = mix.getMixId();
-        liquidityPools.remove(mixId);
 
         TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
         if (limitsWatcher != null) {
@@ -223,15 +205,6 @@ public class MixLimitsService {
         }
     }
 
-    public Optional<LiquidityPool> getLiquidityPool(Mix mix) {
-        String mixId = mix.getMixId();
-        LiquidityPool liquidityPool = liquidityPools.get(mixId);
-        if (liquidityPool == null) {
-            return Optional.empty();
-        }
-        return Optional.of(liquidityPool);
-    }
-
     public synchronized void onInputRegistered(Mix mix) {
         // first mustMix registered => instanciate limitsWatcher & liquidityWatcher
         if (mix.getNbInputs() == 1) {
@@ -284,12 +257,7 @@ public class MixLimitsService {
         int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
         if (liquiditiesToAdd > 0) {
             // mix needs liquidities
-            Optional<LiquidityPool> liquidityPoolOptional = getLiquidityPool(mix);
-            if (!liquidityPoolOptional.isPresent()) {
-                log.error("Unexpected exception", new Exception("No liquidity pool!"));
-                return;
-            }
-            LiquidityPool liquidityPool = liquidityPoolOptional.get();
+            LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
 
             if (log.isDebugEnabled()) {
                 log.debug("Adding up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
@@ -369,7 +337,6 @@ public class MixLimitsService {
             limitsWatchers.values().forEach(watcher -> watcher.stop());
         }
 
-        this.liquidityPools = new HashMap<>();
         this.limitsWatchers = new HashMap<>();
         this.liquidityWatchers = new HashMap<>();
     }

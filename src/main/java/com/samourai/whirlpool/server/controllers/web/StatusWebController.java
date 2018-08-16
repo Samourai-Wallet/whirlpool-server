@@ -67,7 +67,7 @@ public class StatusWebController {
         String currentStepProgressLabel = computeCurrentStepProgressLabel(mix.getMixStatus(), currentStepElapsedTime, currentStepRemainingTime);
         poolAttributes.put("currentStepProgressLabel", currentStepProgressLabel);
 
-        poolAttributes.put("nbLiquiditiesAvailable", mixService.getNbLiquidities(mix));
+        poolAttributes.put("nbLiquiditiesAvailable", mix.getPool().getLiquidityPool().getNbLiquidities());
 
         Map<MixStatus, Timestamp> timeStatus = mix.getTimeStatus();
         List<StatusStep> steps = new ArrayList<>();

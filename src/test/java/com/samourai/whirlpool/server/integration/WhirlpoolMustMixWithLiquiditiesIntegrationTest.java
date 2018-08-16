@@ -34,7 +34,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
 
         MultiClientManager multiClientManager = multiClientManager(NB_ALL_CONNECTING, mix);
 
-        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix).get();
+        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
         Assert.assertFalse(liquidityPool.hasLiquidity());
 
         // connect liquidities first

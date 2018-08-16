@@ -187,7 +187,7 @@ public class MultiClientManager {
     }
 
     public void waitLiquiditiesInPool(int nbLiquiditiesInPoolExpected) throws Exception {
-        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix).get();
+        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
 
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
@@ -241,7 +241,7 @@ public class MultiClientManager {
         // wait inputs to register
         waitRegisteredInputs(nbInputsExpected);
 
-        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix).get();
+        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
         System.out.println("=> mixStatus="+ mix.getMixStatus()+", nbInputs="+ mix.getNbInputs());
 
         // all clients should have registered their outputs
@@ -265,7 +265,7 @@ public class MultiClientManager {
         Assert.assertEquals(MixStatus.SUCCESS, mix.getMixStatus());
         Assert.assertEquals(nbAllRegisteredExpected, mix.getNbInputs());
 
-        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix).get();
+        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
         Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasLiquidity());
 
         // all clients should have registered their outputs

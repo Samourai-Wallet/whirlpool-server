@@ -28,6 +28,7 @@
                 <th class="align-middle">Users / target<br/>(mustMix + liquidities)</th>
                 <th class="align-middle">mustMix / min</th>
                 <th class="align-middle">Elapsed time<br/>(mix)</br.></th>
+                <th class="align-middle">Liquidities<br/>queued</th>
                 <th class="align-middle">Configuration</th>
             </thead>
             <tbody>
@@ -45,13 +46,13 @@
                     </div>
                 </td>
                 <td>
-                    <span th:text="${pool.nbInputs}" style="font-weight:bold"/> / <span th:text="${pool.targetAnonymitySet}"/> (<span th:text="${pool.nbInputsMustMix}"/> + <span th:text="${pool.nbInputsLiquidities}"/>)<br/>
-                    <span th:if="${pool.nbLiquiditiesAvailable > 0}"><span th:text="${pool.nbLiquiditiesAvailable}"/> more liquidities queued</span>
+                    <span th:text="${pool.nbInputs}" style="font-weight:bold"/> / <span th:text="${pool.targetAnonymitySet}"/> (<span th:text="${pool.nbInputsMustMix}"/> + <span th:text="${pool.nbInputsLiquidities}"/>)
                 </td>
                 <td>
                     <span th:text="${pool.nbInputsMustMix}" style="font-weight:bold"/> / <span th:text="${pool.minMustMix}"/>
                 </td>
                 <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
+                <td><span th:text="${pool.nbLiquiditiesAvailable}"/></td>
                 <td>
                     Miner fee: <span th:text="${pool.minerFeeMin}"/>-<span th:text="${pool.minerFeeMax}"/><br/>
                     AnonymitySet: <span th:text="${pool.minAnonymitySet}"/>-<span th:text="${pool.maxAnonymitySet}"/>

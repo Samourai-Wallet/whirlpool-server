@@ -13,6 +13,7 @@ public class Pool {
     private long liquidityTimeout; // wait X seconds for accepting liquidities
 
     private Mix currentMix;
+    private LiquidityPool liquidityPool;
 
     public Pool(String poolId, long denomination, long minerFeeMin, long minerFeeMax, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
         this.poolId = poolId;
@@ -25,6 +26,7 @@ public class Pool {
         this.maxAnonymitySet = maxAnonymitySet;
         this.timeoutAdjustAnonymitySet = timeoutAdjustAnonymitySet;
         this.liquidityTimeout = liquidityTimeout;
+        this.liquidityPool = new LiquidityPool();
     }
 
     public String getPoolId() {
@@ -73,5 +75,9 @@ public class Pool {
 
     public void setCurrentMix(Mix currentMix) {
         this.currentMix = currentMix;
+    }
+
+    public LiquidityPool getLiquidityPool() {
+        return liquidityPool;
     }
 }

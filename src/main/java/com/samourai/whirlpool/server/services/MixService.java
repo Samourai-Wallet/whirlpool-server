@@ -97,7 +97,7 @@ public class MixService {
         /*
          * liquidity placed in waiting pool
          */
-        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix).get();
+        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
         if (liquidityPool.hasLiquidity(registeredInput.getInput())) {
             throw new IllegalInputException("Liquidity already registered for this mix");
         }
@@ -201,19 +201,8 @@ public class MixService {
         }
     }
 
-    public int getNbLiquidities(Mix mix) {
-        int liquiditiesInPool = 0;
-        Optional<LiquidityPool> liquidityPoolOptional = mixLimitsService.getLiquidityPool(mix);
-        if (liquidityPoolOptional.isPresent()) {
-            liquiditiesInPool = liquidityPoolOptional.get().getNbLiquidities();
-        } else {
-            // no liquidityPool instanciated yet
-        }
-        return liquiditiesInPool;
-    }
-
     private void logMixStatus(Mix mix) {
-        int liquiditiesInPool = getNbLiquidities(mix);
+        int liquiditiesInPool = mix.getPool().getLiquidityPool().getNbLiquidities();
         log.info(mix.getNbInputsMustMix() + "/" + mix.getPool().getMinMustMix() + " mustMix, " + mix.getNbInputs() + "/" + mix.getTargetAnonymitySet() + " anonymitySet, " + liquiditiesInPool + " liquidities in pool");
 
         // update mix status in database
@@ -556,13 +545,10 @@ public class MixService {
             }
 
             // remove queued liquidity
-            Optional<LiquidityPool> liquidityPoolOptional = mixLimitsService.getLiquidityPool(mix);
-            if (liquidityPoolOptional.isPresent()) {
-                LiquidityPool liquidityPool = liquidityPoolOptional.get();
-                int nbLiquiditiesRemoved = liquidityPool.removeByUsername(username);
-                if (nbLiquiditiesRemoved > 0) {
-                    log.info(" • [" + mixId + "] removed " + nbLiquiditiesRemoved + " liquidity from pool, username=" + username);
-                }
+            LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
+            int nbLiquiditiesRemoved = liquidityPool.removeByUsername(username);
+            if (nbLiquiditiesRemoved > 0) {
+                log.info(" • [" + mixId + "] removed " + nbLiquiditiesRemoved + " liquidity from pool, username=" + username);
             }
         }
     }
@@ -602,7 +588,6 @@ public class MixService {
         String mixId = mix.getMixId();
         currentMixs.put(mixId, mix);
         pool.setCurrentMix(mix);
-        mixLimitsService.manage(mix);
 
         log.info("[NEW MIX "+ mix.getMixId()+"]");
         logMixStatus(mix);
