@@ -144,6 +144,7 @@ public class MixService {
 
         // response
         RegisterInputResponse registerInputResponse = new RegisterInputResponse();
+        registerInputResponse.mixId = mix.getMixId();
         registerInputResponse.signedBordereau = signedBordereauToReply;
         webSocketService.sendPrivate(username, registerInputResponse);
     }
