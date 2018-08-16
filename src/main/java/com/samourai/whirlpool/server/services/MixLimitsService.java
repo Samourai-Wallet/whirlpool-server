@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
 import org.slf4j.Logger;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -223,13 +223,13 @@ public class MixLimitsService {
         }
     }
 
-    public LiquidityPool getLiquidityPool(Mix mix) throws MixException {
+    public Optional<LiquidityPool> getLiquidityPool(Mix mix) {
         String mixId = mix.getMixId();
         LiquidityPool liquidityPool = liquidityPools.get(mixId);
         if (liquidityPool == null) {
-            throw new MixException("LiquidityPool not found for mixId="+mixId);
+            return Optional.empty();
         }
-        return liquidityPool;
+        return Optional.of(liquidityPool);
     }
 
     public synchronized void onInputRegistered(Mix mix) {
@@ -284,27 +284,28 @@ public class MixLimitsService {
         int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
         if (liquiditiesToAdd > 0) {
             // mix needs liquidities
-            try {
-                LiquidityPool liquidityPool = getLiquidityPool(mix);
-                if (log.isDebugEnabled()) {
-                    log.debug("Adding up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
-                }
-
-                int liquiditiesAdded = 0;
-                while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
-                    log.info("Adding liquidity " + (liquiditiesAdded + 1) + "(" + liquiditiesToAdd + " max.)");
-                    RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
-                    try {
-                        mixService.addLiquidity(mix, randomLiquidity);
-                        liquiditiesAdded++;
-                    } catch (Exception e) {
-                        log.error("registerInput error when adding liquidity", e);
-                        // ignore the error and continue with more liquidity
-                    }
-                }
+            Optional<LiquidityPool> liquidityPoolOptional = getLiquidityPool(mix);
+            if (!liquidityPoolOptional.isPresent()) {
+                log.error("Unexpected exception", new Exception("No liquidity pool!"));
+                return;
             }
-            catch(Exception e) {
-                log.error("Unexpected exception", e);
+            LiquidityPool liquidityPool = liquidityPoolOptional.get();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Adding up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
+            }
+
+            int liquiditiesAdded = 0;
+            while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
+                log.info("Adding liquidity " + (liquiditiesAdded + 1) + "(" + liquiditiesToAdd + " max.)");
+                RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
+                try {
+                    mixService.addLiquidity(mix, randomLiquidity);
+                    liquiditiesAdded++;
+                } catch (Exception e) {
+                    log.error("registerInput error when adding liquidity", e);
+                    // ignore the error and continue with more liquidity
+                }
             }
         }
     }

@@ -2,9 +2,9 @@ package com.samourai.whirlpool.server.controllers.web;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
-import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.services.MixLimitsService;
+import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
@@ -29,11 +29,13 @@ public class StatusWebController {
   private static final String STATUS_READY = "READY";
 
   private PoolService poolService;
+  private MixService mixService;
   private MixLimitsService mixLimitsService;
 
   @Autowired
-  public StatusWebController(PoolService poolService, MixLimitsService mixLimitsService) {
+  public StatusWebController(PoolService poolService, MixService mixService, MixLimitsService mixLimitsService) {
     this.poolService = poolService;
+    this.mixService = mixService;
     this.mixLimitsService = mixLimitsService;
   }
 
@@ -65,7 +67,7 @@ public class StatusWebController {
         String currentStepProgressLabel = computeCurrentStepProgressLabel(mix.getMixStatus(), currentStepElapsedTime, currentStepRemainingTime);
         poolAttributes.put("currentStepProgressLabel", currentStepProgressLabel);
 
-        poolAttributes.put("nbLiquiditiesAvailable", computeNbLiquidities(mix));
+        poolAttributes.put("nbLiquiditiesAvailable", mixService.getNbLiquidities(mix));
 
         Map<MixStatus, Timestamp> timeStatus = mix.getTimeStatus();
         List<StatusStep> steps = new ArrayList<>();
@@ -96,17 +98,6 @@ public class StatusWebController {
     model.addAttribute("pools", pools);
     model.addAttribute("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
     return "status";
-  }
-
-  private long computeNbLiquidities(Mix mix) {
-      int nbLiquidities = 0;
-      try {
-          LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
-          nbLiquidities = liquidityPool.getNbLiquidities();
-      } catch(Exception e) {
-          log.error("", e);
-      }
-      return nbLiquidities;
   }
 
   private StatusStep computeStep(MixStatus mixStatus, Map<MixStatus, Timestamp> timeStatus) {

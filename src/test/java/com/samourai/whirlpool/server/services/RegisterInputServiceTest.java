@@ -81,7 +81,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Mix mix = __getCurrentMix();
-        LiquidityPool liquidityPool = mixService.__getMixLimitsService().getLiquidityPool(mix);
+        LiquidityPool liquidityPool = mixService.__getMixLimitsService().getLiquidityPool(mix).get();
 
         // bordereau should be registered
         Assert.assertTrue(dbService.isBlindedBordereauRegistered(validBlindedBordereau));
@@ -102,7 +102,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Mix mix = __getCurrentMix();
-        LiquidityPool liquidityPool = mixService.__getMixLimitsService().getLiquidityPool(mix);
+        LiquidityPool liquidityPool = mixService.__getMixLimitsService().getLiquidityPool(mix).get();
 
         // bordereau should be registered
         Assert.assertTrue(dbService.isBlindedBordereauRegistered(validBlindedBordereau));

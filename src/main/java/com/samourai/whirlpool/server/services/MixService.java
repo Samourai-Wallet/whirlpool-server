@@ -97,7 +97,7 @@ public class MixService {
         /*
          * liquidity placed in waiting pool
          */
-        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
+        LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix).get();
         if (liquidityPool.hasLiquidity(registeredInput.getInput())) {
             throw new IllegalInputException("Liquidity already registered for this mix");
         }
@@ -105,7 +105,7 @@ public class MixService {
         // queue liquidity for later
         RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
         liquidityPool.registerLiquidity(registeredInputQueued);
-        log.info(" • queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
+        log.info(" • [" + mix.getMixId() + "] queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
 
         logMixStatus(mix);
     }
@@ -201,15 +201,20 @@ public class MixService {
         }
     }
 
-    private void logMixStatus(Mix mix) {
+    public int getNbLiquidities(Mix mix) {
         int liquiditiesInPool = 0;
-        try {
-            LiquidityPool liquidityPool = mixLimitsService.getLiquidityPool(mix);
-            liquiditiesInPool = liquidityPool.getNbLiquidities();
-        } catch(Exception e) {
+        Optional<LiquidityPool> liquidityPoolOptional = mixLimitsService.getLiquidityPool(mix);
+        if (liquidityPoolOptional.isPresent()) {
+            liquiditiesInPool = liquidityPoolOptional.get().getNbLiquidities();
+        } else {
             // no liquidityPool instanciated yet
         }
-        log.info(mix.getNbInputsMustMix()+"/"+ mix.getPool().getMinMustMix()+" mustMix, "+ mix.getNbInputs()+"/"+ mix.getTargetAnonymitySet()+" anonymitySet, "+liquiditiesInPool+" liquidities in pool");
+        return liquiditiesInPool;
+    }
+
+    private void logMixStatus(Mix mix) {
+        int liquiditiesInPool = getNbLiquidities(mix);
+        log.info(mix.getNbInputsMustMix() + "/" + mix.getPool().getMinMustMix() + " mustMix, " + mix.getNbInputs() + "/" + mix.getTargetAnonymitySet() + " anonymitySet, " + liquiditiesInPool + " liquidities in pool");
 
         // update mix status in database
         if (mix.getNbInputsMustMix() > 0) {
@@ -528,24 +533,35 @@ public class MixService {
     }
 
     public synchronized void onClientDisconnect(String username) {
-        // mark registeredInput offline
         for (Mix mix : getCurrentMixs()) {
             String mixId = mix.getMixId();
+
+            // mark registeredInput offline
             List<RegisteredInput> registeredInputs = mix.getInputs().parallelStream().filter(registeredInput -> registeredInput.getUsername().equals(username)).collect(Collectors.toList());
             if (!registeredInputs.isEmpty()) {
                 if (MixStatus.REGISTER_INPUT.equals(mix.getMixStatus())) {
                     // mix not started yet => remove input as mix isn't started yet
                     registeredInputs.forEach(registeredInput -> {
-                        log.info(" • [" + mixId + "] unregistered " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ", username=" + registeredInput.getUsername());
+                        log.info(" • [" + mixId + "] unregistered " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + " from registered inputs, username=" + username);
                         mix.unregisterInput(registeredInput);
                     });
                 }
                 else {
                     // mix already started => mark input as offline
                     registeredInputs.forEach(registeredInput -> {
-                        log.info(" • [" + mixId + "] offlined " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ", username=" + registeredInput.getUsername());
+                        log.info(" • [" + mixId + "] offlined " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + " from running mix ( " + mix.getMixStatus() + "), username=" + username);
                         registeredInput.setOffline(true);
                     });
+                }
+            }
+
+            // remove queued liquidity
+            Optional<LiquidityPool> liquidityPoolOptional = mixLimitsService.getLiquidityPool(mix);
+            if (liquidityPoolOptional.isPresent()) {
+                LiquidityPool liquidityPool = liquidityPoolOptional.get();
+                int nbLiquiditiesRemoved = liquidityPool.removeByUsername(username);
+                if (nbLiquiditiesRemoved > 0) {
+                    log.info(" • [" + mixId + "] removed " + nbLiquiditiesRemoved + " liquidity from pool, username=" + username);
                 }
             }
         }
