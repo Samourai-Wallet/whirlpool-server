@@ -260,13 +260,13 @@ public class MixLimitsService {
             LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
 
             if (log.isDebugEnabled()) {
-                log.debug("Adding up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
+                log.debug("Picking up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getNbLiquidities()+" available)");
             }
 
             int liquiditiesAdded = 0;
             while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasLiquidity()) {
-                log.info("Adding liquidity " + (liquiditiesAdded + 1) + "(" + liquiditiesToAdd + " max.)");
                 RegisteredLiquidity randomLiquidity = liquidityPool.peekRandomLiquidity();
+                log.info(" • pick liquidity " + (liquiditiesAdded + 1) +": " + randomLiquidity.getRegisteredInput().getInput());
                 try {
                     mixService.addLiquidity(mix, randomLiquidity);
                     liquiditiesAdded++;
