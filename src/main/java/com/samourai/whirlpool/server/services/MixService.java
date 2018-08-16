@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.whirlpool.protocol.websocket.messages.LiquidityQueuedResponse;
 import com.samourai.whirlpool.protocol.websocket.messages.PeersPaymentCodesResponse;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.*;
@@ -106,6 +107,12 @@ public class MixService {
         RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
         liquidityPool.registerLiquidity(registeredInputQueued);
         log.info(" • [" + mix.getMixId() + "] queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
+
+        // response
+        String username = registeredInput.getUsername();
+        LiquidityQueuedResponse queuedLiquidityResponse = new LiquidityQueuedResponse();
+        queuedLiquidityResponse.foo = true; // this class needs at least 1 property
+        webSocketService.sendPrivate(username, queuedLiquidityResponse);
 
         logMixStatus(mix);
     }
