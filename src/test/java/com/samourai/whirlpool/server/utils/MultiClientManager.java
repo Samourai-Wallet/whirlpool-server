@@ -3,14 +3,14 @@ package com.samourai.whirlpool.server.utils;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
-import com.samourai.whirlpool.client.WhirlpoolClientConfig;
-import com.samourai.whirlpool.client.WhirlpoolClientImpl;
-import com.samourai.whirlpool.client.WhirlpoolClientListener;
-import com.samourai.whirlpool.client.beans.MixSuccess;
 import com.samourai.whirlpool.client.mix.MixClient;
 import com.samourai.whirlpool.client.mix.MixParams;
 import com.samourai.whirlpool.client.mix.handler.IMixHandler;
 import com.samourai.whirlpool.client.mix.handler.MixHandler;
+import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientConfig;
+import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientImpl;
+import com.samourai.whirlpool.client.whirlpool.listener.LoggingWhirlpoolClientListener;
+import com.samourai.whirlpool.client.whirlpool.listener.WhirlpoolClientListener;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
@@ -86,7 +86,7 @@ public class MultiClientManager {
 
     private void prepareClient(int i, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet, int paymentCodeIndex) {
         clients[i] = createClient();
-        ((WhirlpoolClientImpl)clients[i]).setLogPrefix("multiClient#"+i);
+        ((WhirlpoolClientImpl)clients[i]).setLogPrefix("client#"+i);
         bip47Wallets[i] = bip47Wallet;
         paymentCodeIndexs[i] = paymentCodeIndex;
         inputs[i] = utxo;
@@ -139,31 +139,9 @@ public class MultiClientManager {
         IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet, paymentCodeIndex);
 
         MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), mixHandler);
-        WhirlpoolClientListener listener = computeListener();
+        LoggingWhirlpoolClientListener listener = new LoggingWhirlpoolClientListener();
+        listener.setLogPrefix("client#"+i);
         whirlpoolClient.whirlpool(poolId, mixParams, mixs, listener);
-    }
-
-    private WhirlpoolClientListener computeListener() {
-        WhirlpoolClientListener listener = new WhirlpoolClientListener() {
-            @Override
-            public void success(int nbMixs) {
-            }
-
-            @Override
-            public void fail(int currentMix, int nbMixs) {
-
-            }
-
-            @Override
-            public void mixSuccess(int currentMix, int nbMixs, MixSuccess mixSuccess) {
-            }
-
-            @Override
-            public void progress(int currentMix, int nbMixs, MixStatus mixStatus, int currentStep, int nbSteps) {
-
-            }
-        };
-        return listener;
     }
 
     private void waitRegisteredInputs(int nbInputsExpected) throws Exception {

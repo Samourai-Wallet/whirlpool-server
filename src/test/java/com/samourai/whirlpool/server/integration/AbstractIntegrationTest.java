@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.integration;
 
 import com.samourai.wallet.bip47.BIP47Util;
 import com.samourai.wallet.util.FormatsUtil;
-import com.samourai.whirlpool.client.services.ClientCryptoService;
+import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
