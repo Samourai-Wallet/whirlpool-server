@@ -23,7 +23,6 @@ public class Mix {
     private MixStatus mixStatus;
     private Map<String,RegisteredInput> inputsById;
 
-    private List<String> sendAddresses;
     private List<String> receiveAddresses;
     private Set<String> registeredBordereaux;
     private Set<String> revealedOutputUsers;
@@ -45,7 +44,6 @@ public class Mix {
         this.mixStatus = MixStatus.REGISTER_INPUT;
         this.inputsById = new HashMap<>();
 
-        this.sendAddresses = new LinkedList<>();
         this.receiveAddresses = new LinkedList<>();
         this.registeredBordereaux = new HashSet<>();
         this.revealedOutputUsers = new HashSet<>();
@@ -166,8 +164,7 @@ public class Mix {
         return inputsById.containsKey(Utils.computeInputId(outPoint)) ;
     }
 
-    public synchronized  void registerOutput(String sendAddress, String receiveAddress, String bordereau) {
-        sendAddresses.add(sendAddress);
+    public synchronized  void registerOutput(String receiveAddress, String bordereau) {
         receiveAddresses.add(receiveAddress);
         registeredBordereaux.add(bordereau);
     }
@@ -177,10 +174,6 @@ public class Mix {
         long timeStarted = getTimeStatus().getOrDefault(MixStatus.REGISTER_INPUT, getTimeStarted()).getTime();
         long elapsedTime = System.currentTimeMillis() - timeStarted;
         return elapsedTime;
-    }
-
-    public List<String> getSendAddresses() {
-        return sendAddresses;
     }
 
     public List<String> getReceiveAddresses() {

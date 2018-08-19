@@ -8,7 +8,10 @@ import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.services.*;
-import com.samourai.whirlpool.server.utils.*;
+import com.samourai.whirlpool.server.utils.MessageSignUtil;
+import com.samourai.whirlpool.server.utils.MultiClientManager;
+import com.samourai.whirlpool.server.utils.TestUtils;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 
-import javax.sound.sampled.Mixer;
 import java.lang.invoke.MethodHandles;
 
 public abstract class AbstractIntegrationTest {
@@ -80,7 +82,6 @@ public abstract class AbstractIntegrationTest {
         messageSignUtil = MessageSignUtil.getInstance(cryptoService.getNetworkParameters());
 
         dbService.__reset();
-        mixService.__setUseDeterministPaymentCodeMatching(true);
         mixLimitsService = mixService.__getMixLimitsService();
         ((MockBlockchainDataService)blockchainDataService).resetMock();
 
@@ -92,15 +93,16 @@ public abstract class AbstractIntegrationTest {
         mixService.__reset();
     }
 
-    protected Mix __nextMix(String mixId, WhirlpoolServerConfig.PoolConfig poolConfig) throws MixException {
+    protected Mix __nextMix(WhirlpoolServerConfig.PoolConfig poolConfig) throws MixException {
         configurePools(poolConfig);
         Pool pool = poolService.getPool(poolConfig.getId());
-        return mixService.__nextMix(pool, mixId);
+        return mixService.__nextMix(pool);
     }
 
-    protected Mix __nextMix(String mixId, long denomination, long minerFeeMin, long minerFeeMax, int mustMixMin, int anonymitySetTarget, int anonymitySetMin, int anonymitySetMax, long anonymitySetAdjustTimeout, long liquidityTimeout) throws MixException {
+    protected Mix __nextMix(long denomination, long minerFeeMin, long minerFeeMax, int mustMixMin, int anonymitySetTarget, int anonymitySetMin, int anonymitySetMax, long anonymitySetAdjustTimeout, long liquidityTimeout) throws MixException {
+        // create new pool
         WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
-        poolConfig.setId(mixId);
+        poolConfig.setId(Utils.generateUniqueString());
         poolConfig.setDenomination(denomination);
         poolConfig.setMinerFeeMin(minerFeeMin);
         poolConfig.setMinerFeeMax(minerFeeMax);
@@ -110,7 +112,9 @@ public abstract class AbstractIntegrationTest {
         poolConfig.setAnonymitySetMax(anonymitySetMax);
         poolConfig.setAnonymitySetAdjustTimeout(anonymitySetAdjustTimeout);
         poolConfig.setLiquidityTimeout(liquidityTimeout);
-        return __nextMix(mixId, poolConfig);
+
+        // run new mix for the pool
+        return __nextMix(poolConfig);
     }
 
     protected Mix __getCurrentMix() {

@@ -42,7 +42,7 @@ public class RegisterInputController extends AbstractWebSocketController {
 
     try {
       // register inputs and send back signed bordereau
-      registerInputService.registerInput(payload.mixId, username, payload.pubkey, payload.signature, payload.blindedBordereau, payload.utxoHash, payload.utxoIndex, payload.paymentCode, payload.liquidity);
+      registerInputService.registerInput(payload.mixId, username, payload.pubkey, payload.signature, payload.blindedBordereau, payload.utxoHash, payload.utxoIndex, payload.liquidity);
     }
     catch(UnconfirmedInputException e) {
       log.info("Placing unconfirmed input on queue: " + payload.utxoHash+":"+payload.utxoIndex, e.getMessage());

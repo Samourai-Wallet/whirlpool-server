@@ -4,7 +4,6 @@ import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.whirlpool.protocol.websocket.messages.LiquidityQueuedResponse;
-import com.samourai.whirlpool.protocol.websocket.messages.PeersPaymentCodesResponse;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.*;
 import com.samourai.whirlpool.server.beans.*;
@@ -38,7 +37,6 @@ public class MixService {
     private WhirlpoolServerConfig whirlpoolServerConfig;
     private PoolService poolService;
 
-    private boolean deterministPaymentCodeMatching; // for testing purpose only
     private Map<String,Mix> currentMixs;
 
     @Autowired
@@ -54,7 +52,6 @@ public class MixService {
         this.mixLimitsService = mixLimitsService;
         this.poolService = poolService;
 
-        this.deterministPaymentCodeMatching = false;
         this.currentMixs = new HashMap<>();
 
         this.__reset();
@@ -64,7 +61,7 @@ public class MixService {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
-    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, String paymentCode, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, MixException, QueueInputException {
+    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, MixException, QueueInputException {
         if (log.isDebugEnabled()) {
             log.debug("registerInput "+mixId+" : "+username+" : "+input);
         }
@@ -75,7 +72,7 @@ public class MixService {
             throw new IllegalInputException("Invalid input balance (expected: " + balanceMin + "-" + balanceMax + ", actual:"+input.getValue()+")");
         }
 
-        RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, paymentCode, liquidity);
+        RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, liquidity);
         if (liquidity) {
             if (!isRegisterLiquiditiesOpen(mix) || mix.isFull()) {
                 // place liquidity on queue instead of rejecting it
@@ -189,16 +186,12 @@ public class MixService {
         return true;
     }
 
-    public synchronized void registerOutput(String mixId, String sendAddress, String receiveAddress, String bordereau) throws Exception {
+    public synchronized void registerOutput(String mixId, String receiveAddress, String bordereau) throws Exception {
         log.info(" • registered output: " + receiveAddress);
-        if (log.isDebugEnabled()) {
-            log.debug("sendAddress="+sendAddress);
-        }
         Mix mix = getMix(mixId, MixStatus.REGISTER_OUTPUT);
-        mix.registerOutput(sendAddress, receiveAddress, bordereau);
+        mix.registerOutput(receiveAddress, bordereau);
 
         if (isRegisterOutputReady(mix)) {
-            validateOutputs(mix);
             changeMixStatus(mixId, MixStatus.SIGNING);
         }
     }
@@ -220,14 +213,6 @@ public class MixService {
             } catch (Exception e) {
                 log.error("", e);
             }
-        }
-    }
-
-    protected void validateOutputs(Mix mix) throws Exception {
-        // sendAddresses and receiveAddresses should match (this verifies no user is cheating another one)
-        if (!Utils.listEqualsIgnoreOrder(mix.getSendAddresses(), mix.getReceiveAddresses())) {
-            log.error("sendAddresses doesn't match receiveAddresses. sendAddresses="+ mix.getSendAddresses()+"receiveAddresses="+ mix.getReceiveAddresses());
-            throw new Exception("REGISTER_OUTPUT failed"); // TODO find and ban malicious users
         }
     }
 
@@ -304,10 +289,7 @@ public class MixService {
                 return;
             }
 
-            if (mixStatus == MixStatus.REGISTER_OUTPUT) {
-                transmitPaymentCodes(mix);
-            }
-            else if (mixStatus == MixStatus.SIGNING) {
+            if (mixStatus == MixStatus.SIGNING) {
                 try {
                     Transaction tx = computeTransaction(mix);
                     mix.setTx(tx);
@@ -347,57 +329,6 @@ public class MixService {
                 __nextMix(mix.getPool());
             }
         }
-    }
-
-    private void transmitPaymentCodes(Mix mix) throws MixException {
-        // get all paymentCodes associated to users
-        Map<String,String> paymentCodesByUser = new HashMap<>();
-        for (RegisteredInput registeredInput : mix.getInputs()) {
-            String paymentCode = registeredInput.getPaymentCode();
-            String username = registeredInput.getUsername();
-            paymentCodesByUser.put(username, paymentCode);
-        }
-
-        // determinist paymentCodes matching for tests reproductibility
-        if (deterministPaymentCodeMatching) {
-            log.warn("deterministPaymentCodeMatching is enabled (use it for tests only!)");
-            // sort by paymentCode
-            paymentCodesByUser = Utils.sortMapByValue(paymentCodesByUser);
-        }
-
-        // confrontate paymentCodes
-        Map<String,PeersPaymentCodesResponse> peersPaymentCodesResponsesByUser = computePaymentCodesConfrontations(paymentCodesByUser);
-
-        // transmit to users
-        for (Map.Entry<String,PeersPaymentCodesResponse> peersPaymentCodesResponseEntry : peersPaymentCodesResponsesByUser.entrySet()) {
-            webSocketService.sendPrivate(peersPaymentCodesResponseEntry.getKey(), peersPaymentCodesResponseEntry.getValue());
-        }
-    }
-
-    protected Map<String,PeersPaymentCodesResponse> computePaymentCodesConfrontations(Map<String, String> paymentCodesByUser) {
-        List<String> usernames = new ArrayList(paymentCodesByUser.keySet());
-        List<String> paymentCodes = new ArrayList(paymentCodesByUser.values());
-
-        Map<String,PeersPaymentCodesResponse> peersPaymentCodesResponsesByUser = new HashMap<>();
-        for (int i=0; i<usernames.size(); i++) {
-            // for each registered user...
-             String username = usernames.get(i);
-
-            // pick a paymentcode to confrontate with to compute receiveAddress
-            int iFromPaymentCode = (i==paymentCodes.size()-1 ? 0 : i+1);
-            String fromPaymentCode = paymentCodes.get(iFromPaymentCode);
-
-            // pick reverse paymentcode to confrontate with to compute sendAddress (for mutual validation)
-            int iToPaymentCode = (i==0 ? paymentCodes.size()-1 : i-1);
-            String toPaymentCode = paymentCodes.get(iToPaymentCode);
-
-            // send
-            PeersPaymentCodesResponse confrontatePaymentCodeResponse = new PeersPaymentCodesResponse();
-            confrontatePaymentCodeResponse.fromPaymentCode = fromPaymentCode;
-            confrontatePaymentCodeResponse.toPaymentCode = toPaymentCode;
-            peersPaymentCodesResponsesByUser.put(username, confrontatePaymentCodeResponse);
-        }
-        return peersPaymentCodesResponsesByUser;
     }
 
     public MixStatusNotification computeMixStatusNotification(String mixId) throws MixException {
@@ -573,12 +504,8 @@ public class MixService {
         });
     }
 
-    private Mix __nextMix(Pool pool) {
+    public Mix __nextMix(Pool pool) {
         String mixId = generateMixId();
-        return __nextMix(pool, mixId);
-    }
-
-    public Mix __nextMix(Pool pool, String mixId) {
         Mix mix = new Mix(mixId, pool);
         startMix(mix);
         return mix;
@@ -603,9 +530,5 @@ public class MixService {
 
     public MixLimitsService __getMixLimitsService() {
         return mixLimitsService;
-    }
-
-    public void __setUseDeterministPaymentCodeMatching(boolean useDeterministPaymentCodeMatching) {
-        this.deterministPaymentCodeMatching = useDeterministPaymentCodeMatching;
     }
 }

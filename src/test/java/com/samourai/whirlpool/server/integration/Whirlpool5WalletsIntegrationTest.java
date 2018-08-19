@@ -10,7 +10,6 @@ import com.samourai.whirlpool.server.integration.manual.ManualPremixer;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Transaction;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.script.Script;
 import org.bouncycastle.util.encoders.Hex;
@@ -234,7 +233,6 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         final int NB_CLIENTS = nbMixes;
 
         // start mix
-        String mixId = "foo";
         long denomination = premixer.biUnitReceiveAmount.longValue();
         long minerFeeMin = mixFee;
         long minerFeeMax = mixFee * 10;
@@ -244,7 +242,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         int anonymitySetMax = NB_CLIENTS;
         long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
         long liquidityTimeout = 60;
-        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 

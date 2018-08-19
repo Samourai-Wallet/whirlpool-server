@@ -23,7 +23,6 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     public void whirlpool_10clients() throws Exception {
         final int NB_CLIENTS = 10;
         // start mix
-        String mixId = "foo";
         long denomination = 200000000;
         long minerFeeMin = 100;
         long minerFeeMax = 10000;
@@ -33,7 +32,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         int anonymitySetMax = NB_CLIENTS;
         long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
         long liquidityTimeout = 60;
-        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
@@ -62,7 +61,6 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     public void whirlpool_10clientsMixedAmounts() throws Exception {
         final int NB_CLIENTS = 10;
         // start mix
-        String mixId = "foo";
         long denomination = 1000000;
         long minerFeeMin = 100;
         long minerFeeMax = 10000;
@@ -72,7 +70,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         int anonymitySetMax = NB_CLIENTS;
         long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
         long liquidityTimeout = 60;
-        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
         long inputBalanceMin = mix.computeInputBalanceMin(false);
@@ -107,7 +105,6 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     public void whirlpool_3MustMix2Liquidities() throws Exception {
         final int NB_CLIENTS = 5;
         // start mix
-        String mixId = "foo";
         long denomination = 1000000;
         long minerFeeMin = 100;
         long minerFeeMax = 10000;
@@ -117,7 +114,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         int anonymitySetMax = NB_CLIENTS;
         long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
         long liquidityTimeout = 1;
-        Mix mix = __nextMix(mixId, denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
+        Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 

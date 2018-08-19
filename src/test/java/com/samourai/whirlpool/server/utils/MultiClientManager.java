@@ -136,11 +136,9 @@ public class MultiClientManager {
         int paymentCodeIndex = 0;
 
         BIP47Wallet bip47Wallet = bip47Wallets[i];
-        String paymentCode = bip47Wallet.getAccount(0).getPaymentCode();
-
         IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet, paymentCodeIndex);
 
-        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), paymentCode, mixHandler);
+        MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), mixHandler);
         WhirlpoolClientListener listener = computeListener();
         whirlpoolClient.whirlpool(poolId, mixParams, mixs, listener);
     }
@@ -274,7 +272,6 @@ public class MultiClientManager {
         Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasLiquidity());
 
         // all clients should have registered their outputs
-        Assert.assertEquals(nbAllRegisteredExpected, mix.getSendAddresses().size());
         Assert.assertEquals(nbAllRegisteredExpected, mix.getReceiveAddresses().size());
 
         // all clients should have signed

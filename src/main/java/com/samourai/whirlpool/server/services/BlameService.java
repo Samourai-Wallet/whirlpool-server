@@ -33,7 +33,7 @@ public class BlameService {
         return countBlames >= whirlpoolServerConfig.getBan().getBlames();
     }
 
-    public boolean isBannedPaymentCode(String paymentCode) {
+    public boolean isBannedReceiveAddress(String receiveAddress) {
         // TODO
         return false;
     }

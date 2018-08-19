@@ -1,7 +1,8 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
 import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
-import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
+import com.samourai.whirlpool.server.services.BlameService;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
@@ -20,10 +21,12 @@ public class RegisterOutputController {
   public static final String ENDPOINT = "/registerOutput";
 
   private RegisterOutputService registerOutputService;
+  private BlameService blameService;
 
   @Autowired
-  public RegisterOutputController(RegisterOutputService registerOutputService) {
+  public RegisterOutputController(RegisterOutputService registerOutputService, BlameService blameService) {
     this.registerOutputService = registerOutputService;
+    this.blameService = blameService;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.POST)
@@ -32,16 +35,14 @@ public class RegisterOutputController {
       log.debug("[controller] " + ENDPOINT + ": payload=" + Utils.toJsonString(payload));
     }
 
-    validate(payload);
+    // verify receiveAddress not banned
+    if (blameService.isBannedReceiveAddress(payload.receiveAddress)) {
+      log.warn("Rejecting banned receiveAddress: " + payload.receiveAddress);
+      throw new IllegalBordereauException("Banned from service");
+    }
 
     // register output
-    registerOutputService.registerOutput(payload.mixId, payload.unblindedSignedBordereau, payload.bordereau, payload.sendAddress, payload.receiveAddress);
-  }
-
-  private void validate(RegisterOutputRequest registerOutputRequest) throws IllegalInputException {
-    if (registerOutputRequest.sendAddress.equals(registerOutputRequest.receiveAddress)) {
-      throw new IllegalInputException("receiveAddress should be different than sendAddress");
-    }
+    registerOutputService.registerOutput(payload.mixId, payload.unblindedSignedBordereau, payload.bordereau, payload.receiveAddress);
   }
 
 }

@@ -27,18 +27,18 @@ public class RegisterOutputService {
         this.formatsUtil = formatsUtil;
     }
 
-    public void registerOutput(String mixId, byte[] unblindedSignedBordereau, String bordereau, String sendAddress, String receiveAddress) throws Exception {
+    public void registerOutput(String mixId, byte[] unblindedSignedBordereau, String bordereau, String receiveAddress) throws Exception {
         // validate
-        validate(unblindedSignedBordereau, bordereau, sendAddress, receiveAddress);
+        validate(unblindedSignedBordereau, bordereau, receiveAddress);
 
         // register
-        mixService.registerOutput(mixId, sendAddress, receiveAddress, bordereau);
+        mixService.registerOutput(mixId, receiveAddress, bordereau);
 
         // register bordereau
         dbService.registerBordereau(bordereau);
     }
 
-    private void validate(byte[] unblindedSignedBordereau, String bordereau, String sendAddress, String receiveAddress) throws Exception {
+    private void validate(byte[] unblindedSignedBordereau, String bordereau, String receiveAddress) throws Exception {
         // verify bordereau
         if (log.isDebugEnabled()) {
             log.debug("Verifying bordereau: " + bordereau + " : " + Base64.encodeBase64String(unblindedSignedBordereau));
@@ -48,9 +48,6 @@ public class RegisterOutputService {
         }
 
         // verify output
-        if (!formatsUtil.isValidBech32(sendAddress)) {
-            throw new Exception("Invalid sendAddress");
-        }
         if (!formatsUtil.isValidBech32(receiveAddress)) {
             throw new Exception("Invalid receiveAddress");
         }

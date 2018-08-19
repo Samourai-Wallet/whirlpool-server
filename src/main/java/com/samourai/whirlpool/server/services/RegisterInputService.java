@@ -1,7 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.wallet.util.FormatsUtil;
-import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.*;
@@ -22,26 +20,19 @@ public class RegisterInputService {
     private BlockchainService blockchainService;
     private DbService dbService;
     private BlameService blameService;
-    private FormatsUtil formatsUtil;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
     @Autowired
-    public RegisterInputService(MixService mixService, CryptoService cryptoService, BlockchainService blockchainService, DbService dbService, BlameService blameService, FormatsUtil formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public RegisterInputService(MixService mixService, CryptoService cryptoService, BlockchainService blockchainService, DbService dbService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.mixService = mixService;
         this.cryptoService = cryptoService;
         this.blockchainService = blockchainService;
         this.dbService = dbService;
         this.blameService = blameService;
-        this.formatsUtil = formatsUtil;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, String paymentCode, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
-        // validate paymentCode
-        if (!formatsUtil.isValidPaymentCode(paymentCode)) {
-            throw new IllegalInputException("Invalid paymentCode");
-        }
-
+    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
         // verify blindedBordereau never registered
         if (dbService.isBlindedBordereauRegistered(blindedBordereau)) {
             throw new IllegalBordereauException("blindedBordereau already registered");
@@ -50,12 +41,6 @@ public class RegisterInputService {
         // verify UTXO not banned
         if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
             log.warn("Rejecting banned UTXO: "+utxoHash+":"+utxoIndex);
-            throw new IllegalBordereauException("Banned from service");
-        }
-
-        // verify PaymentCode not banned
-        if (blameService.isBannedPaymentCode(paymentCode)) {
-            log.warn("Rejecting banned paymentCode: "+paymentCode);
             throw new IllegalBordereauException("Banned from service");
         }
 
@@ -71,7 +56,7 @@ public class RegisterInputService {
         byte[] signedBordereauToReply = cryptoService.signBlindedOutput(blindedBordereau);
 
         // register input and send back signedBordereau
-        mixService.registerInput(mixId, username, txOutPoint, pubkey, paymentCode, signedBordereauToReply, liquidity);
+        mixService.registerInput(mixId, username, txOutPoint, pubkey, signedBordereauToReply, liquidity);
 
         // register blindedBordereau
         dbService.registerBlindedBordereau(blindedBordereau);

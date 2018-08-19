@@ -4,15 +4,13 @@ public class RegisteredInput {
     private String username;
     private TxOutPoint input;
     private byte[] pubkey;
-    private String paymentCode;
     private boolean liquidity;
     private boolean offline;
 
-    public RegisteredInput(String username, TxOutPoint input, byte[] pubkey, String paymentCode, boolean liquidity) {
+    public RegisteredInput(String username, TxOutPoint input, byte[] pubkey, boolean liquidity) {
         this.username = username;
         this.input = input;
         this.pubkey = pubkey;
-        this.paymentCode = paymentCode;
         this.liquidity = liquidity;
         this.offline = false;
     }
@@ -27,10 +25,6 @@ public class RegisteredInput {
 
     public byte[] getPubkey() {
         return pubkey;
-    }
-
-    public String getPaymentCode() {
-        return paymentCode;
     }
 
     public boolean isLiquidity() {

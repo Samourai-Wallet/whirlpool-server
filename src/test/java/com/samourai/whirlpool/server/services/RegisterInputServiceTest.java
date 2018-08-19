@@ -55,8 +55,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
             byte[] pubkey = ecKey.getPubKey();
             String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-            String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+            
             SegwitAddress outputAddress = testUtils.createSegwitAddress();
             RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
             validBlindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
@@ -65,7 +64,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             txOutPoint = testUtils.createAndMockTxOutPoint(new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance);
 
             // TEST
-            registerInputService.registerInput(mixId, username, pubkey, signature, validBlindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, liquidity);
+            registerInputService.registerInput(mixId, username, pubkey, signature, validBlindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,37 +116,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void registerInput_shouldNotRgisterWhenInvalidPaymentCode() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
-        Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
-        String username = "user1";
-
-        ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-        byte[] pubkey = ecKey.getPubKey();
-        SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "INVALID";
-
-        SegwitAddress outputAddress = testUtils.createSegwitAddress();
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
-
-        long inputBalance = mix.computeInputBalanceMin(false);
-        TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
-
-        // TEST
-        thrown.expect(IllegalInputException.class);
-        thrown.expectMessage("Invalid paymentCode");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
-
-        // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau));
-    }
-
-    @Test
     public void registerInput_shouldNotRegisterWhenInvalidMixId() throws Exception {
         RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
         Mix mix = __getCurrentMix();
@@ -159,8 +127,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "IO+jpbs0hCXSjEujLV9aOkYHUKxzFdpsVvImw2WvKo6XH39o7Wg0OfcCHAj9gTV1IuzbrhtdUwM+Rruo/8FgwcM=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
@@ -171,7 +138,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(MixException.class);
         thrown.expectMessage("Mix not found");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -188,8 +155,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
@@ -205,7 +171,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
                 mixService.changeMixStatus(mix.getMixId(), mixStatus);
                 thrown.expect(MixException.class);
                 thrown.expectMessage("Operation not permitted for current mix status");
-                registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+                registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
             }
         }
 
@@ -226,8 +192,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "INVALIDd2OoEdPE35oGVwXq+oYYzkNMwN36Ws2VMCs+ZTs10/Ctklr9ZbvLJUHEhOz3t07/igCrK3WyJNWGfGSc=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
@@ -238,7 +203,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid signature");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -257,8 +222,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = testUtils.createSegwitAddress(); // INVALID: not related to pubkey
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
@@ -269,7 +233,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid pubkey for UTXO");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -288,8 +252,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
 
@@ -297,10 +260,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         thrown.expect(IllegalBordereauException.class);
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -319,8 +282,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau1 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
         byte[] blindedBordereau2 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBZ", blindingParams);
@@ -329,10 +291,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau1, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau1, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         thrown.expect(IllegalInputException.class);
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau2, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau2, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -352,8 +314,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
@@ -361,7 +322,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         long inputBalance = mix.computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
         thrown.expect(IllegalInputException.class);
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -379,8 +340,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
-
+        
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
@@ -388,7 +348,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         long inputBalance = mix.computeInputBalanceMin(false) + 1;// BALANCE TOO HIGH
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance);
         thrown.expect(IllegalInputException.class);
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -406,7 +366,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
 
         SegwitAddress outputAddress = testUtils.createSegwitAddress();
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
@@ -419,7 +378,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Input needs at least 1 confirmations");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(1, mix.getNbInputs());
@@ -440,7 +399,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "H/djpBpXE49EghQGA9aHaAz7+YtHbaxf0fWdR9gGXLHJSbSQiVHA0Kn/7IfXS08FKGUoSzELfbwsZKfGKLiK1bs=";
-        String paymentCode = "PM8TJgszuvoNLvuoUpMD951fLqjMDRL6km8RDxWEcvE4cjiMDXYRagW3FNRyB58Mi5UXmmZ8vo1PHsnjciEhpZn2xgHZRcGAn3UuYgjdfN4bb5KUhNAV";
 
         SegwitAddress outputAddress = testUtils.createSegwitAddress();
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
@@ -451,7 +409,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, 2000);
 
         // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), paymentCode, false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // VERIFY
         Assert.assertEquals(1, mix.getNbInputs());
@@ -459,8 +417,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         Assert.assertTrue(dbService.isBlindedBordereauRegistered(blindedBordereau));
     }
-
-    // TODO test invalid paymentCode
 
     // TODO test noSamouraiFeesCheck for liquidities vs feesCheck for mustMix
 }
