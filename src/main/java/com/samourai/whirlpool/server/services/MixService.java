@@ -57,10 +57,6 @@ public class MixService {
         this.__reset();
     }
 
-    private String generateMixId() {
-        return UUID.randomUUID().toString().replace("-", "");
-    }
-
     public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, MixException, QueueInputException {
         if (log.isDebugEnabled()) {
             log.debug("registerInput "+mixId+" : "+username+" : "+input);
@@ -505,7 +501,7 @@ public class MixService {
     }
 
     public Mix __nextMix(Pool pool) {
-        String mixId = generateMixId();
+        String mixId = Utils.generateUniqueString();
         Mix mix = new Mix(mixId, pool);
         startMix(mix);
         return mix;

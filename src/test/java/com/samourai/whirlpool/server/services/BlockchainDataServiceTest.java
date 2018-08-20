@@ -43,5 +43,21 @@ public class BlockchainDataServiceTest {
         Assert.assertEquals("3736613931343836386331316166613065386462653135396233656163633038666630313766626139643339313938386163", Utils.HEX.encode(rpcOut.getScriptPubKey()));
     }
 
+    /*
+    @Test
+    public void getTxOutPoint() throws Exception {
+        String outHash = "aedsds";
+        int outIdx = 0;
+        TxOutPoint txOutPoint = blockchainService.getTxOutPoint(outHash, outIdx);
+        Assert.assertEquals(0, txOutPoint.getIndex());
+        Assert.assertEquals("abcd", txOutPoint.getHash());
+        Assert.assertEquals(123L, txOutPoint.getValue());
+    }
+
+    @Test
+    public void getToAddress() throws Exception {
+        Assert.assertEquals("aaa", blockchainService.getToAddress(new TxOutPoint("aaaa", 0));
+    }
+     */
 
 }
