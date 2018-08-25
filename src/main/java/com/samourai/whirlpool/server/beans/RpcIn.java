@@ -1,23 +1,23 @@
 package com.samourai.whirlpool.server.beans;
 
 public class RpcIn {
-    private RpcOut fromOut;
-    private RpcTransaction fromTx;
+    private String originHash;
+    private long originIndex;
 
     public RpcIn() {
 
     }
 
-    public RpcIn(RpcOut fromOut, RpcTransaction fromTx) {
-        this.fromOut = fromOut;
-        this.fromTx = fromTx;
+    public RpcIn(String originHash, long originIndex) {
+        this.originHash = originHash;
+        this.originIndex = originIndex;
     }
 
-    public RpcOut getFromOut() {
-        return fromOut;
+    public String getOriginHash() {
+        return originHash;
     }
 
-    public RpcTransaction getFromTx() {
-        return fromTx;
+    public long getOriginIndex() {
+        return originIndex;
     }
 }

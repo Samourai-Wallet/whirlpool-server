@@ -3,20 +3,26 @@ package com.samourai.whirlpool.server.beans;
 import java.util.List;
 
 public class RpcOut {
+    private String hash;
     private long index;
     private long value;
     private byte[] scriptPubKey;
-    private List<String> toAddresses;
+    private String toAddress;
 
     public RpcOut() {
 
     }
 
-    public RpcOut(long index, long value, byte[] scriptPubKey, List<String> toAddresses) {
+    public RpcOut(String hash, long index, long value, byte[] scriptPubKey, List<String> toAddresses) {
+        this.hash = hash;
         this.index = index;
         this.value = value;
         this.scriptPubKey = scriptPubKey;
-        this.toAddresses = toAddresses;
+        this.toAddress = (toAddresses != null ? toAddresses.get(0) : null);
+    }
+
+    public String getHash() {
+        return hash;
     }
 
     public long getIndex() {
@@ -31,10 +37,7 @@ public class RpcOut {
         return value;
     }
 
-    public String getToAddressSingle() {
-        if (toAddresses != null && toAddresses.size() == 1) {
-            return toAddresses.get(0);
-        }
-        return null;
+    public String getToAddress() {
+        return toAddress;
     }
 }

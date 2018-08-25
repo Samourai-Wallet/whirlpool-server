@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.whirlpool.server.beans.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.RpcOut;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
@@ -27,27 +28,20 @@ public class BlockchainService {
     }
 
     public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, int minConfirmations, long samouraiFeesMin, boolean liquidity) throws IllegalInputException, UnconfirmedInputException {
-        RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(utxoHash);
-        if (rpcTransaction == null) {
-            log.error("UTXO transaction not found: "+utxoHash);
-            throw new IllegalInputException("UTXO not found");
-        }
-
-        RpcOut rpcOut = Utils.findTxOutput(rpcTransaction, utxoIndex);
-        if (rpcOut == null) {
-            log.error("UTXO not found: "+utxoHash+":"+utxoIndex);
-            throw new IllegalInputException("UTXO not found");
-        }
+        RpcOutWithTx rpcOutWithTx = blockchainDataService.getRpcOutWithTx(utxoHash, utxoIndex).orElseThrow(
+                () -> new IllegalInputException("UTXO not found: " + utxoHash + "-" + utxoIndex)
+        );
+        RpcOut rpcOut = rpcOutWithTx.getRpcOut();
 
         // verify pubkey: pubkey should control this utxo
         checkPubkey(rpcOut, pubkeyHex);
 
         // verify confirmations
-        checkInputConfirmations(rpcTransaction, minConfirmations);
+        checkInputConfirmations(rpcOutWithTx.getTx(), minConfirmations);
 
         // verify input comes from a valid tx0 (or from a valid mix)
         if (samouraiFeesMin > 0) {
-            boolean isLiquidity = tx0Service.checkInput(rpcOut, rpcTransaction, samouraiFeesMin);
+            boolean isLiquidity = tx0Service.checkInput(rpcOutWithTx, samouraiFeesMin);
             if (!isLiquidity && liquidity) {
                 throw new IllegalArgumentException("Input rejected: not recognized as a liquidity (but as a mustMix)");
             }
@@ -65,14 +59,14 @@ public class BlockchainService {
 
     protected void checkPubkey(RpcOut rpcOut, byte[] pubkeyHex) throws IllegalInputException {
         String toAddressFromPubkey = new SegwitAddress(pubkeyHex, cryptoService.getNetworkParameters()).getBech32AsString();
-        String toAddressFromUtxo = rpcOut.getToAddressSingle();
+        String toAddressFromUtxo = rpcOut.getToAddress();
         if (toAddressFromUtxo == null || !toAddressFromPubkey.equals(toAddressFromUtxo)) {
             throw new IllegalInputException("Invalid pubkey for UTXO");
         }
     }
 
-    protected void checkInputConfirmations(RpcTransaction rpcTransaction, int minConfirmations) throws UnconfirmedInputException {
-        int inputConfirmations = rpcTransaction.getConfirmations();
+    protected void checkInputConfirmations(RpcTransaction tx, int minConfirmations) throws UnconfirmedInputException {
+        int inputConfirmations = tx.getConfirmations();
         if (inputConfirmations < minConfirmations) {
             throw new UnconfirmedInputException("Input needs at least "+minConfirmations+" confirmations");
         }

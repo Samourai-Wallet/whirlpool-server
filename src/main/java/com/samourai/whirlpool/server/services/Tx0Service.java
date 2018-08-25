@@ -4,6 +4,7 @@ import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.server.beans.RpcIn;
 import com.samourai.whirlpool.server.beans.RpcOut;
+import com.samourai.whirlpool.server.beans.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -20,85 +21,107 @@ import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class Tx0Service {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private BlockchainDataService blockchainDataService;
     private CryptoService cryptoService;
     private FormatsUtil formatsUtil;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
-    public Tx0Service(CryptoService cryptoService, FormatsUtil formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public Tx0Service(BlockchainDataService blockchainDataService, CryptoService cryptoService, FormatsUtil formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig) {
+        this.blockchainDataService = blockchainDataService;
         this.cryptoService = cryptoService;
         this.formatsUtil = formatsUtil;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    protected boolean checkInput(RpcOut rpcOut, RpcTransaction rpcTransaction, long samouraiFeesMin) throws IllegalInputException {
+    protected boolean checkInput(RpcOutWithTx rpcOutWithTx, long samouraiFeesMin) throws IllegalInputException {
         List<String> txsPath = new ArrayList<>();
-        return checkInput(rpcOut, rpcTransaction, samouraiFeesMin, txsPath);
+        return checkInput(rpcOutWithTx, samouraiFeesMin, txsPath);
     }
 
-    private boolean checkInput(RpcOut rpcOut, RpcTransaction rpcTransaction, long samouraiFeesMin, List<String> txsPath) throws IllegalInputException {
+    private boolean checkInput(RpcOutWithTx rpcOutWithTx, long samouraiFeesMin, List<String> txsPath) throws IllegalInputException {
         boolean isLiquidity;
+        RpcOut rpcOut = rpcOutWithTx.getRpcOut();
+        RpcTransaction tx = rpcOutWithTx.getTx();
+
+        if (!rpcOut.getHash().equals(tx.getHash())) {
+            throw new IllegalInputException("Unexpected usage of checkInput: rpcOut.hash != tx.hash");
+        }
 
         // is it a tx0?
-        Integer x = findSamouraiFeesXpubIndiceFromTx0(rpcTransaction);
+        Integer x = findSamouraiFeesXpubIndiceFromTx0(tx);
         if (x != null) {
             // this is a tx0 => mustMix
             isLiquidity = false;
 
+            txsPath.add("tx0:" + tx.getHash());
+
             // check fees paid
-            if (!isTx0FeesPaid(rpcTransaction, samouraiFeesMin, x)) {
+            if (!isTx0FeesPaid(tx, samouraiFeesMin, x)) {
                 String txsPathStr = txsPathToString(txsPath);
-                throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+rpcTransaction.getHash()+"-"+rpcOut.getIndex()+", x="+x+") (verified path:"+txsPathStr+")");
+                throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+tx.getHash()+"-"+rpcOut.getIndex()+", x="+x+") (verified path:"+txsPathStr+")");
             }
         }
         else {
             // this is not a tx0 => liquidity (coming from a previous whirlpool tx)
             isLiquidity = true;
 
+            txsPath.add("mix:" + tx.getHash());
+
             // check valid whirlpool tx
             long denomination = rpcOut.getValue();
-            txsPath.add(rpcTransaction.getHash() + '-' + rpcOut.getIndex());
-            checkWhirlpoolTx(rpcTransaction, samouraiFeesMin, denomination, txsPath);
+            checkWhirlpoolTx(tx, samouraiFeesMin, denomination, txsPath);
         }
         return isLiquidity;
     }
 
-    protected void checkWhirlpoolTx(RpcTransaction rpcTransaction, long samouraiFeesMin, long denomination, List<String> txsPath) throws IllegalInputException {
+    protected void checkWhirlpoolTx(RpcTransaction tx, long samouraiFeesMin, long denomination, List<String> txsPath) throws IllegalInputException {
+        txsPath.add(tx.getHash());
+
         // tx should have same number of inputs-outputs > 1
-        if (rpcTransaction.getIns().size() != rpcTransaction.getOuts().size() || rpcTransaction.getIns().size() < 2) {
+        if (tx.getIns().size() != tx.getOuts().size() || tx.getIns().size() < 2) {
             String txsPathStr = txsPathToString(txsPath);
-            throw new IllegalInputException(rpcTransaction.getHash()+" is not a valid whirlpool tx, inputs/outputs count mismatch (verified path:"+txsPathStr+")");
+            throw new IllegalInputException(tx.getHash()+" is not a valid whirlpool tx, inputs/outputs count mismatch (verified path:"+txsPathStr+")");
         }
 
         // each output should match the denomination
-        for (RpcOut out : rpcTransaction.getOuts()) {
+        for (RpcOut out : tx.getOuts()) {
             if (out.getValue() != denomination) {
                 String txsPathStr = txsPathToString(txsPath);
-                throw new IllegalInputException(rpcTransaction.getHash()+" is not a valid whirlpool tx, denomination mismatch for output "+rpcTransaction.getHash()+"-"+out.getIndex()+" (verified path:"+txsPathStr+")");
+                throw new IllegalInputException(tx.getHash()+" is not a valid whirlpool tx, denomination mismatch for output "+tx.getHash()+"-"+out.getIndex()+" (verified path:"+txsPathStr+")");
             }
         }
 
-        // each input should be >= the denomination
-        for (RpcIn in : rpcTransaction.getIns()) {
-            RpcOut fromOut = in.getFromOut();
+        Map<Long, RpcOutWithTx> cachedOrigins = new HashMap();
+        for (RpcIn in : tx.getIns()) {
+            // RPC request
+            //!!!!!!!! TODO cache
+            RpcOutWithTx rpcOutWithTxOrigin = blockchainDataService.getRpcOutWithTx(in.getOriginHash(), in.getOriginIndex()).orElseThrow(
+                    () -> new IllegalInputException("UTXO origin not found: " + in.getOriginHash() + "-" + in.getOriginIndex())
+            );
+            cachedOrigins.put(in.getOriginIndex(), rpcOutWithTxOrigin);
 
-            if (fromOut.getValue() < denomination) {
-                RpcTransaction fromTx = in.getFromTx();
+            // each input should be >= the denomination
+            RpcOut outOrigin = rpcOutWithTxOrigin.getRpcOut();
+            if (outOrigin.getValue() < denomination) {
                 String txsPathStr = txsPathToString(txsPath);
-                throw new IllegalInputException(rpcTransaction.getHash()+" is not a valid whirlpool tx, denomination mismatch for input "+fromTx.getHash()+"-"+fromOut.getIndex()+" (verified path:"+txsPathStr+")");
+                throw new IllegalInputException(tx.getHash()+" is not a valid whirlpool tx, denomination mismatch for input "+outOrigin.getHash()+"-"+outOrigin.getIndex()+" (verified path:"+txsPathStr+")");
             }
         }
 
         // recursively check each input validity: should come from a valid tx0 or from another whirlpool tx)
-        for (RpcIn in : rpcTransaction.getIns()) {
-            RpcOut fromOut = in.getFromOut();
-            RpcTransaction fromTx = in.getFromTx();
-            checkInput(fromOut, fromTx, samouraiFeesMin, txsPath);
+        for (RpcIn in : tx.getIns()) {
+            RpcOutWithTx rpcOutWithTxOrigin = cachedOrigins.get(in.getOriginIndex());
+            RpcOut outOrigin = rpcOutWithTxOrigin.getRpcOut();
+
+            List<String> txsPathNew = new ArrayList<>(txsPath);
+            txsPathNew.add("mixInput:"+outOrigin.getHash() + "-" + outOrigin.getIndex());
+
+            checkInput(rpcOutWithTxOrigin, samouraiFeesMin, txsPathNew);
         }
 
         // OK, this is a valid whirlpool TX
@@ -117,7 +140,7 @@ public class Tx0Service {
         for (RpcOut rpcOut : tx0.getOuts()) {
             if (rpcOut.getValue() >= minFees) {
                 // is this the fees payment output?
-                String rpcOutToAddress = rpcOut.getToAddressSingle();
+                String rpcOutToAddress = rpcOut.getToAddress();
                 if (rpcOutToAddress != null && feesAddressBech32.equals(rpcOutToAddress)) {
                     // ok, this is the fees payment output
                     return true;

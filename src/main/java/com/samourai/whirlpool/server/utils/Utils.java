@@ -31,6 +31,7 @@ public class Utils {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static int BTC_TO_SATOSHIS = 100000000;
+    public static final String PROFILE_TEST = "test";
 
     public static String getRandomString(int length) {
         RandomStringGenerator randomStringGenerator =
@@ -77,13 +78,13 @@ public class Utils {
         return null;
     }
 
-    public static RpcOut findTxOutput(RpcTransaction rpcTransaction, long utxoIndex) {
+    public static Optional<RpcOut> findTxOutput(RpcTransaction rpcTransaction, long utxoIndex) {
         for (RpcOut rpcOut : rpcTransaction.getOuts()) {
             if (rpcOut.getIndex() == utxoIndex) {
-                return rpcOut;
+                return Optional.of(rpcOut);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public static String getRawTx(Transaction tx) {
@@ -119,6 +120,16 @@ public class Utils {
     public static String toJsonString(Object o) {
         try {
             return objectMapper.writeValueAsString(o);
+        }
+        catch(Exception e) {
+            log.error("", e);
+        }
+        return null;
+    }
+
+    public static <T> T fromJsonString(String json, Class<T> type) {
+        try {
+            return objectMapper.readValue(json, type);
         }
         catch(Exception e) {
             log.error("", e);
