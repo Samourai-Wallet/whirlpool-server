@@ -57,14 +57,14 @@ public class BlockchainDataService {
     }
 
     private RpcTransaction newRpcTransaction(BitcoindRpcClient.RawTransaction rawTransaction) {
-        RpcTransaction rpcTransaction = new RpcTransaction(rawTransaction.hash(), rawTransaction.confirmations());
+        RpcTransaction rpcTransaction = new RpcTransaction(rawTransaction.txId(), rawTransaction.confirmations());
 
         for (BitcoindRpcClient.RawTransaction.In in : rawTransaction.vIn()) {
             RpcIn rpcIn = newRpcIn(in);
             rpcTransaction.addRpcIn(rpcIn);
         }
         for (BitcoindRpcClient.RawTransaction.Out out : rawTransaction.vOut()) {
-            RpcOut rpcOut = newRpcOut(out, rpcTransaction.getHash());
+            RpcOut rpcOut = newRpcOut(out, rpcTransaction.getTxid());
             rpcTransaction.addRpcOut(rpcOut);
         }
         return rpcTransaction;

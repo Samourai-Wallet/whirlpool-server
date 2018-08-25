@@ -12,7 +12,7 @@ public class RpcOutWithTx {
     }
 
     public RpcOutWithTx(RpcOut rpcOut, RpcTransaction tx) {
-        if (!rpcOut.getHash().equals(tx.getHash())) {
+        if (!rpcOut.getHash().equals(tx.getTxid())) {
             throw new RuntimeException("bug: instanciating RpcOutWithTx with rpcOut.hash != tx.hash");
         }
         this.rpcOut = rpcOut;

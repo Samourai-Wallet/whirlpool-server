@@ -16,9 +16,7 @@ import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.MixLimitsService;
-import com.samourai.whirlpool.server.services.MixService;
+import com.samourai.whirlpool.server.services.*;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bouncycastle.util.encoders.Hex;
@@ -33,6 +31,7 @@ public class MultiClientManager {
 
     private MixService mixService;
     private TestUtils testUtils;
+    private MockBlockchainDataService blockchainDataService;
     private CryptoService cryptoService;
     private MixLimitsService mixLimitsService;
     private int port;
@@ -47,10 +46,11 @@ public class MultiClientManager {
     private WhirlpoolClientListener[] listeners;
 
 
-    public MultiClientManager(int nbClients, Mix mix, MixService mixService, TestUtils testUtils, CryptoService cryptoService, MixLimitsService mixLimitsService, int port) {
+    public MultiClientManager(int nbClients, Mix mix, MixService mixService, TestUtils testUtils, MockBlockchainDataService blockchainDataService, CryptoService cryptoService, MixLimitsService mixLimitsService, int port) {
         this.mix = mix;
         this.mixService = mixService;
         this.testUtils = testUtils;
+        this.blockchainDataService = blockchainDataService;
         this.cryptoService = cryptoService;
         this.mixLimitsService = mixLimitsService;
         this.port = port;
@@ -78,7 +78,7 @@ public class MultiClientManager {
 
     private void prepareClientWithMock(int i, SegwitAddress inputAddress, BIP47Wallet bip47Wallet, int paymentCodeIndex, Integer nbConfirmations, String utxoHash, Integer utxoIndex, long inputBalance) throws Exception {
         // prepare input & output and mock input
-        TxOutPoint utxo = testUtils.createAndMockTxOutPoint(inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
+        TxOutPoint utxo = blockchainDataService.createAndMockTxOutPoint(inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
         ECKey utxoKey = inputAddress.getECKey();
 
         prepareClient(i, utxo, utxoKey, bip47Wallet, paymentCodeIndex);

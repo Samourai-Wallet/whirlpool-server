@@ -48,7 +48,7 @@ public class Tx0Service {
         RpcOut rpcOut = rpcOutWithTx.getRpcOut();
         RpcTransaction tx = rpcOutWithTx.getTx();
 
-        if (!rpcOut.getHash().equals(tx.getHash())) {
+        if (!rpcOut.getHash().equals(tx.getTxid())) {
             throw new IllegalInputException("Unexpected usage of checkInput: rpcOut.hash != tx.hash");
         }
 
@@ -58,19 +58,19 @@ public class Tx0Service {
             // this is a tx0 => mustMix
             isLiquidity = false;
 
-            txsPath.add("tx0:" + tx.getHash());
+            txsPath.add("tx0:" + tx.getTxid());
 
             // check fees paid
             if (!isTx0FeesPaid(tx, samouraiFeesMin, x)) {
                 String txsPathStr = txsPathToString(txsPath);
-                throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+tx.getHash()+"-"+rpcOut.getIndex()+", x="+x+") (verified path:"+txsPathStr+")");
+                throw new IllegalInputException("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+tx.getTxid()+"-"+rpcOut.getIndex()+", x="+x+") (verified path:"+txsPathStr+")");
             }
         }
         else {
             // this is not a tx0 => liquidity (coming from a previous whirlpool tx)
             isLiquidity = true;
 
-            txsPath.add("mix:" + tx.getHash());
+            txsPath.add("mix:" + tx.getTxid());
 
             // check valid whirlpool tx
             long denomination = rpcOut.getValue();
@@ -80,19 +80,19 @@ public class Tx0Service {
     }
 
     protected void checkWhirlpoolTx(RpcTransaction tx, long samouraiFeesMin, long denomination, List<String> txsPath) throws IllegalInputException {
-        txsPath.add(tx.getHash());
+        txsPath.add(tx.getTxid());
 
         // tx should have same number of inputs-outputs > 1
         if (tx.getIns().size() != tx.getOuts().size() || tx.getIns().size() < 2) {
             String txsPathStr = txsPathToString(txsPath);
-            throw new IllegalInputException(tx.getHash()+" is not a valid whirlpool tx, inputs/outputs count mismatch (verified path:"+txsPathStr+")");
+            throw new IllegalInputException(tx.getTxid()+" is not a valid whirlpool tx, inputs/outputs count mismatch (verified path:"+txsPathStr+")");
         }
 
         // each output should match the denomination
         for (RpcOut out : tx.getOuts()) {
             if (out.getValue() != denomination) {
                 String txsPathStr = txsPathToString(txsPath);
-                throw new IllegalInputException(tx.getHash()+" is not a valid whirlpool tx, denomination mismatch for output "+tx.getHash()+"-"+out.getIndex()+" (verified path:"+txsPathStr+")");
+                throw new IllegalInputException(tx.getTxid()+" is not a valid whirlpool tx, denomination mismatch for output "+tx.getTxid()+"-"+out.getIndex()+" (verified path:"+txsPathStr+")");
             }
         }
 
@@ -109,7 +109,7 @@ public class Tx0Service {
             RpcOut outOrigin = rpcOutWithTxOrigin.getRpcOut();
             if (outOrigin.getValue() < denomination) {
                 String txsPathStr = txsPathToString(txsPath);
-                throw new IllegalInputException(tx.getHash()+" is not a valid whirlpool tx, denomination mismatch for input "+outOrigin.getHash()+"-"+outOrigin.getIndex()+" (verified path:"+txsPathStr+")");
+                throw new IllegalInputException(tx.getTxid()+" is not a valid whirlpool tx, denomination mismatch for input "+outOrigin.getHash()+"-"+outOrigin.getIndex()+" (verified path:"+txsPathStr+")");
             }
         }
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RpcTransaction {
-    private String hash;
+    private String txid;
     private int confirmations;
     private List<RpcIn> ins;
     private List<RpcOut> outs;
@@ -13,8 +13,8 @@ public class RpcTransaction {
 
     }
 
-    public RpcTransaction(String hash, int nbConfirmations) {
-        this.hash = hash;
+    public RpcTransaction(String txid, int nbConfirmations) {
+        this.txid = txid;
         this.confirmations = nbConfirmations;
         this.ins = new ArrayList<>();
         this.outs = new ArrayList<>();
@@ -28,8 +28,8 @@ public class RpcTransaction {
         this.outs.add(rpcOut);
     }
 
-    public String getHash() {
-        return hash;
+    public String getTxid() {
+        return txid;
     }
 
     public int getConfirmations() {
