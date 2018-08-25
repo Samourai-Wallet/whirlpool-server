@@ -4,21 +4,11 @@ import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
-import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.beans.RpcOut;
-import com.samourai.whirlpool.server.beans.RpcTransaction;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.MockBlockchainDataService;
-import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
-import org.bitcoinj.script.Script;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.Assert;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -28,12 +18,10 @@ import java.security.SecureRandom;
 public class TestUtils {
     private CryptoService cryptoService;
     protected Bech32Util bech32Util;
-    protected BlockchainDataService blockchainDataService;
 
-    public TestUtils(CryptoService cryptoService, Bech32Util bech32Util, BlockchainDataService blockchainDataService) {
+    public TestUtils(CryptoService cryptoService, Bech32Util bech32Util) {
         this.cryptoService = cryptoService;
         this.bech32Util = bech32Util;
-        this.blockchainDataService = blockchainDataService;
     }
 
     public SegwitAddress createSegwitAddress() throws Exception {
@@ -76,52 +64,8 @@ public class TestUtils {
         return generateWallet(purpose, seed, "test");
     }
 
-    public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount) throws Exception {
-        return createAndMockTxOutPoint(address, amount, null, null, null);
-    }
-
-    public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, int nbConfirmations) throws Exception {
-        return createAndMockTxOutPoint(address, amount, nbConfirmations, null, null);
-    }
-
-    public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, Integer nbConfirmations, String utxoHash, Integer utxoIndex) throws Exception{
-        NetworkParameters params = cryptoService.getNetworkParameters();
-        // generate transaction with bitcoinj
-        Transaction transaction = new Transaction(params);
-
-        if (nbConfirmations == null) {
-            nbConfirmations = 1000;
-        }
-
-        if (utxoHash != null) {
-            transaction.setHash(Sha256Hash.wrap(Hex.decode(utxoHash)));
-        }
-
-        if (utxoIndex != null) {
-            for (int i=0; i<utxoIndex; i++) {
-                transaction.addOutput(Coin.valueOf(amount), createSegwitAddress().getAddress());
-            }
-        }
-        String addressBech32 = address.getBech32AsString();
-        TransactionOutput transactionOutput = bech32Util.getTransactionOutput(addressBech32, amount, params);
-        transaction.addOutput(transactionOutput);
-        if (utxoIndex == null) {
-            utxoIndex = transactionOutput.getIndex();
-        }
-        else {
-            Assert.assertEquals((long)utxoIndex, transactionOutput.getIndex());
-        }
-
-        // mock tx
-        ((MockBlockchainDataService)blockchainDataService).mock(transaction, nbConfirmations);
-
-        // verify mock
-        RpcTransaction rpcTransaction = ((MockBlockchainDataService) blockchainDataService).getRpcTransaction(transaction.getHashAsString());
-        RpcOut rpcOut = Utils.findTxOutput(rpcTransaction, utxoIndex);
-        Assert.assertEquals(addressBech32, bech32Util.getAddressFromScript(new Script(rpcOut.getScriptPubKey()), params));
-
-        TxOutPoint txOutPoint = new TxOutPoint(rpcTransaction.getHash(), rpcOut.getIndex(), amount);
-        return txOutPoint;
+    public String getMockFileName(String txid) {
+        return "./src/test/resources/mocks/" + txid + ".json";
     }
 
 }

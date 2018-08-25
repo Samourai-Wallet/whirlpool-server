@@ -61,12 +61,6 @@ server.rpc-client.mock-tx-broadcast = false
 For testing purpose, *server.rpc-client.mock-tx-broadcast* can be enabled to mock txs instead of broadcasting it.
 When enabled, server will keep whirlpool txs in memory until server restart and act as if these txs are confirmed in blockchain.
 
-```
-server.rpc-client.protocol = mock
-```
-For testing purpose, *server.rpc-client.protocol* can be set to *mock* to read blockchain data from mock instead of retrieving it from a real bitcoin node.
-
-
 ### Building
 - Use *build.sh* on your local developer machine:
 ```
