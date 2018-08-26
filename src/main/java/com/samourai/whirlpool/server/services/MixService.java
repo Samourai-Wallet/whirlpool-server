@@ -12,6 +12,7 @@ import com.samourai.whirlpool.server.controllers.rest.RegisterOutputController;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
+import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
@@ -31,7 +32,7 @@ public class MixService {
     private CryptoService cryptoService;
     private BlameService blameService;
     private DbService dbService;
-    private BlockchainDataService blockchainDataService;
+    private RpcClientService rpcClientService;
     private MixLimitsService mixLimitsService;
     private Bech32Util bech32Util;
     private WhirlpoolServerConfig whirlpoolServerConfig;
@@ -40,11 +41,11 @@ public class MixService {
     private Map<String,Mix> currentMixs;
 
     @Autowired
-    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, BlockchainDataService blockchainDataService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService) {
+    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, RpcClientService rpcClientService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService) {
         this.cryptoService = cryptoService;
         this.blameService = blameService;
         this.dbService = dbService;
-        this.blockchainDataService = blockchainDataService;
+        this.rpcClientService = rpcClientService;
         this.webSocketService = webSocketService;
         this.bech32Util = bech32Util;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
@@ -257,7 +258,7 @@ public class MixService {
 
             log.info("Tx to broadcast: \n" + tx + "\nRaw: " + Utils.getRawTx(tx));
             try {
-                blockchainDataService.broadcastTransaction(tx);
+                rpcClientService.broadcastTransaction(tx);
                 changeMixStatus(mixId, MixStatus.SUCCESS);
             }
             catch(Exception e) {

@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server;
 
-import com.samourai.whirlpool.server.services.BlockchainDataService;
+import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.DbUtils;
 import com.samourai.whirlpool.server.utils.LogbackUtils;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -26,7 +26,7 @@ public class Application implements ApplicationRunner {
 	private ApplicationArguments args;
 
 	@Autowired
-	private BlockchainDataService blockchainDataService;
+	private RpcClientService rpcClientService;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -56,7 +56,7 @@ public class Application implements ApplicationRunner {
 			LogbackUtils.setLogLevel("org.springframework.web.socket.config.WebSocketMessageBrokerStats", Level.ERROR.toString());
 		}
 
-		if (!blockchainDataService.testConnectivity()) {
+		if (!rpcClientService.testConnectivity()) {
 			exit();
 		}
 

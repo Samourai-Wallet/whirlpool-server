@@ -1,6 +1,4 @@
-package com.samourai.whirlpool.server.beans;
-
-import java.util.List;
+package com.samourai.whirlpool.server.beans.rpc;
 
 public class RpcOut {
     private String hash;
@@ -13,12 +11,12 @@ public class RpcOut {
 
     }
 
-    public RpcOut(String hash, long index, long value, byte[] scriptPubKey, List<String> toAddresses) {
+    public RpcOut(String hash, long index, long value, byte[] scriptPubKey, String toAddress) {
         this.hash = hash;
         this.index = index;
         this.value = value;
         this.scriptPubKey = scriptPubKey;
-        this.toAddress = (toAddresses != null ? toAddresses.get(0) : null);
+        this.toAddress = toAddress;
     }
 
     public String getHash() {

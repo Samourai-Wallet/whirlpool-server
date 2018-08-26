@@ -1,4 +1,4 @@
-package com.samourai.whirlpool.server.beans;
+package com.samourai.whirlpool.server.beans.rpc;
 
 /**
  * RpcOut with associated tx.

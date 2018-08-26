@@ -1,13 +1,12 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.whirlpool.server.beans.RpcOutWithTx;
-import com.samourai.whirlpool.server.beans.RpcOut;
-import com.samourai.whirlpool.server.beans.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
+import com.samourai.whirlpool.server.beans.rpc.RpcOut;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
-import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

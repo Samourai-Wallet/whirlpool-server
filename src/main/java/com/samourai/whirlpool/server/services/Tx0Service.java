@@ -2,10 +2,10 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.util.FormatsUtil;
-import com.samourai.whirlpool.server.beans.RpcIn;
-import com.samourai.whirlpool.server.beans.RpcOut;
-import com.samourai.whirlpool.server.beans.RpcOutWithTx;
-import com.samourai.whirlpool.server.beans.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.RpcIn;
+import com.samourai.whirlpool.server.beans.rpc.RpcOut;
+import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import org.bitcoinj.core.ECKey;
@@ -21,7 +21,10 @@ import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class Tx0Service {
@@ -40,6 +43,7 @@ public class Tx0Service {
 
     protected boolean checkInput(RpcOutWithTx rpcOutWithTx, long samouraiFeesMin) throws IllegalInputException {
         List<String> txsPath = new ArrayList<>();
+        txsPath.add("mixInput:"+rpcOutWithTx.getRpcOut().getHash() + "-" + rpcOutWithTx.getRpcOut().getIndex());
         return checkInput(rpcOutWithTx, samouraiFeesMin, txsPath);
     }
 
@@ -67,10 +71,8 @@ public class Tx0Service {
             }
         }
         else {
-            // this is not a tx0 => liquidity (coming from a previous whirlpool tx)
+            // this is not a valid tx0 => may be a liquidity coming from a previous whirlpool tx, or an invalid input
             isLiquidity = true;
-
-            txsPath.add("mix:" + tx.getTxid());
 
             // check valid whirlpool tx
             long denomination = rpcOut.getValue();
@@ -80,8 +82,6 @@ public class Tx0Service {
     }
 
     protected void checkWhirlpoolTx(RpcTransaction tx, long samouraiFeesMin, long denomination, List<String> txsPath) throws IllegalInputException {
-        txsPath.add(tx.getTxid());
-
         // tx should have same number of inputs-outputs > 1
         if (tx.getIns().size() != tx.getOuts().size() || tx.getIns().size() < 2) {
             String txsPathStr = txsPathToString(txsPath);

@@ -1,4 +1,4 @@
-package com.samourai.whirlpool.server.beans;
+package com.samourai.whirlpool.server.beans.rpc;
 
 public class RpcIn {
     private String originHash;

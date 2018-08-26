@@ -1,16 +1,18 @@
 package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samourai.whirlpool.server.beans.RpcOut;
-import com.samourai.whirlpool.server.beans.RpcTransaction;
+import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.whirlpool.server.beans.rpc.RpcOut;
+import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
+import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutPoint;
-import org.bitcoinj.core.TransactionWitness;
+import org.bitcoinj.core.*;
+import org.bitcoinj.script.Script;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
@@ -32,6 +34,7 @@ public class Utils {
 
     private static int BTC_TO_SATOSHIS = 100000000;
     public static final String PROFILE_TEST = "test";
+    public static final String PROFILE_DEFAULT = "default";
 
     public static String getRandomString(int length) {
         RandomStringGenerator randomStringGenerator =
@@ -147,5 +150,45 @@ public class Utils {
 
     public static BigDecimal satoshisToBtc(long satoshis) {
         return new BigDecimal(satoshis).divide(new BigDecimal(BTC_TO_SATOSHIS));
+    }
+
+    public static Optional<RpcOutWithTx> getRpcOutWithTx(RpcTransaction tx, long index) {
+        Optional<RpcOut> rpcOutResponse = Utils.findTxOutput(tx, index);
+        if (!rpcOutResponse.isPresent()) {
+            log.error("UTXO not found: " + tx.getTxid() + "-" + index);
+            return Optional.empty();
+        }
+        RpcOutWithTx rpcOutWithTx = new RpcOutWithTx(rpcOutResponse.get(), tx);
+        return Optional.of(rpcOutWithTx);
+    }
+
+    public static void testJsonRpcClientConnectivity(RpcClientService rpcClientService) throws Exception {
+        // connect to rpc node
+        if (!JSONRpcClientServiceImpl.class.isAssignableFrom(rpcClientService.getClass())) {
+            throw new Exception("Expected rpcClient of type " + JSONRpcClientServiceImpl.class.getName());
+        }
+        if (!rpcClientService.testConnectivity()) {
+            throw new Exception("rpcClient couldn't connect to bitcoin node");
+        }
+    }
+
+    public static String getToAddressBech32(TransactionOutput out, Bech32Util bech32Util, NetworkParameters params) {
+        Script script = out.getScriptPubKey();
+        if (script.isOpReturn()) {
+            return null;
+        }
+        if (script.isSentToP2WPKH() || script.isSentToP2WSH()) {
+            try {
+                return bech32Util.getAddressFromScript(script, params);
+            } catch(Exception e) {
+                log.error("toAddress failed for bech32", e);
+            }
+        }
+        try {
+            return script.getToAddress(params).toBase58();
+        } catch(Exception e) {
+            log.error("unable to find toAddress", e);
+        }
+        return null;
     }
 }
