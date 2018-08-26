@@ -5,6 +5,7 @@ import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.integration.manual.ManualMixer;
 import com.samourai.whirlpool.server.integration.manual.ManualPremixer;
 import com.samourai.whirlpool.server.utils.MultiClientManager;

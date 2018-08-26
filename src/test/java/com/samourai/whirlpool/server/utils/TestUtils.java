@@ -5,17 +5,28 @@ import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.whirlpool.server.services.CryptoService;
+import org.aspectj.util.FileUtil;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.InputStream;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
+import java.util.Optional;
 
 @Service
 public class TestUtils {
+    private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     private CryptoService cryptoService;
     protected Bech32Util bech32Util;
 
@@ -64,8 +75,26 @@ public class TestUtils {
         return generateWallet(purpose, seed, "test");
     }
 
-    public String getMockFileName(String txid) {
-        return "./src/test/resources/mocks/" + txid + ".json";
+    private String getMockFileName(String txid) {
+        return "./src/test/resources/mocks/" + txid + ".txt";
+    }
+
+    public void writeMockRpc(String txid, String rawTxHex) throws Exception {
+        String fileName = getMockFileName(txid);
+        System.out.println("writing " + fileName + ": " + rawTxHex);
+        Files.write(Paths.get(fileName), rawTxHex.getBytes(), StandardOpenOption.CREATE);
+    }
+
+    public Optional<String> loadMockRpc(String txid) {
+        String mockFile = getMockFileName(txid);
+        try {
+            log.info("reading mock: " + mockFile);
+            String rawTx = FileUtil.readAsString(new File(mockFile));
+            return Optional.of(rawTx);
+        } catch(Exception e) {
+            log.info("mock not found: " + mockFile);
+            return Optional.empty();
+        }
     }
 
 }

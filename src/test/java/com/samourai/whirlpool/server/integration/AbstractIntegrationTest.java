@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.integration;
 
 import com.samourai.wallet.bip47.BIP47Util;
+import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.wallet.util.FormatsUtil;
 import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -8,10 +9,13 @@ import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.services.*;
+import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
+import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.MessageSignUtil;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
+import org.bitcoinj.core.NetworkParameters;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,13 +26,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.lang.invoke.MethodHandles;
 
+@ActiveProfiles(Utils.PROFILE_TEST)
 public abstract class AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    @Value("${local.server.port}")
+    @Value("${server.port}")
     protected int port;
 
     @Rule
@@ -52,10 +58,19 @@ public abstract class AbstractIntegrationTest {
     protected MixService mixService;
 
     @Autowired
+    protected BlockchainService blockchainService;
+
+    @Autowired
     protected BlockchainDataService blockchainDataService;
 
     @Autowired
+    protected MockRpcClientServiceImpl rpcClientService;
+
+    @Autowired
     protected TestUtils testUtils;
+
+    @Autowired
+    protected Bech32Util bech32Util;
 
     @Autowired
     protected BIP47Util bip47Util;
@@ -63,27 +78,33 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected FormatsUtil formatsUtil;
 
-    protected MessageSignUtil messageSignUtil;
-
     @Autowired
     protected TaskExecutor taskExecutor;
+
+    @Autowired
+    protected Tx0Service tx0Service;
+
+    protected MessageSignUtil messageSignUtil;
 
     protected MixLimitsService mixLimitsService;
 
     private MultiClientManager multiClientManager;
+
+    protected NetworkParameters params;
 
     @Before
     public void setUp() throws Exception {
         // enable debug
         Utils.setLoggerDebug("com.samourai.whirlpool");
 
-        Assert.assertTrue(blockchainDataService.testConnectivity());
+        Assert.assertTrue(MockRpcClientServiceImpl.class.isAssignableFrom(rpcClientService.getClass()));
+        this.params = cryptoService.getNetworkParameters();
 
-        messageSignUtil = MessageSignUtil.getInstance(cryptoService.getNetworkParameters());
+        messageSignUtil = MessageSignUtil.getInstance(params);
 
         dbService.__reset();
         mixLimitsService = mixService.__getMixLimitsService();
-        ((MockBlockchainDataService)blockchainDataService).resetMock();
+        rpcClientService.resetMock();
 
         configurePools(serverConfig.getPools());
     }
@@ -130,7 +151,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected MultiClientManager multiClientManager(int nbClients, Mix mix) {
-        multiClientManager = new MultiClientManager(nbClients, mix, mixService, testUtils, cryptoService, mixLimitsService, port);
+        multiClientManager = new MultiClientManager(nbClients, mix, mixService, testUtils, cryptoService, rpcClientService, mixLimitsService, port);
         return multiClientManager;
     }
 

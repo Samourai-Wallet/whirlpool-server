@@ -1,50 +1,35 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.beans.RpcOut;
-import com.samourai.whirlpool.server.beans.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.utils.Utils;
+import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-public class Tx0ServiceTest {
+public class Tx0ServiceTest extends AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-    @Autowired
-    private BlockchainDataService blockchainDataService;
-
-    @Autowired
-    private Tx0Service tx0Service;
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Before
-    public void setUp() throws Exception {
-    }
 
     @Test
     public void findSamouraiFeesXpubIndiceFromTx0() {
 
         BiFunction<String, Integer, Void> test = (String txid, Integer xpubIndiceExpected) -> {
             log.info("Test: "+txid+", "+xpubIndiceExpected);
-            RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(txid);
+            RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(txid).orElseThrow(() -> new NoSuchElementException());
             Integer x = tx0Service.findSamouraiFeesXpubIndiceFromTx0(rpcTransaction);
             Assert.assertEquals(xpubIndiceExpected, x);
             return null;
@@ -84,24 +69,33 @@ public class Tx0ServiceTest {
     }
 
     private boolean doIsTx0FeesPaid(String txid, int minFees, int xpubIndice) {
-        RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(txid);
+        RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(txid).orElseThrow(() -> new NoSuchElementException());
         return tx0Service.isTx0FeesPaid(rpcTransaction, minFees, xpubIndice);
     }
 
     /*@Test
-    public void checkWhirlpoolTx() throws Exception {
-        String txid = "3bb546df988d8a577c2b2f216a18b7e337ebaf759187ae88e0eee01829f04eb1";
+    public void checkWhirlpoolTx_valid() throws Exception {
+        String txid = ""; // TODO
 
         // accept when valid tx
+        doCheckWhirlpoolTx(txid, 975000, 10000000);
+    }*/
+
+    @Test
+    public void checkWhirlpoolTx_invalidMix() throws Exception {
+        String txid = "3bb546df988d8a577c2b2f216a18b7e337ebaf759187ae88e0eee01829f04eb1";
+
+        // reject when invalid
+        thrown.expect(IllegalInputException.class);
+        thrown.expectMessage("781bc448f381e160d014f5515daf8a175bb689112c7755c70c6bbdbb32af56cc is not a valid whirlpool tx, inputs/outputs count mismatch (verified path:mixInput:781bc448f381e160d014f5515daf8a175bb689112c7755c70c6bbdbb32af56cc-5)");
         doCheckWhirlpoolTx(txid, 975000, 10000000);
     }
 
     private void doCheckWhirlpoolTx(String utxoHash, long samouraiFeesMin, long denomination) throws IllegalInputException {
-        RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(utxoHash);
-        Assert.assertNotNull(rpcTransaction);
+        RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(utxoHash).orElseThrow(() -> new NoSuchElementException());
 
         tx0Service.checkWhirlpoolTx(rpcTransaction, samouraiFeesMin, denomination, new ArrayList<>());
-    }*/
+    }
 
     @Test
     public void checkInput() throws Exception {
@@ -120,19 +114,15 @@ public class Tx0ServiceTest {
         // reject when paid less than fee
         for (int i=0;i<8;i++) {
             thrown.expect(IllegalInputException.class);
-            thrown.expectMessage("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo c35f7dae54b61a3d0570461dfcaf545fa5ce14bcfc52b1b7fd0c2a7d8d355aad-"+i+", x=1) (verified path:)");
+            thrown.expectMessage("Input doesn't belong to a Samourai pre-mix wallet (fees payment not found for utxo "+txid+"-"+i+", x=1) (verified path:mixInput:"+txid+"-"+i+" => tx0:"+txid+")");
             doCheckInput(txid, i, 975001);
         }
     }
 
     private boolean doCheckInput(String utxoHash, long utxoIndex, int minFees) throws IllegalInputException {
-        RpcTransaction rpcTransaction = blockchainDataService.getRpcTransaction(utxoHash);
-        Assert.assertNotNull(rpcTransaction);
+        RpcOutWithTx rpcOutWithTx = blockchainDataService.getRpcOutWithTx(utxoHash, utxoIndex).orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
 
-        RpcOut rpcOut = Utils.findTxOutput(rpcTransaction, utxoIndex);
-        Assert.assertNotNull(rpcOut);
-
-        boolean isLiquidity = tx0Service.checkInput(rpcOut, rpcTransaction, minFees);
+        boolean isLiquidity = tx0Service.checkInput(rpcOutWithTx, minFees);
         return isLiquidity;
     }
 }
