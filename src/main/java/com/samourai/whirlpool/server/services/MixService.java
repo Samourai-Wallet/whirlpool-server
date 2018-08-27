@@ -112,6 +112,8 @@ public class MixService {
     }
 
     private synchronized void registerInput(Mix mix, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
+        validateOnAddInput(mix, registeredInput);
+
         // registerInput + response
         doRegisterInput(mix, registeredInput, signedBordereauToReply, isLiquidity);
 
@@ -120,6 +122,22 @@ public class MixService {
 
         // check mix ready
         checkRegisterInputReady(mix);
+    }
+
+    /**
+     * Last input validations when adding it to a mix (not when queueing it)
+     */
+    private void validateOnAddInput(Mix mix, RegisteredInput registeredInput) throws IllegalInputException {
+        // verify max-input-same-hash
+        String inputHash = registeredInput.getInput().getHash();
+        int maxInputsSameHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameHash();
+        long countInputsSameHash = mix.getInputs().parallelStream().filter(input -> input.getInput().getHash().equals(inputHash)).count();
+        if ((countInputsSameHash + 1) > maxInputsSameHash) {
+            if (log.isDebugEnabled()) {
+                log.debug("already " + countInputsSameHash + " inputs with same hash: " + inputHash);
+            }
+            throw new IllegalInputException("Current mix is full for inputs with same hash, please try again on next mix");
+        }
     }
 
     private void doRegisterInput(Mix mix, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {

@@ -44,6 +44,11 @@ server.register-input.min-confirmations-must-mix: minimum confirmations for must
 server.register-input.min-confirmations-liquidity: minimum confirmations for liquidity inputs
 ```
 
+### UTXO rules
+```
+server.register-input.max-inputs-same-hash: max inputs with same hash (same origin tx) allowed to register to a mix
+```
+
 ### Mix limits
 ```
 server.mix.anonymity-set-target = 10

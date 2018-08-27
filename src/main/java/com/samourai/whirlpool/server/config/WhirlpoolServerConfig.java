@@ -113,6 +113,7 @@ public class WhirlpoolServerConfig {
     public static class RegisterInputConfig {
         private int minConfirmationsMustMix;
         private int minConfirmationsLiquidity;
+        private int maxInputsSameHash;
 
         public int getMinConfirmationsMustMix() {
             return minConfirmationsMustMix;
@@ -128,6 +129,14 @@ public class WhirlpoolServerConfig {
 
         public void setMinConfirmationsLiquidity(int minConfirmationsLiquidity) {
             this.minConfirmationsLiquidity = minConfirmationsLiquidity;
+        }
+
+        public int getMaxInputsSameHash() {
+            return maxInputsSameHash;
+        }
+
+        public void setMaxInputsSameHash(int maxInputsSameHash) {
+            this.maxInputsSameHash = maxInputsSameHash;
         }
     }
 

@@ -279,6 +279,10 @@ public class MixLimitsService {
                 // start mix if ready
                 mixService.checkRegisterInputReady(mix);
             }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("No liquidity to add: maxAnonymitySet=" + mix.getPool().getMaxAnonymitySet() + ", nbInputs=" + mix.getNbInputs());
+            }
         }
     }
 
