@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
-import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.services.rpc.RpcRawTransactionResponse;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -18,13 +17,11 @@ import java.util.Optional;
 @Service
 public class BlockchainDataService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private WhirlpoolServerConfig whirlpoolServerConfig;
     private CryptoService cryptoService;
     private Bech32Util bech32Util;
     private RpcClientService rpcClientService;
 
-    public BlockchainDataService(WhirlpoolServerConfig whirlpoolServerConfig, CryptoService cryptoService, Bech32Util bech32Util, RpcClientService rpcClientService) {
-        this.whirlpoolServerConfig = whirlpoolServerConfig;
+    public BlockchainDataService(CryptoService cryptoService, Bech32Util bech32Util, RpcClientService rpcClientService) {
         this.cryptoService = cryptoService;
         this.bech32Util = bech32Util;
         this.rpcClientService = rpcClientService;

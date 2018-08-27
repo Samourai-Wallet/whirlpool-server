@@ -36,18 +36,18 @@ public class MixServiceTest extends AbstractIntegrationTest {
         int anonymitySetMin = 2;
         int anonymitySetMax = 2;
         long anonymitySetAdjustTimeout = 10 * 60;
-        long liquidityTimeout = 60; // TODO no liquidity
+        long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 mustMix => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 mustMix => false
-        mix.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, false));
+        mix.registerInput(new RegisteredInput("mustMix1", generateInput(), null, false));
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 mustMix => true
-        mix.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, false));
+        mix.registerInput(new RegisteredInput("mustMix2", generateInput(), null, false));
         Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
@@ -62,35 +62,36 @@ public class MixServiceTest extends AbstractIntegrationTest {
         int anonymitySetMin = 2;
         int anonymitySetMax = 2;
         long anonymitySetAdjustTimeout = 10 * 60;
-        long liquidityTimeout = 60; // TODO with liquidity
+        long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
         // 0 liquidity => false
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 liquidity => false
-        mix.registerInput(new RegisteredInput("liquidity1", generateInputsList(1).get(0), null, true));
+        mix.registerInput(new RegisteredInput("liquidity1", generateInput(), null, true));
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
-        // 2 liquidity => false
-        mix.registerInput(new RegisteredInput("liquidity2", generateInputsList(1).get(0), null, true));
+        // 2 liquidity => false : minMustMix not reached
+        mix.registerInput(new RegisteredInput("liquidity2", generateInput(), null, true));
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
-        // 1 mustMix => false
-        mix.registerInput(new RegisteredInput("mustMix1", generateInputsList(1).get(0), null, false));
-        Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
-
-        // 2 mustMix => true
-        mix.registerInput(new RegisteredInput("mustMix2", generateInputsList(1).get(0), null, false));
+        // 1 mustMix => true : minMustMix reached
+        mix.registerInput(new RegisteredInput("mustMix1", generateInput(), null, false));
         Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
     private List<TxOutPoint> generateInputsList(int nb) {
         List<TxOutPoint> inputs = new ArrayList<>();
         while(inputs.size() < nb) {
-            TxOutPoint txOutPoint = new TxOutPoint(Utils.getRandomString(65), 0, 99999);
+            TxOutPoint txOutPoint = generateInput();
             inputs.add(txOutPoint);
         }
         return inputs;
+    }
+
+    private TxOutPoint generateInput() {
+        TxOutPoint txOutPoint = new TxOutPoint(Utils.getRandomString(65), 0, 99999);
+        return txOutPoint;
     }
 }
