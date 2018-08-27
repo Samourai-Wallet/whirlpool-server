@@ -8,8 +8,11 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.signers.PSSSigner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.lang.invoke.MethodHandles;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.SignatureException;
@@ -17,6 +20,8 @@ import java.security.spec.RSAPublicKeySpec;
 
 @Service
 public class CryptoService {
+    private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     private AsymmetricCipherKeyPair keyPair;
     private PublicKey publicKey;
     private NetworkParameters networkParameters;
@@ -42,11 +47,13 @@ public class CryptoService {
         try {
             ecKeyFromPubkey = ECKey.fromPublicOnly(pubkeyHex);
         } catch (Exception e) {
+            log.error("verifyMessageSignature: couldn't extract eckey", e);
             return false;
         }
         try {
             ecKeyFromPubkey.verifyMessage(message, signatureBase64);
         } catch (SignatureException e) {
+            log.error("verifyMessageSignature: invalid signature", e);
             return false;
         }
         return true;

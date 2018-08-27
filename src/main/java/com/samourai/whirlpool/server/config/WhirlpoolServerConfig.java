@@ -111,14 +111,23 @@ public class WhirlpoolServerConfig {
     }
 
     public static class RegisterInputConfig {
-        private int minConfirmations;
+        private int minConfirmationsMustMix;
+        private int minConfirmationsLiquidity;
 
-        public int getMinConfirmations() {
-            return minConfirmations;
+        public int getMinConfirmationsMustMix() {
+            return minConfirmationsMustMix;
         }
 
-        public void setMinConfirmations(int minConfirmations) {
-            this.minConfirmations = minConfirmations;
+        public void setMinConfirmationsMustMix(int minConfirmationsMustMix) {
+            this.minConfirmationsMustMix = minConfirmationsMustMix;
+        }
+
+        public int getMinConfirmationsLiquidity() {
+            return minConfirmationsLiquidity;
+        }
+
+        public void setMinConfirmationsLiquidity(int minConfirmationsLiquidity) {
+            this.minConfirmationsLiquidity = minConfirmationsLiquidity;
         }
     }
 

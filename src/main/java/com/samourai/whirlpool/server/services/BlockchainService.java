@@ -5,6 +5,7 @@ import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import org.slf4j.Logger;
@@ -19,14 +20,18 @@ public class BlockchainService {
     private CryptoService cryptoService;
     private BlockchainDataService blockchainDataService;
     private Tx0Service tx0Service;
+    private WhirlpoolServerConfig whirlpoolServerConfig;
 
-    public BlockchainService(CryptoService cryptoService, BlockchainDataService blockchainDataService, Tx0Service tx0Service) {
+    public BlockchainService(CryptoService cryptoService, BlockchainDataService blockchainDataService, Tx0Service tx0Service, WhirlpoolServerConfig whirlpoolServerConfig) {
         this.cryptoService = cryptoService;
         this.blockchainDataService = blockchainDataService;
         this.tx0Service = tx0Service;
+        this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, int minConfirmations, long samouraiFeesMin, boolean liquidity) throws IllegalInputException, UnconfirmedInputException {
+    public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, boolean liquidity) throws IllegalInputException, UnconfirmedInputException {
+        long samouraiFeesMin = whirlpoolServerConfig.getSamouraiFees().getAmount();
+
         RpcOutWithTx rpcOutWithTx = blockchainDataService.getRpcOutWithTx(utxoHash, utxoIndex).orElseThrow(
                 () -> new IllegalInputException("UTXO not found: " + utxoHash + "-" + utxoIndex)
         );
@@ -36,7 +41,7 @@ public class BlockchainService {
         checkPubkey(rpcOut, pubkeyHex);
 
         // verify confirmations
-        checkInputConfirmations(rpcOutWithTx.getTx(), minConfirmations);
+        checkInputConfirmations(rpcOutWithTx.getTx(), liquidity);
 
         // verify input comes from a valid tx0 (or from a valid mix)
         if (samouraiFeesMin > 0) {
@@ -64,10 +69,22 @@ public class BlockchainService {
         }
     }
 
-    protected void checkInputConfirmations(RpcTransaction tx, int minConfirmations) throws UnconfirmedInputException {
+    protected void checkInputConfirmations(RpcTransaction tx, boolean liquidity) throws UnconfirmedInputException {
         int inputConfirmations = tx.getConfirmations();
-        if (inputConfirmations < minConfirmations) {
-            throw new UnconfirmedInputException("Input needs at least "+minConfirmations+" confirmations");
+        if (liquidity) {
+            // liquidity
+            int minConfirmationsMix = whirlpoolServerConfig.getRegisterInput().getMinConfirmationsLiquidity();
+            if (inputConfirmations < minConfirmationsMix) {
+                log.warn("input rejected: liquidity needs at least " + minConfirmationsMix + " confirmations: " + tx.getTxid());
+                throw new UnconfirmedInputException("Input needs at least " + minConfirmationsMix + " confirmations");
+            }
+        } else {
+            // mustMix
+            int minConfirmationsTx0 = whirlpoolServerConfig.getRegisterInput().getMinConfirmationsMustMix();
+            if (inputConfirmations < minConfirmationsTx0) {
+                log.warn("input rejected: mustMix needs at least " + minConfirmationsTx0 + " confirmations: " + tx.getTxid());
+                throw new UnconfirmedInputException("Input needs at least " + minConfirmationsTx0 + " confirmations");
+            }
         }
     }
 }

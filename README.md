@@ -38,6 +38,12 @@ UTXO should be founded with:<br/>
 for mustMix: (*server.mix.denomination* + *server.mix.miner-fee-min*) to (*server.mix.denomination* + *server.mix.miner-fee-max*)<br/>
 for liquidities: (*server.mix.denomination*) to (*server.mix.denomination* + *server.mix.miner-fee-max*)
 
+### UTXO confirmations
+```
+server.register-input.min-confirmations-must-mix: minimum confirmations for mustMix inputs
+server.register-input.min-confirmations-liquidity: minimum confirmations for liquidity inputs
+```
+
 ### Mix limits
 ```
 server.mix.anonymity-set-target = 10
