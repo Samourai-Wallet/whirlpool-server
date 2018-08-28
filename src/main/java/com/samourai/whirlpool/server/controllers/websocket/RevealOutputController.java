@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
+import com.samourai.whirlpool.protocol.websocket.messages.RevealOutputRequest;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -30,7 +30,7 @@ public class RevealOutputController extends AbstractWebSocketController {
   }
 
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT)
-  public void revealOutput(@Payload RegisterOutputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
+  public void revealOutput(@Payload RevealOutputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
     validateHeaders(headers);
 
     String username = principal.getName();

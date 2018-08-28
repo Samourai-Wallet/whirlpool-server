@@ -27,12 +27,12 @@ public class RegisterOutputService {
         this.formatsUtil = formatsUtil;
     }
 
-    public void registerOutput(String mixId, byte[] unblindedSignedBordereau, String bordereau, String receiveAddress) throws Exception {
+    public void registerOutput(String inputsHash, byte[] unblindedSignedBordereau, String bordereau, String receiveAddress) throws Exception {
         // validate
         validate(unblindedSignedBordereau, bordereau, receiveAddress);
 
         // register
-        mixService.registerOutput(mixId, receiveAddress, bordereau);
+        mixService.registerOutput(inputsHash, receiveAddress, bordereau);
 
         // register bordereau
         dbService.registerBordereau(bordereau);

@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.beans;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.beans.Utxo;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
@@ -9,6 +10,7 @@ import org.bitcoinj.core.Transaction;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Mix {
     private MixTO mixTO;
@@ -169,7 +171,12 @@ public class Mix {
         return inputsById.containsKey(Utils.computeInputId(outPoint)) ;
     }
 
-    public synchronized  void registerOutput(String receiveAddress, String bordereau) {
+    public String computeInputsHash() {
+        Collection<Utxo> inputs = getInputs().parallelStream().map(input -> new Utxo(input.getInput().getHash(), input.getInput().getIndex())).collect(Collectors.toList());
+        return WhirlpoolProtocol.computeInputsHash(inputs);
+    }
+
+    public synchronized void registerOutput(String receiveAddress, String bordereau) {
         receiveAddresses.add(receiveAddress);
         registeredBordereaux.add(bordereau);
     }

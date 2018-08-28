@@ -203,12 +203,13 @@ public class MixService {
         return true;
     }
 
-    public synchronized void registerOutput(String mixId, String receiveAddress, String bordereau) throws Exception {
+    public synchronized void registerOutput(String inputsHash, String receiveAddress, String bordereau) throws Exception {
         log.info(" • registered output: " + receiveAddress);
-        Mix mix = getMix(mixId, MixStatus.REGISTER_OUTPUT);
+        Mix mix = getMixByInputsHash(inputsHash, MixStatus.REGISTER_OUTPUT);
         mix.registerOutput(receiveAddress, bordereau);
 
         if (isRegisterOutputReady(mix)) {
+            String mixId = mix.getMixId();
             changeMixStatus(mixId, MixStatus.SIGNING);
         }
     }
@@ -362,7 +363,8 @@ public class MixService {
                 }
                 break;
             case REGISTER_OUTPUT:
-                mixStatusNotification = new RegisterOutputMixStatusNotification(mixId);
+                String inputsHash = mix.computeInputsHash();
+                mixStatusNotification = new RegisterOutputMixStatusNotification(mixId, inputsHash);
                 break;
             case REVEAL_OUTPUT:
                 mixStatusNotification = new RevealOutputMixStatusNotification(mixId);
@@ -381,16 +383,27 @@ public class MixService {
     }
 
     private Mix getMix(String mixId) throws MixException {
+        return getMix(mixId, null);
+    }
+
+    private Mix getMix(String mixId, MixStatus mixStatus) throws MixException {
         Mix mix = currentMixs.get(mixId);
         if (mix == null) {
             throw new MixException("Mix not found");
         }
+        if (mixStatus != null && !mixStatus.equals(mix.getMixStatus())) {
+            throw new MixException("Operation not permitted for current mix status");
+        }
         return mix;
     }
 
-    private Mix getMix(String mixId, MixStatus mixStatus) throws MixException {
-        Mix mix = getMix(mixId);
-        if (!mixStatus.equals(mix.getMixStatus())) {
+    private Mix getMixByInputsHash(String inputsHash, MixStatus mixStatus) throws MixException {
+        List<Mix> mixsFound = currentMixs.values().parallelStream().filter(mix -> mix.getMixStatus().equals(mixStatus) && mix.computeInputsHash().equals(inputsHash)).collect(Collectors.toList());
+        if (mixsFound.size() != 1) {
+            throw new MixException("Mix not found for inputsHash");
+        }
+        Mix mix = mixsFound.get(0);
+        if (mixStatus != null && !mixStatus.equals(mix.getMixStatus())) {
             throw new MixException("Operation not permitted for current mix status");
         }
         return mix;

@@ -42,7 +42,7 @@ public class RegisterOutputController {
     }
 
     // register output
-    registerOutputService.registerOutput(payload.mixId, payload.unblindedSignedBordereau, payload.bordereau, payload.receiveAddress);
+    registerOutputService.registerOutput(payload.inputsHash, payload.unblindedSignedBordereau, payload.bordereau, payload.receiveAddress);
   }
 
 }
