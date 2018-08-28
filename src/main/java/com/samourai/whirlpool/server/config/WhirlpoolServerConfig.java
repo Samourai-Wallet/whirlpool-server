@@ -23,8 +23,8 @@ public class WhirlpoolServerConfig {
     private SigningConfig signing;
     private RevealOutputConfig revealOutput;
     private BanConfig ban;
+    private ExportConfig export;
     private PoolConfig[] pools;
-
 
     public SamouraiFeeConfig getSamouraiFees() {
         return samouraiFees;
@@ -100,6 +100,14 @@ public class WhirlpoolServerConfig {
 
     public void setBan(BanConfig ban) {
         this.ban = ban;
+    }
+
+    public ExportConfig getExport() {
+        return export;
+    }
+
+    public void setExport(ExportConfig export) {
+        this.export = export;
     }
 
     public PoolConfig[] getPools() {
@@ -194,6 +202,39 @@ public class WhirlpoolServerConfig {
 
         public void setBlames(int blames) {
             this.blames = blames;
+        }
+    }
+
+    public static class ExportConfig {
+        private ExportItemConfig mixs;
+
+        public ExportItemConfig getMixs() {
+            return mixs;
+        }
+
+        public void setMixs(ExportItemConfig mixs) {
+            this.mixs = mixs;
+        }
+    }
+
+    public static class ExportItemConfig {
+        private String filename;
+        private String directory;
+
+        public String getFilename() {
+            return filename;
+        }
+
+        public void setFilename(String filename) {
+            this.filename = filename;
+        }
+
+        public String getDirectory() {
+            return directory;
+        }
+
+        public void setDirectory(String directory) {
+            this.directory = directory;
         }
     }
 

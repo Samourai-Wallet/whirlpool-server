@@ -37,11 +37,12 @@ public class MixService {
     private Bech32Util bech32Util;
     private WhirlpoolServerConfig whirlpoolServerConfig;
     private PoolService poolService;
+    private ExportService exportService;
 
     private Map<String,Mix> currentMixs;
 
     @Autowired
-    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, RpcClientService rpcClientService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService) {
+    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, RpcClientService rpcClientService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService, ExportService exportService) {
         this.cryptoService = cryptoService;
         this.blameService = blameService;
         this.dbService = dbService;
@@ -52,6 +53,7 @@ public class MixService {
         mixLimitsService.setMixService(this); // avoids circular reference
         this.mixLimitsService = mixLimitsService;
         this.poolService = poolService;
+        this.exportService = exportService;
 
         this.currentMixs = new HashMap<>();
 
@@ -277,7 +279,7 @@ public class MixService {
             log.info("Tx to broadcast: \n" + tx + "\nRaw: " + Utils.getRawTx(tx));
             try {
                 rpcClientService.broadcastTransaction(tx);
-                changeMixStatus(mixId, MixStatus.SUCCESS);
+                goSuccess(mix);
             }
             catch(Exception e) {
                 log.error("Unable to broadcast tx", e);
@@ -473,6 +475,14 @@ public class MixService {
     public void goFail(Mix mix, FailReason failReason) {
         mix.setFailReason(failReason);
         changeMixStatus(mix.getMixId(), MixStatus.FAIL);
+
+        exportService.exportMix(mix);
+    }
+
+    public void goSuccess(Mix mix) {
+        changeMixStatus(mix.getMixId(), MixStatus.SUCCESS);
+
+        exportService.exportMix(mix);
     }
 
     public synchronized void onClientDisconnect(String username) {

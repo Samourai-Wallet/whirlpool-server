@@ -12,6 +12,7 @@ import java.util.*;
 
 public class Mix {
     private MixTO mixTO;
+
     private String mixId;
     private Timestamp timeStarted;
     private Map<MixStatus,Timestamp> timeStatus;
@@ -63,6 +64,10 @@ public class Mix {
         }
         mixTO.update(this);
         return mixTO;
+    }
+
+    public Optional<MixTO> __getMixTO() {
+        return Optional.ofNullable(mixTO);
     }
 
     public boolean hasMinMustMixReached() {

@@ -65,6 +65,13 @@ If this target is not met after *server.mix.anonymity-set-adjust-timeout*, it wi
 At the beginning of the mix, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
 After *server.mix.liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *server.mix.must-mix-min* is reached, up to *server.mix.anonymity-set-max* inputs for the mix.
 
+### Exports
+Each mix success/fail is appended to a CSV file:
+```
+server.export.mixs.directory
+server.export.mixs.filename
+```
+
 ### Testing
 ```
 server.rpc-client.mock-tx-broadcast = false

@@ -93,6 +93,11 @@
 			<artifactId>jquery</artifactId>
 			<version>3.1.1-1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>4.2</version>
+		</dependency>
 		<!-- test -->
 		<dependency>
 			<groupId>com.samouraiwallet</groupId>
