@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
 import com.samourai.whirlpool.server.services.BlameService;
@@ -18,7 +19,6 @@ import java.lang.invoke.MethodHandles;
 @RestController
 public class RegisterOutputController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String ENDPOINT = "/registerOutput";
 
   private RegisterOutputService registerOutputService;
   private BlameService blameService;
@@ -29,10 +29,10 @@ public class RegisterOutputController {
     this.blameService = blameService;
   }
 
-  @RequestMapping(value = ENDPOINT, method = RequestMethod.POST)
+  @RequestMapping(value = WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
     if (log.isDebugEnabled()) {
-      log.debug("[controller] " + ENDPOINT + ": payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT + ": payload=" + Utils.toJsonString(payload));
     }
 
     // verify receiveAddress not banned

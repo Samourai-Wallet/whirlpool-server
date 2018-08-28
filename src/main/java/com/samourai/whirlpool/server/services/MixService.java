@@ -362,8 +362,7 @@ public class MixService {
                 }
                 break;
             case REGISTER_OUTPUT:
-                String registerOutputUrl = computeRegisterOutputUrl();
-                mixStatusNotification = new RegisterOutputMixStatusNotification(mixId, registerOutputUrl);
+                mixStatusNotification = new RegisterOutputMixStatusNotification(mixId);
                 break;
             case REVEAL_OUTPUT:
                 mixStatusNotification = new RevealOutputMixStatusNotification(mixId);
@@ -379,11 +378,6 @@ public class MixService {
                 break;
         }
         return mixStatusNotification;
-    }
-
-    private String computeRegisterOutputUrl() {
-        String registerOutputUrl = whirlpoolServerConfig.getRegisterOutput().getUrl() + RegisterOutputController.ENDPOINT;
-        return registerOutputUrl;
     }
 
     private Mix getMix(String mixId) throws MixException {
