@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.config.websocket.WebsocketConfig;
+import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class WebSocketSessionService {
     private MixService mixService;
 
     @Autowired
-    public WebSocketSessionService(MixService mixService, WebsocketConfig websocketConfig) {
+    public WebSocketSessionService(MixService mixService, WebSocketConfig websocketConfig) {
         this.mixService = mixService;
         this.sessions = new HashMap<>();
 

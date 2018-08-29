@@ -8,7 +8,7 @@ import org.springframework.web.socket.messaging.SubProtocolWebSocketHandler;
 public class WebSocketHandler extends SubProtocolWebSocketHandler {
     private WebSocketSessionService webSocketSessionService;
 
-    public WebSocketHandler(WebsocketConfig websocketConfig) {
+    public WebSocketHandler(WebSocketConfig websocketConfig) {
         super(websocketConfig.clientInboundChannel(), websocketConfig.clientOutboundChannel());
     }
 

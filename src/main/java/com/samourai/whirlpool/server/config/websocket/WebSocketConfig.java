@@ -30,8 +30,11 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebsocketConfig extends WebSocketMessageBrokerConfigurationSupport implements WebSocketMessageBrokerConfigurer {
+public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport implements WebSocketMessageBrokerConfigurer {
     private static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+    public static String[] WEBSOCKET_ENDPOINTS = new String[]{"/", // socket connect
+            WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT, WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT, WhirlpoolProtocol.ENDPOINT_SIGNING};
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -64,11 +67,7 @@ public class WebsocketConfig extends WebSocketMessageBrokerConfigurationSupport 
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint(
-                "/", // connection endpoint
-                whirlpoolProtocol.ENDPOINT_REGISTER_INPUT,
-                WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT,
-                WhirlpoolProtocol.ENDPOINT_SIGNING)
+        registry.addEndpoint(WEBSOCKET_ENDPOINTS)
             // assign a random username as principal for each websocket client
             // this is needed to be able to communicate with a specific client
             .setHandshakeHandler(new AssignPrincipalWebsocketHandler())

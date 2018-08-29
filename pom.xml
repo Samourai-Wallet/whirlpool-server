@@ -8,6 +8,7 @@
 	<name>whirlpool-server</name>
     <properties>
         <spring.version>2.0.3.RELEASE</spring.version>
+		<spring-security.version>5.0.6.RELEASE</spring-security.version>
     </properties>
 	<dependencies>
 		<dependency>
@@ -26,6 +27,18 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
 			<version>${spring.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<version>${spring.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-messaging</artifactId>
+			<version>${spring-security.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
