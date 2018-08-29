@@ -12,8 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class WebSocketService {
@@ -38,10 +37,16 @@ public class WebSocketService {
     }
 
     public void sendPrivate(String username, Object payload){
+        sendPrivate(Arrays.asList(username), payload);
+    }
+
+    public void sendPrivate(Collection<String> usernames, Object payload){
         if (log.isDebugEnabled()) {
-            log.debug("(--> "+ username + ") : " + Utils.toJsonString(payload));
+            log.debug("(--> [" + usernames.size() + " ]" + String.join(",", usernames) + ") : " + Utils.toJsonString(payload));
         }
-        taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, computeHeaders(payload)));
+        usernames.forEach(username -> {
+            taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, computeHeaders(payload)));
+        });
     }
 
     public void sendPrivateError(String username, Exception exception) {

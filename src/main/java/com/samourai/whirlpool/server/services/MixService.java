@@ -331,8 +331,13 @@ public class MixService {
             }
             mixLimitsService.onMixStatusChange(mix);
 
+            // send notification
             MixStatusNotification mixStatusNotification = computeMixStatusNotification(mixId);
-            webSocketService.broadcast(mixStatusNotification);
+            if (MixStatus.REGISTER_INPUT.equals(mixStatusNotification.status)) {
+                webSocketService.broadcast(mixStatusNotification);
+            } else {
+                sendToMixingUsers(mix, mixStatusNotification);
+            }
 
             // start next mix (after notifying clients for success)
             if (mixStatus == MixStatus.SUCCESS) {
@@ -347,6 +352,11 @@ public class MixService {
                 __nextMix(mix.getPool());
             }
         }
+    }
+
+    private void sendToMixingUsers(Mix mix, Object payload) {
+        List<String> usernames = mix.getInputs().parallelStream().map(input -> input.getUsername()).collect(Collectors.toList());
+        webSocketService.sendPrivate(usernames, payload);
     }
 
     public MixStatusNotification computeMixStatusNotification(String mixId) throws MixException {
