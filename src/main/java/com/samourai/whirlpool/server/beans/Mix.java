@@ -26,9 +26,8 @@ public class Mix {
     private MixStatus mixStatus;
     private Map<String,RegisteredInput> inputsById;
 
-    private List<String> receiveAddresses;
-    private Set<String> registeredBordereaux;
-    private Set<String> revealedOutputUsers;
+    private Set<String> receiveAddresses;
+    private Map<String,String> revealedReceiveAddressesByUsername;
     private Map<String,Signature> signatures;
 
     private Transaction tx;
@@ -47,9 +46,8 @@ public class Mix {
         this.mixStatus = MixStatus.REGISTER_INPUT;
         this.inputsById = new HashMap<>();
 
-        this.receiveAddresses = new LinkedList<>();
-        this.registeredBordereaux = new HashSet<>();
-        this.revealedOutputUsers = new HashSet<>();
+        this.receiveAddresses = new HashSet<>();
+        this.revealedReceiveAddressesByUsername = new HashMap<>();
         this.signatures = new HashMap<>();
 
         this.tx = null;
@@ -176,9 +174,8 @@ public class Mix {
         return WhirlpoolProtocol.computeInputsHash(inputs);
     }
 
-    public synchronized void registerOutput(String receiveAddress, String bordereau) {
+    public synchronized void registerOutput(String receiveAddress) {
         receiveAddresses.add(receiveAddress);
-        registeredBordereaux.add(bordereau);
     }
 
     public long getElapsedTime() {
@@ -188,20 +185,24 @@ public class Mix {
         return elapsedTime;
     }
 
-    public List<String> getReceiveAddresses() {
+    public Set<String> getReceiveAddresses() {
         return receiveAddresses;
     }
 
-    public Set<String> getRegisteredBordereaux() {
-        return registeredBordereaux;
+    public boolean hasRevealedOutputUsername(String username) {
+        return revealedReceiveAddressesByUsername.containsKey(username);
     }
 
-    public void addRevealedOutputUser(String user) {
-        revealedOutputUsers.add(user);
+    public boolean hasRevealedReceiveAddress(String receiveAddress) {
+        return revealedReceiveAddressesByUsername.containsValue(receiveAddress);
     }
 
-    public Set<String> getRevealedOutputUsers() {
-        return revealedOutputUsers;
+    public void addRevealedOutput(String username, String receiveAddress) {
+        revealedReceiveAddressesByUsername.put(username, receiveAddress);
+    }
+
+    public int getNbRevealedOutputs() {
+        return revealedReceiveAddressesByUsername.size();
     }
 
     public int getNbSignatures() {

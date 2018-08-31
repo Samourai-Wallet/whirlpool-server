@@ -18,7 +18,7 @@ import java.util.Set;
 @Service
 public class DbService {
     private Set<String> blindedBordereaux;
-    private Set<String> bordereaux;
+    private Set<String> receiveAddresses;
     private List<BlameTO> blames;
     private MixRepository mixRepository;
 
@@ -41,12 +41,12 @@ public class DbService {
         return blindedBordereaux.contains(key);
     }
 
-    public void registerBordereau(String bordereau) {
-        bordereaux.add(bordereau);
+    public void registerReceiveAddress(String receiveAddress) {
+        receiveAddresses.add(receiveAddress);
     }
 
-    public boolean isBordereauRegistered(String bordereau) {
-        return bordereaux.contains(bordereau);
+    public boolean isReceiveAddressRegistered(String receiveAddress) {
+        return receiveAddresses.contains(receiveAddress);
     }
 
     public void saveBlame(RegisteredInput registeredInput, BlameReason blameReason, String mixId) {
@@ -65,7 +65,7 @@ public class DbService {
 
     public void __reset() {
         blindedBordereaux = new HashSet<>();
-        bordereaux = new HashSet<>();
+        receiveAddresses = new HashSet<>();
         blames = new ArrayList<>();
     }
 }

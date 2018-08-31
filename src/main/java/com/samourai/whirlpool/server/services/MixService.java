@@ -203,10 +203,10 @@ public class MixService {
         return true;
     }
 
-    public synchronized void registerOutput(String inputsHash, String receiveAddress, String bordereau) throws Exception {
+    public synchronized void registerOutput(String inputsHash, String receiveAddress) throws Exception {
         log.info(" • registered output: " + receiveAddress);
         Mix mix = getMixByInputsHash(inputsHash, MixStatus.REGISTER_OUTPUT);
-        mix.registerOutput(receiveAddress, bordereau);
+        mix.registerOutput(receiveAddress);
 
         if (isRegisterOutputReady(mix)) {
             String mixId = mix.getMixId();
@@ -239,22 +239,29 @@ public class MixService {
             // TODO recheck inputs balances and update/ban/reopen REGISTER_INPUT or fail if input spent in the meantime
             return false;
         }
-        return (mix.getRegisteredBordereaux().size() == mix.getNbInputs());
+        return (mix.getReceiveAddresses().size() == mix.getNbInputs());
     }
 
-    public synchronized void revealOutput(String mixId, String username, String bordereau) throws MixException, IllegalInputException {
+    public synchronized void revealOutput(String mixId, String username, String receiveAddress) throws MixException, IllegalInputException {
         Mix mix = getMix(mixId, MixStatus.REVEAL_OUTPUT);
 
-        // verify an output was registered with this bordereau
-        if (!mix.getRegisteredBordereaux().contains(bordereau)) {
-            throw new IllegalInputException("Invalid bordereau");
+        // verify this username didn't already reveal his output
+        if (mix.hasRevealedOutputUsername(username)) {
+            log.warn("Rejecting already revealed username: " + username);
+            throw new IllegalInputException("Output already revealed");
         }
-        // verify this bordereau was not already revealed (someone could try to register 2 inputs and reveal same bordereau to block mix)
-        if (mix.getRevealedOutputUsers().contains(bordereau)) {
-            log.warn("Rejecting already revealed bordereau: "+bordereau);
-            throw new IllegalInputException("Bordereau already revealed");
+        // verify this receiveAddress was not already revealed (someone could try to register 2 inputs and reveal same receiveAddress to block mix)
+        if (mix.hasRevealedReceiveAddress(receiveAddress)) {
+            log.warn("Rejecting already revealed receiveAddress: " + receiveAddress);
+            throw new IllegalInputException("ReceiveAddress already revealed");
         }
-        mix.addRevealedOutputUser(username);
+
+        // verify an output was registered with this receiveAddress
+        if (!mix.getReceiveAddresses().contains(receiveAddress)) {
+            throw new IllegalInputException("Invalid receiveAddress");
+        }
+
+        mix.addRevealedOutput(username, receiveAddress);
         log.info(" • revealed output: username=" + username);
 
         if (isRevealOutputReady(mix)) {
@@ -263,7 +270,7 @@ public class MixService {
     }
 
     protected synchronized boolean isRevealOutputReady(Mix mix) {
-        return (mix.getRevealedOutputUsers().size() == mix.getRegisteredBordereaux().size());
+        return (mix.getNbRevealedOutputs() == mix.getNbInputs()); // TODO -1 to not wait for the one who didn't sign?
     }
 
     public synchronized void registerSignature(String mixId, String username, byte[][] witness) throws Exception {

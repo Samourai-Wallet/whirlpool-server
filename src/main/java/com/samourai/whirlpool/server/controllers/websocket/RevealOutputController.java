@@ -39,7 +39,7 @@ public class RevealOutputController extends AbstractWebSocketController {
     }
 
     // register output
-    mixService.revealOutput(payload.mixId, username, payload.bordereau);
+    mixService.revealOutput(payload.mixId, username, payload.receiveAddress);
   }
 
   @MessageExceptionHandler

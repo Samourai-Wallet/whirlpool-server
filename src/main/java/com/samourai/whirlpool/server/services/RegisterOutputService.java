@@ -27,23 +27,23 @@ public class RegisterOutputService {
         this.formatsUtil = formatsUtil;
     }
 
-    public void registerOutput(String inputsHash, byte[] unblindedSignedBordereau, String bordereau, String receiveAddress) throws Exception {
+    public void registerOutput(String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
         // validate
-        validate(unblindedSignedBordereau, bordereau, receiveAddress);
+        validate(unblindedSignedBordereau, receiveAddress);
 
         // register
-        mixService.registerOutput(inputsHash, receiveAddress, bordereau);
+        mixService.registerOutput(inputsHash, receiveAddress);
 
-        // register bordereau
-        dbService.registerBordereau(bordereau);
+        // register receiveAddress
+        dbService.registerReceiveAddress(receiveAddress);
     }
 
-    private void validate(byte[] unblindedSignedBordereau, String bordereau, String receiveAddress) throws Exception {
+    private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
         // verify bordereau
         if (log.isDebugEnabled()) {
-            log.debug("Verifying bordereau: " + bordereau + " : " + Base64.encodeBase64String(unblindedSignedBordereau));
+            log.debug("Verifying unblindedSignedBordereau for receiveAddress: " + receiveAddress + " : " + Base64.encodeBase64String(unblindedSignedBordereau));
         }
-        if (!cryptoService.verifyUnblindedSignedBordereau(bordereau, unblindedSignedBordereau)) {
+        if (!cryptoService.verifyUnblindedSignedBordereau(receiveAddress, unblindedSignedBordereau)) {
             throw new Exception("Invalid unblindedBordereau");
         }
 
@@ -53,8 +53,8 @@ public class RegisterOutputService {
         }
 
         // verify blindedBordereau never registered
-        if (dbService.isBordereauRegistered(bordereau)) {
-            throw new IllegalBordereauException("bordereau already registered");
+        if (dbService.isReceiveAddressRegistered(receiveAddress)) {
+            throw new IllegalBordereauException("receiveAddress already registered");
         }
     }
 

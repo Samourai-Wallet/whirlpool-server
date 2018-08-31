@@ -290,7 +290,7 @@ public class MixLimitsService {
         String mixId = mix.getMixId();
 
         // blame users who didn't register outputs
-        Set<RegisteredInput> registeredInputsToBlame = mix.getInputs().parallelStream().filter(input -> !mix.getRevealedOutputUsers().contains(input.getUsername())).collect(Collectors.toSet());
+        Set<RegisteredInput> registeredInputsToBlame = mix.getInputs().parallelStream().filter(input -> !mix.hasRevealedOutputUsername(input.getUsername())).collect(Collectors.toSet());
         registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
 
         // reset mix
