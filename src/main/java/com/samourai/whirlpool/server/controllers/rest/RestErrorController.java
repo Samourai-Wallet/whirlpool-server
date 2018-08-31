@@ -22,7 +22,7 @@ public class RestErrorController implements ErrorController {
     ResponseEntity<RestErrorResponse> error(WebRequest webRequest, HttpServletResponse response){
         Throwable cause = errorAttributes.getError(webRequest);
         RestErrorResponse restErrorResponse = new RestErrorResponse();
-        restErrorResponse.message = cause.getMessage();
+        restErrorResponse.message = (cause != null ? cause.getMessage() : "system error");
         return ResponseEntity.status(response.getStatus()).body(restErrorResponse);
     }
 
