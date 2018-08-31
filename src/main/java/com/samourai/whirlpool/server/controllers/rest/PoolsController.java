@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.lang.invoke.MethodHandles;
 
 @RestController
-public class PoolsController {
+public class PoolsController extends AbstractRestController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private PoolService poolService;

@@ -3,9 +3,12 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.whirlpool.server.beans.BlameReason;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.RevocationType;
 import com.samourai.whirlpool.server.persistence.repositories.MixRepository;
+import com.samourai.whirlpool.server.persistence.repositories.RevocationRepository;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
+import com.samourai.whirlpool.server.persistence.to.RevocationTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -17,28 +20,19 @@ import java.util.Set;
 
 @Service
 public class DbService {
-    private Set<String> blindedBordereaux;
     private Set<String> receiveAddresses;
     private List<BlameTO> blames;
     private MixRepository mixRepository;
+    private RevocationRepository revokedBordereauRepository;
 
-    public DbService(MixRepository mixRepository) {
+    public DbService(MixRepository mixRepository, RevocationRepository revokedBordereauRepository) {
         this.mixRepository = mixRepository;
+        this.revokedBordereauRepository = revokedBordereauRepository;
         __reset(); // TODO
     }
 
     private String computeKeyBlindedBordereau(byte[] blindedBordereau) {
         return Utils.sha512Hex(blindedBordereau);
-    }
-
-    public void registerBlindedBordereau(byte[] blindedBordereau) {
-        String key = computeKeyBlindedBordereau(blindedBordereau);
-        blindedBordereaux.add(key);
-    }
-
-    public boolean isBlindedBordereauRegistered(byte[] blindedBordereau) {
-        String key = computeKeyBlindedBordereau(blindedBordereau);
-        return blindedBordereaux.contains(key);
     }
 
     public void registerReceiveAddress(String receiveAddress) {
@@ -59,12 +53,20 @@ public class DbService {
         mixRepository.save(mixTO);
     }
 
+    public void revokeReceiveAddress(String receiveAddress) {
+        RevocationTO revocationTO = new RevocationTO(RevocationType.RECEIVE_ADDRESS, receiveAddress);
+        revokedBordereauRepository.save(revocationTO);
+    }
+
+    public boolean hasRevokedReceiveAddress(String receiveAddress) {
+        return revokedBordereauRepository.findByRevocationTypeAndValue(RevocationType.RECEIVE_ADDRESS, receiveAddress).isPresent();
+    }
+
     public Iterable<MixTO> findMixs() {
         return mixRepository.findAll(new Sort(Sort.Direction.DESC, "created"));
     }
 
     public void __reset() {
-        blindedBordereaux = new HashSet<>();
         receiveAddresses = new HashSet<>();
         blames = new ArrayList<>();
     }

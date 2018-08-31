@@ -33,11 +33,6 @@ public class RegisterInputService {
     }
 
     public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
-        // verify blindedBordereau never registered
-        if (dbService.isBlindedBordereauRegistered(blindedBordereau)) {
-            throw new IllegalBordereauException("blindedBordereau already registered");
-        }
-
         // verify UTXO not banned
         if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
             log.warn("Rejecting banned UTXO: "+utxoHash+":"+utxoIndex);
@@ -55,9 +50,6 @@ public class RegisterInputService {
 
         // register input and send back signedBordereau
         mixService.registerInput(mixId, username, txOutPoint, pubkey, signedBordereauToReply, liquidity);
-
-        // register blindedBordereau
-        dbService.registerBlindedBordereau(blindedBordereau);
     }
 
     private void checkInputSignature(String mixId, byte[] pubkeyHex, String signature) throws IllegalInputException {
