@@ -4,13 +4,15 @@ public class RegisteredInput {
     private String username;
     private TxOutPoint input;
     private byte[] pubkey;
+    private byte[] blindedBordereau;
     private boolean liquidity;
     private boolean offline;
 
-    public RegisteredInput(String username, TxOutPoint input, byte[] pubkey, boolean liquidity) {
+    public RegisteredInput(String username, TxOutPoint input, byte[] pubkey, byte[] blindedBordereau, boolean liquidity) {
         this.username = username;
         this.input = input;
         this.pubkey = pubkey;
+        this.blindedBordereau = blindedBordereau;
         this.liquidity = liquidity;
         this.offline = false;
     }
@@ -25,6 +27,10 @@ public class RegisteredInput {
 
     public byte[] getPubkey() {
         return pubkey;
+    }
+
+    public byte[] getBlindedBordereau() {
+        return blindedBordereau;
     }
 
     public boolean isLiquidity() {

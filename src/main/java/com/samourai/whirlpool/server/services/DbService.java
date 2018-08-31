@@ -14,13 +14,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class DbService {
-    private Set<String> receiveAddresses;
     private List<BlameTO> blames;
     private MixRepository mixRepository;
     private RevocationRepository revokedBordereauRepository;
@@ -35,14 +32,6 @@ public class DbService {
         return Utils.sha512Hex(blindedBordereau);
     }
 
-    public void registerReceiveAddress(String receiveAddress) {
-        receiveAddresses.add(receiveAddress);
-    }
-
-    public boolean isReceiveAddressRegistered(String receiveAddress) {
-        return receiveAddresses.contains(receiveAddress);
-    }
-
     public void saveBlame(RegisteredInput registeredInput, BlameReason blameReason, String mixId) {
         BlameTO blameTO = new BlameTO(registeredInput, blameReason, mixId);
         blames.add(blameTO);
@@ -53,12 +42,14 @@ public class DbService {
         mixRepository.save(mixTO);
     }
 
+    // receiveAddress
+
     public void revokeReceiveAddress(String receiveAddress) {
         RevocationTO revocationTO = new RevocationTO(RevocationType.RECEIVE_ADDRESS, receiveAddress);
         revokedBordereauRepository.save(revocationTO);
     }
 
-    public boolean hasRevokedReceiveAddress(String receiveAddress) {
+    public boolean isRevokedReceiveAddress(String receiveAddress) {
         return revokedBordereauRepository.findByRevocationTypeAndValue(RevocationType.RECEIVE_ADDRESS, receiveAddress).isPresent();
     }
 
@@ -67,7 +58,6 @@ public class DbService {
     }
 
     public void __reset() {
-        receiveAddresses = new HashSet<>();
         blames = new ArrayList<>();
     }
 }

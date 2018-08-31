@@ -2,10 +2,10 @@ package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -13,16 +13,12 @@ import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.Script;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
-import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,19 +47,6 @@ public class Utils {
     public static boolean listEqualsIgnoreOrder(List first, List second) {
         return (first.size() == second.size() &&
                 first.containsAll(second) && second.containsAll(first));
-    }
-
-    public static AsymmetricCipherKeyPair generateKeyPair() {
-        // Generate a 2048-bit RSA key pair.
-        RSAKeyPairGenerator generator = new RSAKeyPairGenerator();
-        /*new RsaKeyGenerationParameters(
-                RSA_F4,
-                secureRandom,
-                2048,
-                100)
-                */
-        generator.init(new RSAKeyGenerationParameters(new BigInteger("10001", 16), secureRandom, 2048, 80));
-        return generator.generateKeyPair();
     }
 
     public static String sha512Hex(byte[] data) {

@@ -25,9 +25,8 @@ public class RegisterOutputController extends AbstractRestController {
   private DbService dbService;
 
   @Autowired
-  public RegisterOutputController(RegisterOutputService registerOutputService, BlameService blameService, DbService dbService) {
+  public RegisterOutputController(RegisterOutputService registerOutputService, DbService dbService) {
     this.registerOutputService = registerOutputService;
-    this.blameService = blameService;
     this.dbService = dbService;
   }
 
@@ -37,21 +36,7 @@ public class RegisterOutputController extends AbstractRestController {
       log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT + ": payload=" + Utils.toJsonString(payload));
     }
 
-    // verify receiveAddress not revoked
-    if (dbService.hasRevokedReceiveAddress(payload.receiveAddress)) {
-      throw new IllegalArgumentException("ReceiveAddress already used");
-    }
-
-    // verify receiveAddress not banned
-    if (blameService.isBannedReceiveAddress(payload.receiveAddress)) {
-      log.warn("Rejecting banned receiveAddress: " + payload.receiveAddress);
-      throw new IllegalArgumentException("Banned from service");
-    }
-
     // register output
     registerOutputService.registerOutput(payload.inputsHash, payload.unblindedSignedBordereau, payload.receiveAddress);
-
-    // revoke receiveAddress
-    dbService.revokeReceiveAddress(payload.receiveAddress);
   }
 }

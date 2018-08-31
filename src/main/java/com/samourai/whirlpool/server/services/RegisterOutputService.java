@@ -32,10 +32,10 @@ public class RegisterOutputService {
         validate(unblindedSignedBordereau, receiveAddress);
 
         // register
-        mixService.registerOutput(inputsHash, receiveAddress);
+        mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
 
-        // register receiveAddress
-        dbService.registerReceiveAddress(receiveAddress);
+        // revoke receiveAddress
+        dbService.revokeReceiveAddress(receiveAddress);
     }
 
     private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
@@ -43,17 +43,14 @@ public class RegisterOutputService {
         if (log.isDebugEnabled()) {
             log.debug("Verifying unblindedSignedBordereau for receiveAddress: " + receiveAddress + " : " + Base64.encodeBase64String(unblindedSignedBordereau));
         }
-        if (!cryptoService.verifyUnblindedSignedBordereau(receiveAddress, unblindedSignedBordereau)) {
-            throw new Exception("Invalid unblindedBordereau");
-        }
 
         // verify output
         if (!formatsUtil.isValidBech32(receiveAddress)) {
             throw new Exception("Invalid receiveAddress");
         }
 
-        // verify blindedBordereau never registered
-        if (dbService.isReceiveAddressRegistered(receiveAddress)) {
+        // verify receiveAddress not revoked
+        if (dbService.isRevokedReceiveAddress(receiveAddress)) {
             throw new IllegalBordereauException("receiveAddress already registered");
         }
     }

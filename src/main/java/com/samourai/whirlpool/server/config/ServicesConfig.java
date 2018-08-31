@@ -33,7 +33,7 @@ public class ServicesConfig {
 
     @Bean
     CryptoService cryptoService() throws Exception {
-        return new CryptoService(whirlpoolServerConfig.getKeyPair(), whirlpoolServerConfig.getNetworkParameters());
+        return new CryptoService(whirlpoolServerConfig.getNetworkParameters());
     }
 
     @Bean

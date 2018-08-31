@@ -7,6 +7,7 @@ import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.Transaction;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -16,6 +17,7 @@ public class Mix {
     private MixTO mixTO;
 
     private String mixId;
+    private AsymmetricCipherKeyPair keyPair;
     private Timestamp timeStarted;
     private Map<MixStatus,Timestamp> timeStatus;
 
@@ -33,9 +35,10 @@ public class Mix {
     private Transaction tx;
     private FailReason failReason;
 
-    public Mix(String mixId, Pool pool) {
+    public Mix(String mixId, Pool pool, AsymmetricCipherKeyPair keyPair) {
         this.mixTO = null;
         this.mixId = mixId;
+        this.keyPair = keyPair;
         this.timeStarted = new Timestamp(System.currentTimeMillis());
         this.timeStatus = new HashMap<>();
 
@@ -52,10 +55,6 @@ public class Mix {
 
         this.tx = null;
         this.failReason = null;
-    }
-
-    public Mix(String mixId, Mix copyMix) {
-        this(mixId, copyMix.getPool());
     }
 
     public MixTO computeMixTO() {
@@ -93,6 +92,10 @@ public class Mix {
 
     public String getMixId() {
         return mixId;
+    }
+
+    public AsymmetricCipherKeyPair getKeyPair() {
+        return keyPair;
     }
 
     public Timestamp getTimeStarted() {

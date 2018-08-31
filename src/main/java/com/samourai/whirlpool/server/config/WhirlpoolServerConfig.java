@@ -1,10 +1,8 @@
 package com.samourai.whirlpool.server.config;
 
-import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +13,6 @@ import javax.validation.constraints.NotEmpty;
 public class WhirlpoolServerConfig {
 
     private SamouraiFeeConfig samouraiFees;
-    private AsymmetricCipherKeyPair keyPair = Utils.generateKeyPair(); // TODO use real keyPair
     private boolean testnet;
     private RpcClientConfig rpcClient;
     private RegisterInputConfig registerInput;
@@ -32,14 +29,6 @@ public class WhirlpoolServerConfig {
 
     public void setSamouraiFees(SamouraiFeeConfig samouraiFees) {
         this.samouraiFees = samouraiFees;
-    }
-
-    public AsymmetricCipherKeyPair getKeyPair() {
-        return keyPair;
-    }
-
-    public void setKeyPair(AsymmetricCipherKeyPair keyPair) {
-        this.keyPair = keyPair;
     }
 
     public NetworkParameters getNetworkParameters() {

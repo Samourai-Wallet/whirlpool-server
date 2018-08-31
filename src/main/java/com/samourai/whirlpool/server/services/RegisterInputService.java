@@ -45,11 +45,8 @@ public class RegisterInputService {
         // verify signature
         checkInputSignature(mixId, pubkey, signature);
 
-        // prepare signedBordereau
-        byte[] signedBordereauToReply = cryptoService.signBlindedOutput(blindedBordereau);
-
         // register input and send back signedBordereau
-        mixService.registerInput(mixId, username, txOutPoint, pubkey, signedBordereauToReply, liquidity);
+        mixService.registerInput(mixId, username, txOutPoint, pubkey, blindedBordereau, liquidity);
     }
 
     private void checkInputSignature(String mixId, byte[] pubkeyHex, String signature) throws IllegalInputException {

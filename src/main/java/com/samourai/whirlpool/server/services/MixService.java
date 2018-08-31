@@ -8,7 +8,6 @@ import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.*;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.controllers.rest.RegisterOutputController;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
@@ -16,6 +15,7 @@ import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ public class MixService {
         this.__reset();
     }
 
-    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] signedBordereauToReply, boolean liquidity) throws IllegalInputException, MixException, QueueInputException {
+    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] blindedBordereau, boolean liquidity) throws IllegalInputException, MixException, QueueInputException {
         if (log.isDebugEnabled()) {
             log.debug("registerInput "+mixId+" : "+username+" : "+input);
         }
@@ -71,26 +71,26 @@ public class MixService {
             throw new IllegalInputException("Invalid input balance (expected: " + balanceMin + "-" + balanceMax + ", actual:"+input.getValue()+")");
         }
 
-        RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, liquidity);
+        RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, blindedBordereau, liquidity);
         if (liquidity) {
             if (!isRegisterLiquiditiesOpen(mix) || mix.isFull()) {
                 // place liquidity on queue instead of rejecting it
-                queueLiquidity(mix, registeredInput, signedBordereauToReply);
+                queueLiquidity(mix, registeredInput);
             }
             else {
                 // register liquidity if mix opened to liquidities and not full
-                registerInput(mix, registeredInput, signedBordereauToReply, true);
+                registerInput(mix, registeredInput, true);
             }
         }
         else {
             /*
              * user wants to mix
              */
-            registerInput(mix, registeredInput, signedBordereauToReply, false);
+            registerInput(mix, registeredInput, false);
         }
     }
 
-    private void queueLiquidity(Mix mix, RegisteredInput registeredInput, byte[] signedBordereauToReply) throws IllegalInputException, MixException {
+    private void queueLiquidity(Mix mix, RegisteredInput registeredInput) throws IllegalInputException, MixException {
         /*
          * liquidity placed in waiting pool
          */
@@ -100,7 +100,7 @@ public class MixService {
         }
 
         // queue liquidity for later
-        RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput, signedBordereauToReply);
+        RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput);
         liquidityPool.registerLiquidity(registeredInputQueued);
         log.info(" • [" + mix.getMixId() + "] queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
 
@@ -113,11 +113,11 @@ public class MixService {
         logMixStatus(mix);
     }
 
-    private synchronized void registerInput(Mix mix, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
+    private synchronized void registerInput(Mix mix, RegisteredInput registeredInput, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
         validateOnAddInput(mix, registeredInput);
 
         // registerInput + response
-        doRegisterInput(mix, registeredInput, signedBordereauToReply, isLiquidity);
+        doRegisterInput(mix, registeredInput, isLiquidity);
 
         // check mix limits
         mixLimitsService.onInputRegistered(mix);
@@ -142,7 +142,7 @@ public class MixService {
         }
     }
 
-    private void doRegisterInput(Mix mix, RegisteredInput registeredInput, byte[] signedBordereauToReply, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
+    private void doRegisterInput(Mix mix, RegisteredInput registeredInput, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
         TxOutPoint input = registeredInput.getInput();
         String username = registeredInput.getUsername();
 
@@ -163,6 +163,9 @@ public class MixService {
         log.info(" • registered "+(isLiquidity ? "liquidity" : "mustMix")+": " + registeredInput.getInput());
         logMixStatus(mix);
 
+        // sign bordereau
+        byte[] signedBordereauToReply = cryptoService.signBlindedOutput(registeredInput.getBlindedBordereau(), mix.getKeyPair());
+
         // response
         RegisterInputResponse registerInputResponse = new RegisterInputResponse();
         registerInputResponse.mixId = mix.getMixId();
@@ -171,7 +174,7 @@ public class MixService {
     }
 
     public void addLiquidity(Mix mix, RegisteredLiquidity randomLiquidity) throws Exception {
-        doRegisterInput(mix, randomLiquidity.getRegisteredInput(), randomLiquidity.getSignedBordereau(), true);
+        doRegisterInput(mix, randomLiquidity.getRegisteredInput(), true);
     }
 
     private boolean isRegisterLiquiditiesOpen(Mix mix) {
@@ -203,9 +206,15 @@ public class MixService {
         return true;
     }
 
-    public synchronized void registerOutput(String inputsHash, String receiveAddress) throws Exception {
-        log.info(" • registered output: " + receiveAddress);
+    public synchronized void registerOutput(String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
         Mix mix = getMixByInputsHash(inputsHash, MixStatus.REGISTER_OUTPUT);
+
+        // verify unblindedSignedBordereau
+        if (!cryptoService.verifyUnblindedSignedBordereau(receiveAddress, unblindedSignedBordereau, mix.getKeyPair())) {
+            throw new Exception("Invalid unblindedSignedBordereau");
+        }
+
+        log.info(" • registered output: " + receiveAddress);
         mix.registerOutput(receiveAddress);
 
         if (isRegisterOutputReady(mix)) {
@@ -372,7 +381,7 @@ public class MixService {
         switch(mix.getMixStatus()) {
             case REGISTER_INPUT:
                 try {
-                    byte[] publicKey = cryptoService.getPublicKey().getEncoded();
+                    byte[] publicKey = cryptoService.computePublicKey(mix.getKeyPair()).getEncoded();
                     mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFeeMin(), mix.getPool().getMinerFeeMax());
                 }
                 catch(Exception e) {
@@ -555,7 +564,8 @@ public class MixService {
 
     public Mix __nextMix(Pool pool) {
         String mixId = Utils.generateUniqueString();
-        Mix mix = new Mix(mixId, pool);
+        AsymmetricCipherKeyPair keyPair = cryptoService.generateKeyPair();
+        Mix mix = new Mix(mixId, pool, keyPair);
         startMix(mix);
         return mix;
     }
