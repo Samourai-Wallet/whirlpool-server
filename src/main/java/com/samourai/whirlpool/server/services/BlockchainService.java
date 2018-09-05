@@ -30,8 +30,6 @@ public class BlockchainService {
     }
 
     public TxOutPoint validateAndGetPremixInput(String utxoHash, long utxoIndex, byte[] pubkeyHex, boolean liquidity) throws IllegalInputException, UnconfirmedInputException {
-        long samouraiFeesMin = whirlpoolServerConfig.getSamouraiFees().getAmount();
-
         RpcOutWithTx rpcOutWithTx = blockchainDataService.getRpcOutWithTx(utxoHash, utxoIndex).orElseThrow(
                 () -> new IllegalInputException("UTXO not found: " + utxoHash + "-" + utxoIndex)
         );
@@ -44,8 +42,9 @@ public class BlockchainService {
         checkInputConfirmations(rpcOutWithTx.getTx(), liquidity);
 
         // verify input comes from a valid tx0 (or from a valid mix)
+        long samouraiFeesMin = whirlpoolServerConfig.getSamouraiFees().getAmount();
         if (samouraiFeesMin > 0) {
-            boolean isLiquidity = tx0Service.checkInput(rpcOutWithTx, samouraiFeesMin);
+            boolean isLiquidity = tx0Service.checkInput(rpcOutWithTx);
             if (!isLiquidity && liquidity) {
                 throw new IllegalArgumentException("Input rejected: not recognized as a liquidity (but as a mustMix)");
             }

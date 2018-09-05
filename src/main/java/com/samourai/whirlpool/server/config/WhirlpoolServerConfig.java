@@ -375,7 +375,7 @@ public class WhirlpoolServerConfig {
     public static class SamouraiFeeConfig {
         @NotEmpty
         private String xpub;
-        private int amount;
+        private long amount;
 
         public String getXpub() {
             return xpub;
@@ -385,11 +385,11 @@ public class WhirlpoolServerConfig {
             this.xpub = xpub;
         }
 
-        public int getAmount() {
+        public long getAmount() {
             return amount;
         }
 
-        public void setAmount(int amount) {
+        public void setAmount(long amount) {
             this.amount = amount;
         }
     }

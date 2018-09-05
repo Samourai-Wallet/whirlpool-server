@@ -84,6 +84,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected Tx0Service tx0Service;
 
+    @Autowired
+    protected CacheService cacheService;
+
     protected MessageSignUtil messageSignUtil;
 
     protected MixLimitsService mixLimitsService;
@@ -107,6 +110,7 @@ public abstract class AbstractIntegrationTest {
         rpcClientService.resetMock();
 
         configurePools(serverConfig.getPools());
+        cacheService._reset();
     }
 
     protected void configurePools(WhirlpoolServerConfig.PoolConfig... poolConfigs) {

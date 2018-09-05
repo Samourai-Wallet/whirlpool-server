@@ -8,6 +8,7 @@ import com.samourai.whirlpool.server.services.CryptoService;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -16,6 +17,7 @@ import org.springframework.core.task.TaskExecutor;
 import java.lang.invoke.MethodHandles;
 
 @Configuration
+@EnableCaching
 public class ServicesConfig {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

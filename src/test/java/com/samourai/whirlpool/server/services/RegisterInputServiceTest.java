@@ -49,12 +49,16 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         serverConfig.getRegisterInput().setMinConfirmationsLiquidity(MIN_CONFIRMATIONS_LIQUIDITY);
     }
 
+    private byte[] computeBlindedBordereau(String outputAddress) throws Exception {
+        RSAKeyParameters serverPublicKey = (RSAKeyParameters) cryptoService.generateKeyPair().getPublic();
+        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
+        return clientCryptoService.blind(outputAddress.toString(), blindingParams);
+    }
+
     private byte[] validBlindedBordereau = null;
     final Function<Boolean,TxOutPoint> runTestValidInput = (Boolean liquidity) -> {
         TxOutPoint txOutPoint = null;
         try {
-            RSAKeyParameters serverPublicKey = (RSAKeyParameters) Utils.generateKeyPair().getPublic();
-
             Mix mix = __getCurrentMix();
             String mixId = mix.getMixId();
             String username = "user1";
@@ -64,8 +68,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             String signature = ecKey.signMessage(mixId);
             
             SegwitAddress outputAddress = testUtils.createSegwitAddress();
-            RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-            validBlindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
+            validBlindedBordereau = computeBlindedBordereau(outputAddress.toString());
 
             long inputBalance = mix.computeInputBalanceMin(liquidity);
             int confirmations = liquidity ? MIN_CONFIRMATIONS_LIQUIDITY : MIN_CONFIRMATIONS_MUSTMIX;
@@ -90,9 +93,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         Mix mix = __getCurrentMix();
         LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
 
-        // bordereau should be registered
-        Assert.assertTrue(dbService.isBlindedBordereauRegistered(validBlindedBordereau));
-
         // mustMix should be registered
         Assert.assertEquals(1, mix.getNbInputs());
         Assert.assertTrue(mix.hasInput(txOutPoint));
@@ -111,9 +111,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         Mix mix = __getCurrentMix();
         LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
 
-        // bordereau should be registered
-        Assert.assertTrue(dbService.isBlindedBordereauRegistered(validBlindedBordereau));
-
         // liquidity should not be registered
         Assert.assertEquals(0, mix.getNbInputs());
         Assert.assertFalse(mix.hasInput(txOutPoint));
@@ -125,7 +122,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     @Test
     public void registerInput_shouldFailWhenInvalidMixId() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
         Mix mix = __getCurrentMix();
 
         String mixId = "INVALID"; // INVALID
@@ -137,8 +133,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = ecKey.signMessage(mixId);
         
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
         long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -150,12 +145,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau));
     }
 
     @Test
     public void registerInput_shouldFailWhenInvalidMixStatus() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
         String mixId = __getCurrentMix().getMixId();
 
         String username = "user1";
@@ -166,8 +159,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = ecKey.signMessage(mixId);
         
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
         Mix mix = __getCurrentMix();
         long inputBalance = mix.computeInputBalanceMin(false);
@@ -177,8 +169,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
 
         // new bordereau
-        blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        blindedBordereau = computeBlindedBordereau(outputAddress);
 
         // TEST
         // all mixStatus != REGISTER_INPUTS
@@ -193,13 +184,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau));
     }
 
     @Test
     public void registerInput_shouldFailWhenInvalidSignature() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -210,8 +198,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = "INVALID";
         
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
         long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -223,13 +210,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau));
     }
 
     @Test
     public void registerInput_shouldFailWhenInvalidPubkey() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -240,8 +224,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = ecKey.signMessage(mixId);
         
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
         long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -253,13 +236,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau));
     }
 
     @Test
     public void registerInput_shouldFailWhenDuplicateBordereau() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -268,9 +248,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = ecKey.signMessage(mixId);
-        
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
+
+        byte[] blindedBordereau = computeBlindedBordereau("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ");
 
         long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -284,13 +263,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau));
     }
 
     @Test
     public void registerInput_shouldFailWhenDuplicateInputsSameMix() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -299,10 +275,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = ecKey.signMessage(mixId);
-        
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau1 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ", blindingParams);
-        byte[] blindedBordereau2 = clientCryptoService.blind("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBZ", blindingParams);
+
+        byte[] blindedBordereau1 = computeBlindedBordereau("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ");
+        byte[] blindedBordereau2 = computeBlindedBordereau("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBZ");
 
         long inputBalance = mix.computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -316,14 +291,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertTrue(dbService.isBlindedBordereauRegistered(blindedBordereau1));
-        Assert.assertFalse(dbService.isBlindedBordereauRegistered(blindedBordereau2));
     }
 
     @Test
     public void registerInput_shouldFailWhenBalanceTooLow() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -334,8 +305,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = ecKey.signMessage(mixId);
         
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
         long inputBalance = mix.computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -351,8 +321,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     @Test
     public void registerInput_shouldFailWhenBalanceTooHigh() throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -363,8 +331,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = ecKey.signMessage(mixId);
         
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress, blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
         long inputBalance = mix.computeInputBalanceMax(false) + 1;// BALANCE TOO HIGH
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
@@ -379,8 +346,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     }
 
     private void doRegisterInput(int confirmations, boolean liquidity, boolean expectedSuccess) throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters)Utils.generateKeyPair().getPublic();
-
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "user1";
@@ -391,8 +356,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         String signature = ecKey.signMessage(mixId);
 
         SegwitAddress outputAddress = testUtils.createSegwitAddress();
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        byte[] blindedBordereau = clientCryptoService.blind(outputAddress.toString(), blindingParams);
+        byte[] blindedBordereau = computeBlindedBordereau(outputAddress.toString());
 
         long inputBalance = mix.computeInputBalanceMin(false);
         // mock input with 0 confirmations
@@ -404,7 +368,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         if (expectedSuccess) {
             Assert.assertEquals(1, mix.getNbInputs());
             Assert.assertTrue(mix.hasInput(txOutPoint));
-            Assert.assertTrue(dbService.isBlindedBordereauRegistered(blindedBordereau));
         } else {
             Assert.assertTrue(false); // exception expected before
         }
