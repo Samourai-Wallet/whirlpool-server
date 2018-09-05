@@ -71,49 +71,51 @@ public class CacheServiceTest extends AbstractIntegrationTest {
         return new CachedResult(result);
     }
 
-    protected CachedResult<String,Exception> fooCachedResult(Exception e) {
-        return new CachedResult(e);
-    }
-
     @Test
-    public void getOrPutCachedResult() throws Exception {
-        String CACHE_NAME = "TEST_getOrPutCachedResult";
+    public void getOrPutCachedResult_value() throws Exception {
+        String CACHE_NAME = "TEST_getOrPutCachedResult_value";
 
         // TEST: first call => not cached
         final CacheServiceTest spy = Mockito.spy(this);
         int nbCallsExpected = 0;
         Assert.assertEquals("result111", cacheService.getOrPutCachedResult(CACHE_NAME, "111", (v) -> spy.fooCachedResult("result111")));
         // VERIFY
-        Mockito.verify(spy, Mockito.times(++nbCallsExpected)).foo(Mockito.anyString());
+        Mockito.verify(spy, Mockito.times(++nbCallsExpected)).fooCachedResult(Mockito.anyString());
 
         // TEST: second call => cached
         Assert.assertEquals("result111", cacheService.getOrPutCachedResult(CACHE_NAME, "111", (v) -> spy.fooCachedResult("result111")));
         // VERIFY
-        Mockito.verify(spy, Mockito.times(nbCallsExpected)).foo(Mockito.anyString());
+        Mockito.verify(spy, Mockito.times(nbCallsExpected)).fooCachedResult(Mockito.anyString());
+    }
 
-        // TEST: different call => not cached, exception
+    protected CachedResult<String,Exception> fooCachedResult(Exception e) {
+        return new CachedResult(e);
+    }
+
+    @Test
+    public void getOrPutCachedResult_exception() throws Exception {
+        String CACHE_NAME = "TEST_getOrPutCachedResult_exception";
+
+        // TEST: first call => not cached, exception
+        final CacheServiceTest spy = Mockito.spy(this);
+        int nbCallsExpected = 0;
         try {
-            cacheService.getOrPutCachedResult(CACHE_NAME, "111", (v) -> new CachedResult<>(spy.fooCachedResult(new Exception("222")))); // exception expected
+            cacheService.getOrPutCachedResult(CACHE_NAME, "222", (v) -> spy.fooCachedResult(new Exception("222"))); // exception expected
             Assert.assertTrue(false);
         } catch(Exception e) {
             Assert.assertEquals("222", e.getMessage());
         }
         // VERIFY
-        Mockito.verify(spy, Mockito.times(++nbCallsExpected)).foo(Mockito.anyString());
+        Mockito.verify(spy, Mockito.times(++nbCallsExpected)).fooCachedResult(Mockito.any(Exception.class));
 
-        // TEST: different call again => cached, exception
+        // TEST: second call again => cached, exception
         try {
-            cacheService.getOrPutCachedResult(CACHE_NAME, "111", (v) -> new CachedResult<>(spy.fooCachedResult(new Exception("222")))); // exception expected
+            cacheService.getOrPutCachedResult(CACHE_NAME, "222", (v) -> spy.fooCachedResult(new Exception("222"))); // exception expected
             Assert.assertTrue(false);
         } catch(Exception e) {
             Assert.assertEquals("222", e.getMessage());
         }
         // VERIFY
-        Mockito.verify(spy, Mockito.times(nbCallsExpected)).foo(Mockito.anyString());
-
-        // TEST: first call => still cached
-        Assert.assertEquals("result111", cacheService.getOrPutCachedResult(CACHE_NAME, "111", (v) -> spy.fooCachedResult("result111")));
-        // VERIFY
-        Mockito.verify(spy, Mockito.times(nbCallsExpected)).foo(Mockito.anyString());
+        Mockito.verify(spy, Mockito.times(nbCallsExpected)).fooCachedResult(Mockito.any(Exception.class));
     }
 }
