@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.config.security;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
+import com.samourai.whirlpool.server.controllers.web.ConfigWebController;
 import com.samourai.whirlpool.server.controllers.web.HistoryWebController;
 import com.samourai.whirlpool.server.controllers.web.StatusWebController;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // restrict admin
         .antMatchers(StatusWebController.ENDPOINT).hasAuthority(WhirlpoolPrivilege.STATUS.toString())
         .antMatchers(HistoryWebController.ENDPOINT).hasAuthority(WhirlpoolPrivilege.HISTORY.toString())
+        .antMatchers(ConfigWebController.ENDPOINT).hasAuthority(WhirlpoolPrivilege.CONFIG.toString())
 
         // reject others
         .anyRequest().denyAll()

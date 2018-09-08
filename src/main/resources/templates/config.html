@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{decorators/dashboard}"
+      th:with="currentPage = 'config'">
+<head>
+    <title>Configuration</title>
+    <link rel="stylesheet" th:href="@{/css/config.css}" />
+</head>
+<body>
+    <div layout:fragment="main">
+        <h1 class="h2">Configuration</h1>
+
+        <div class="table-responsive">
+        <table class="table table-sm history">
+            <thead>
+            <tr>
+                <th scope="col">Key</th>
+                <th scope="col">Value</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : *{configInfo}">
+                    <td class="configInfoKey"><span th:text="${entry.key}"/></td>
+                    <td class="configInfoValue"><pre><code th:text="${entry.value}"/></pre></td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</body>
+
+</html>
