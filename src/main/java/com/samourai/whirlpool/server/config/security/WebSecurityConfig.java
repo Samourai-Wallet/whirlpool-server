@@ -41,9 +41,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(REST_MIX_ENDPOINTS).permitAll()
 
         // restrict admin
-        .antMatchers(StatusWebController.ENDPOINT).hasAuthority(WhirlpoolPrivilege.STATUS.toString())
-        .antMatchers(HistoryWebController.ENDPOINT).hasAuthority(WhirlpoolPrivilege.HISTORY.toString())
-        .antMatchers(ConfigWebController.ENDPOINT).hasAuthority(WhirlpoolPrivilege.CONFIG.toString())
+        .antMatchers(StatusWebController.ENDPOINT).hasAnyAuthority(WhirlpoolPrivilege.STATUS.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(HistoryWebController.ENDPOINT).hasAnyAuthority(WhirlpoolPrivilege.HISTORY.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(ConfigWebController.ENDPOINT).hasAnyAuthority(WhirlpoolPrivilege.CONFIG.toString(), WhirlpoolPrivilege.ALL.toString())
 
         // reject others
         .anyRequest().denyAll()
