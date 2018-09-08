@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server;
 
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.DbUtils;
 import com.samourai.whirlpool.server.utils.LogbackUtils;
@@ -13,6 +14,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+
+import java.util.Map;
 
 @SpringBootApplication
 public class Application implements ApplicationRunner {
@@ -34,6 +37,9 @@ public class Application implements ApplicationRunner {
 	@Autowired
 	private DbUtils dbUtils;
 
+	@Autowired
+	private WhirlpoolServerConfig whirlpoolServerConfig;
+
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 	}
@@ -50,6 +56,7 @@ public class Application implements ApplicationRunner {
 		if (args.containsOption(ARG_DEBUG)) {
 			// enable debug logs
 			Utils.setLoggerDebug("com.samourai.whirlpool.server");
+			//Utils.setLoggerDebug("org.springframework.security");
 
 			// skip noisy logs in debug mode
 			LogbackUtils.setLogLevel("org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter", Level.INFO.toString());
@@ -61,6 +68,9 @@ public class Application implements ApplicationRunner {
 		}
 
 		log.info("------------ whirlpool-server ------------");
+		for (Map.Entry<String,String> entry : whirlpoolServerConfig.getConfigInfo().entrySet()) {
+			log.info(entry.getKey() + ": " + entry.getValue());
+		}
 	}
 
 	private void exit() {
