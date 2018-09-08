@@ -32,7 +32,7 @@ public class RegisterInputService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
+    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity, boolean testMode) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
         // verify UTXO not banned
         if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
             log.warn("Rejecting banned UTXO: "+utxoHash+":"+utxoIndex);
@@ -40,7 +40,7 @@ public class RegisterInputService {
         }
 
         // validate input
-        TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity);
+        TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
 
         // verify signature
         checkInputSignature(mixId, pubkey, signature);

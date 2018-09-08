@@ -7,12 +7,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @ConfigurationProperties(prefix = "server")
 @Configuration
 public class WhirlpoolServerConfig {
 
     private SamouraiFeeConfig samouraiFees;
+    private boolean testMode;
     private boolean testnet;
     private RpcClientConfig rpcClient;
     private RegisterInputConfig registerInput;
@@ -25,6 +29,14 @@ public class WhirlpoolServerConfig {
 
     public SamouraiFeeConfig getSamouraiFees() {
         return samouraiFees;
+    }
+
+    public boolean isTestMode() {
+        return testMode;
+    }
+
+    public void setTestMode(boolean testMode) {
+        this.testMode = testMode;
     }
 
     public void setSamouraiFees(SamouraiFeeConfig samouraiFees) {
@@ -392,5 +404,29 @@ public class WhirlpoolServerConfig {
         public void setAmount(long amount) {
             this.amount = amount;
         }
+    }
+
+    public Map<String,String> getConfigInfo() {
+        Map<String,String> configInfo = new LinkedHashMap<>();
+        configInfo.put("testMode", String.valueOf(testMode));
+        configInfo.put("rpcClient", rpcClient.getHost() + ":" + rpcClient.getPort() + "," + (testnet ? "testnet" : "mainnet"));
+
+        configInfo.put("samouraiFees", String.valueOf(samouraiFees.amount) +", xpub=" + samouraiFees.xpub.substring(0,3) + "..." + samouraiFees.xpub.substring(samouraiFees.xpub.length()-3, samouraiFees.xpub.length()));
+
+        configInfo.put("registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));
+        configInfo.put("registerInput.minConfirmations", "liquidity=" + registerInput.minConfirmationsLiquidity + ", mustMix=" + registerInput.minConfirmationsMustMix);
+
+        String timeoutInfo = "registerOutput=" + String.valueOf(registerOutput.timeout) + ", signing=" + String.valueOf(signing.timeout) + ", revealOutput=" + String.valueOf(revealOutput.timeout);
+        configInfo.put("timeouts", timeoutInfo);
+        configInfo.put("export.mixs", export.mixs.directory + " -> " + export.mixs.filename);
+        configInfo.put("ban.blames", String.valueOf(ban.blames));
+        for (PoolConfig poolConfig : pools) {
+            String poolInfo = "denomination=" + String.valueOf(poolConfig.denomination);
+            poolInfo += ", anonymitySet=" + poolConfig.anonymitySetTarget + "[" + poolConfig.anonymitySetMin + "-" + poolConfig.anonymitySetMax + "]";
+            poolInfo += ", minerFee=[" + poolConfig.minerFeeMin + "-" + poolConfig.minerFeeMax + "]";
+            poolInfo += ", liquidityTimeout=" + String.valueOf(poolConfig.liquidityTimeout);
+            configInfo.put("pools["+poolConfig.id+"]", poolInfo);
+        }
+        return configInfo;
     }
 }

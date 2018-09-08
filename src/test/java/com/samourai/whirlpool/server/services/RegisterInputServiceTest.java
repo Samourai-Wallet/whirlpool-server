@@ -75,7 +75,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             txOutPoint = rpcClientService.createAndMockTxOutPoint(new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance, confirmations);
 
             // TEST
-            registerInputService.registerInput(mixId, username, pubkey, signature, validBlindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity);
+            registerInputService.registerInput(mixId, username, pubkey, signature, validBlindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, false);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,7 +141,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(MixException.class);
         thrown.expectMessage("Mix not found");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -166,7 +166,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // register first input
-        registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // new bordereau
         blindedBordereau = computeBlindedBordereau(outputAddress);
@@ -178,7 +178,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
                 mixService.changeMixStatus(mix.getMixId(), mixStatus);
                 thrown.expect(MixException.class);
                 thrown.expectMessage("Operation not permitted for current mix status");
-                registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+                registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
             }
         }
 
@@ -206,7 +206,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid signature");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -232,7 +232,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid pubkey for UTXO");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -255,11 +255,11 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         thrown.expect(IllegalBordereauException.class);
         thrown.expectMessage("blindedBordereau already registered");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -283,11 +283,11 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau1, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau1, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Input already registered for this mix");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau2, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau2, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -313,7 +313,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid input balance");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -339,7 +339,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid input balance");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, false);
 
         // VERIFY
         Assert.assertEquals(0, mix.getInputs().size());
@@ -362,7 +362,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         // mock input with 0 confirmations
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);
 
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity);
+        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, false);
 
         // VERIFY
         if (expectedSuccess) {
