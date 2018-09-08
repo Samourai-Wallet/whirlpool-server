@@ -33,7 +33,7 @@ import java.util.List;
 public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport implements WebSocketMessageBrokerConfigurer {
     private static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public static String[] WEBSOCKET_ENDPOINTS = new String[]{"/", // socket connect
+    public static String[] WEBSOCKET_ENDPOINTS = new String[]{WhirlpoolProtocol.ENDPOINT_CONNECT,
             WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT, WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT, WhirlpoolProtocol.ENDPOINT_SIGNING};
 
     @Autowired
