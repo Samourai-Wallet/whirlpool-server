@@ -4,6 +4,7 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
 import com.samourai.whirlpool.server.controllers.web.ConfigWebController;
 import com.samourai.whirlpool.server.controllers.web.HistoryWebController;
+import com.samourai.whirlpool.server.controllers.web.LoginWebController;
 import com.samourai.whirlpool.server.controllers.web.StatusWebController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +15,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -36,6 +35,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // public statics
         .antMatchers(statics).permitAll()
 
+        // public login form
+        .antMatchers(LoginWebController.ENDPOINT).permitAll()
+        .antMatchers(LoginWebController.PROCESS_ENDPOINT).permitAll()
+
         // public mixing websocket
         .antMatchers(WebSocketConfig.WEBSOCKET_ENDPOINTS).permitAll()
         .antMatchers(REST_MIX_ENDPOINTS).permitAll()
@@ -48,7 +51,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // reject others
         .anyRequest().denyAll()
         .and()
-        .formLogin().successHandler(successHandler());
+
+        // custom login form
+        .formLogin()
+        .loginProcessingUrl(LoginWebController.PROCESS_ENDPOINT)
+        .loginPage(LoginWebController.ENDPOINT)
+        .defaultSuccessUrl(StatusWebController.ENDPOINT,true);
     }
 
     @Bean
@@ -62,14 +70,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder(11);
-    }
-
-    @Bean
-    public AuthenticationSuccessHandler successHandler() {
-        SimpleUrlAuthenticationSuccessHandler handler = new SimpleUrlAuthenticationSuccessHandler();
-        handler.setUseReferer(true);
-        handler.setDefaultTargetUrl(StatusWebController.ENDPOINT);
-        handler.setAlwaysUseDefaultTargetUrl(true);
-        return handler;
     }
 }

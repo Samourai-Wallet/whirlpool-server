@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Authentication - Samourai Whirlpool</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="icon" href="https://samouraiwallet.com/static/favicon.ico" />
+
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.1.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/samourai.css}" />
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
+</head>
+<body>
+    <div class="login text-center">
+        <form class="form-signin" th:action="${action}" method="post">
+            <img class="mb-4" src="https://samouraiwallet.com/static/public/images/logo2.png" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 font-weight-normal">Sign in</h1>
+            <label for="username" class="sr-only">Login</label>
+            <input type="text" id="username" name="username" class="form-control" placeholder="Login" required autofocus>
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+            <p class="mt-5 mb-3 text-muted">&copy; Samourai Wallet</p>
+        </form>
+    </div>
+</body>
+
+</html>
