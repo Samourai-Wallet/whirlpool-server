@@ -21,11 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String[] REST_MIX_ENDPOINTS = new String[]{WhirlpoolProtocol.ENDPOINT_POOLS, WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT};
+    private static final String[] STATICS = new String[]{"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
-        String[] statics = new String[]{"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
 
         // disable csrf for mixing
         http.csrf().ignoringAntMatchers(REST_MIX_ENDPOINTS)
@@ -33,7 +32,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .and().authorizeRequests()
 
         // public statics
-        .antMatchers(statics).permitAll()
+        .antMatchers(STATICS).permitAll()
 
         // public login form
         .antMatchers(LoginWebController.ENDPOINT).permitAll()

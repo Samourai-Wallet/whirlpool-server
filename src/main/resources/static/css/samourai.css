@@ -9,3 +9,6 @@
 .form-control:focus {
   border-color: #b71c1c;
 }
+.page-middle {
+    margin-top:10%;
+}
