@@ -31,12 +31,23 @@ public class MixStatusController extends AbstractWebSocketController {
   }
 
   @SubscribeMapping(WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY)
-  public void mixStatusOnSubscribe(Principal principal, StompHeaderAccessor headers) throws Exception {
+  public void subscribePrivate(Principal principal, StompHeaderAccessor headers) throws Exception {
+    // nothing to do here
+    // no header version check here, to be able to send error notifications to outdated clients
+
+    if (log.isDebugEnabled()) {
+      String username = principal.getName();
+      log.info("[controller] subscribe:"+ headers.getDestination() + ": username=" + username);
+    }
+  }
+
+  @SubscribeMapping(WhirlpoolProtocol.SOCKET_SUBSCRIBE_QUEUE)
+  public void mixStatusOnSubscribeQueue(Principal principal, StompHeaderAccessor headers) throws Exception {
     validateHeaders(headers);
 
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.info("[controller] subscribe:"+ WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY + ": username=" + username);
+      log.info("[controller] subscribe:"+ headers.getDestination() + ": username=" + username);
     }
 
     // validate poolId
@@ -44,7 +55,6 @@ public class MixStatusController extends AbstractWebSocketController {
     Pool pool = poolService.getPool(headerPoolId); // exception if not found
 
     try {
-      Thread.sleep(1000); // wait to make sure client subscription is ready
       String mixId = pool.getCurrentMix().getMixId();
       getWebSocketService().sendPrivate(username, mixService.computeMixStatusNotification(mixId));
     }

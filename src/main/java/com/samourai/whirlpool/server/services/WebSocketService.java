@@ -42,7 +42,7 @@ public class WebSocketService {
 
     public void sendPrivate(Collection<String> usernames, Object payload){
         if (log.isDebugEnabled()) {
-            log.debug("(--> [" + usernames.size() + " ]" + String.join(",", usernames) + ") : " + Utils.toJsonString(payload));
+            log.debug("(--> [" + usernames.size() + "]" + String.join(",", usernames) + ") : " + Utils.toJsonString(payload));
         }
         usernames.forEach(username -> {
             taskExecutor.execute(() -> messagingTemplate.convertAndSendToUser(username, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY, payload, computeHeaders(payload)));
