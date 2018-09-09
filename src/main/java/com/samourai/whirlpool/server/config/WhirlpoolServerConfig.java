@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.config;
 
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
@@ -410,6 +411,7 @@ public class WhirlpoolServerConfig {
         Map<String,String> configInfo = new LinkedHashMap<>();
         configInfo.put("testMode", String.valueOf(testMode));
         configInfo.put("rpcClient", rpcClient.getHost() + ":" + rpcClient.getPort() + "," + (testnet ? "testnet" : "mainnet"));
+        configInfo.put("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
 
         configInfo.put("samouraiFees", String.valueOf(samouraiFees.amount) +", xpub=" + samouraiFees.xpub.substring(0,3) + "..." + samouraiFees.xpub.substring(samouraiFees.xpub.length()-3, samouraiFees.xpub.length()));
 
