@@ -106,8 +106,7 @@ public class MixService {
 
         // response
         String username = registeredInput.getUsername();
-        LiquidityQueuedResponse queuedLiquidityResponse = new LiquidityQueuedResponse();
-        queuedLiquidityResponse.foo = true; // this class needs at least 1 property
+        LiquidityQueuedResponse queuedLiquidityResponse = new LiquidityQueuedResponse(mix.getMixId());
         webSocketService.sendPrivate(username, queuedLiquidityResponse);
 
         logMixStatus(mix);
@@ -167,9 +166,7 @@ public class MixService {
         byte[] signedBordereauToReply = cryptoService.signBlindedOutput(registeredInput.getBlindedBordereau(), mix.getKeyPair());
 
         // response
-        RegisterInputResponse registerInputResponse = new RegisterInputResponse();
-        registerInputResponse.mixId = mix.getMixId();
-        registerInputResponse.signedBordereau = signedBordereauToReply;
+        RegisterInputResponse registerInputResponse = new RegisterInputResponse(mix.getMixId(), signedBordereauToReply);
         webSocketService.sendPrivate(username, registerInputResponse);
     }
 
