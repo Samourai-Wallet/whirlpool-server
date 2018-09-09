@@ -19,8 +19,8 @@ import java.lang.invoke.MethodHandles;
 public class HistoryWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/history";
-  private static final String URL_EXPLORER_TESTNET = "https://tchain.btc.com/";
-  private static final String URL_EXPLORER_MAINNET = "https://btc.com/";
+  private static final String URL_EXPLORER_TESTNET = "https://testnet.smartbit.com.au/tx/";
+  private static final String URL_EXPLORER_MAINNET = "https://www.smartbit.com.au/tx/";
 
   private DbService dbService;
   private WhirlpoolServerConfig whirlpoolServerConfig;
