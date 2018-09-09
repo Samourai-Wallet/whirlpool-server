@@ -7,6 +7,9 @@ import com.samourai.whirlpool.client.mix.MixClient;
 import com.samourai.whirlpool.client.mix.MixParams;
 import com.samourai.whirlpool.client.mix.handler.IMixHandler;
 import com.samourai.whirlpool.client.mix.handler.MixHandler;
+import com.samourai.whirlpool.client.mix.listener.MixClientListener;
+import com.samourai.whirlpool.client.mix.listener.MixStep;
+import com.samourai.whirlpool.client.mix.listener.MixSuccess;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientConfig;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientImpl;
 import com.samourai.whirlpool.client.whirlpool.listener.LoggingWhirlpoolClientListener;
@@ -15,6 +18,7 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.LiquidityPool;
 import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.services.*;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
@@ -37,6 +41,7 @@ public class MultiClientManager {
     private MockRpcClientServiceImpl rpcClientService;
     private MixLimitsService mixLimitsService;
     private int port;
+    private boolean testMode;
 
     private Mix mix;
 
@@ -45,7 +50,7 @@ public class MultiClientManager {
     private BIP47Wallet[] bip47Wallets;
     private int[] paymentCodeIndexs;
     private WhirlpoolClient[] clients;
-    private WhirlpoolClientListener[] listeners;
+    private MultiWhirlpoolClientListener[] listeners;
 
 
     public MultiClientManager(int nbClients, Mix mix, MixService mixService, TestUtils testUtils, CryptoService cryptoService, MockRpcClientServiceImpl rpcClientService, MixLimitsService mixLimitsService, int port) {
@@ -56,18 +61,20 @@ public class MultiClientManager {
         this.rpcClientService = rpcClientService;
         this.mixLimitsService = mixLimitsService;
         this.port = port;
+        this.testMode = false;
 
         inputs = new TxOutPoint[nbClients];
         inputKeys = new ECKey[nbClients];
         bip47Wallets = new BIP47Wallet[nbClients];
         paymentCodeIndexs = new int[nbClients];
         clients = new WhirlpoolClient[nbClients];
-        listeners = new WhirlpoolClientListener[nbClients];
+        listeners = new MultiWhirlpoolClientListener[nbClients];
     }
 
     private WhirlpoolClient createClient() {
         String server = "127.0.0.1:" + port;
         WhirlpoolClientConfig config = new WhirlpoolClientConfig(server, cryptoService.getNetworkParameters());
+        config.setTestMode(testMode);
         return WhirlpoolClientImpl.newClient(config);
     }
 
@@ -131,7 +138,7 @@ public class MultiClientManager {
     }
 
     private void whirlpool(int i, int mixs) {
-        String poolId = mix.getPool().getPoolId();
+        Pool pool = mix.getPool();
         WhirlpoolClient whirlpoolClient = clients[i];
         TxOutPoint utxo = inputs[i];
         ECKey ecKey = inputKeys[i];
@@ -141,9 +148,10 @@ public class MultiClientManager {
         IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet, paymentCodeIndex);
 
         MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), mixHandler);
-        LoggingWhirlpoolClientListener listener = new LoggingWhirlpoolClientListener();
+        MultiWhirlpoolClientListener listener = new MultiWhirlpoolClientListener();
         listener.setLogPrefix("client#"+i);
-        whirlpoolClient.whirlpool(poolId, mixParams, mixs, listener);
+        whirlpoolClient.whirlpool(pool.getPoolId(), pool.getDenomination(), mixParams, mixs, listener);
+        this.listeners[i] = listener;
     }
 
     private void waitRegisteredInputs(int nbInputsExpected) throws Exception {
@@ -273,10 +281,13 @@ public class MultiClientManager {
         // clients shoud have success status
         int nbSuccess = 0;
         for (int i = 0; i< clients.length; i++) {
+            MultiWhirlpoolClientListener listener = listeners[i];
             WhirlpoolClient whirlpoolClient = clients[i];
             MixClient mixClient = ((WhirlpoolClientImpl)whirlpoolClient).getMixClient(numMix);
-            if (MixStatus.SUCCESS.equals(mixClient.__getMixStatusNotification().status) && mixClient.isDone()) {
+            if (MixStatus.SUCCESS.equals(listener.getMixStatus()) && mixClient.isDone()) {
                 nbSuccess++;
+            } else {
+                log.info("assertClientsSuccess=false for client " + i + ": mixStatus=" + listener.getMixStatus() + ", done=" + mixClient.isDone());
             }
         }
         if (nbAllRegisteredExpected != nbSuccess) {
@@ -332,11 +343,55 @@ public class MultiClientManager {
     private void debugClients() {
         if (log.isDebugEnabled()) {
             log.debug("%%% debugging clients states... %%%");
+            int i=0;
             for (WhirlpoolClient whirlpoolClient : clients) {
                 if (whirlpoolClient != null) {
-                    ((WhirlpoolClientImpl)whirlpoolClient).debugState();
+                    MultiWhirlpoolClientListener listener = listeners[i];
+                    log.debug("Client#" + i + ": mixStatus=" + listener.mixStatus+", mixStep=" + listener.mixStep);
                 }
+                i++;
             }
+        }
+    }
+
+    public void setTestMode(boolean testMode) {
+        this.testMode = testMode;
+    }
+
+    private static class MultiWhirlpoolClientListener extends LoggingWhirlpoolClientListener {
+        private MixStatus mixStatus;
+        private MixStep mixStep;
+
+        @Override
+        public void success(int nbMixs, MixSuccess mixSuccess) {
+            super.success(nbMixs, mixSuccess);
+            this.mixStatus = MixStatus.SUCCESS;
+        }
+
+        @Override
+        public void progress(int currentMix, int nbMixs, MixStep step, String stepInfo, int stepNumber, int nbSteps) {
+            super.progress(currentMix, nbMixs, step, stepInfo, stepNumber, nbSteps);
+            this.mixStep = step;
+        }
+
+        @Override
+        public void fail(int currentMix, int nbMixs) {
+            super.fail(currentMix, nbMixs);
+            this.mixStatus = MixStatus.FAIL;
+        }
+
+        @Override
+        public void mixSuccess(int currentMix, int nbMixs, MixSuccess mixSuccess) {
+            super.mixSuccess(currentMix, nbMixs, mixSuccess);
+            this.mixStatus = MixStatus.SUCCESS;
+        }
+
+        public MixStatus getMixStatus() {
+            return mixStatus;
+        }
+
+        public MixStep getMixStep() {
+            return mixStep;
         }
     }
 }
