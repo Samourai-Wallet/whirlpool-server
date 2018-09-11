@@ -106,15 +106,14 @@ public class MixService {
         /*
          * liquidity placed in waiting pool
          */
-        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
-        if (liquidityPool.hasLiquidity(registeredInput.getInput())) {
+        InputPool liquidityPool = mix.getPool().getLiquidityPool();
+        if (liquidityPool.hasInput(registeredInput.getInput())) {
             throw new IllegalInputException("Liquidity already registered for this mix");
         }
 
         // queue liquidity for later
-        RegisteredLiquidity registeredInputQueued = new RegisteredLiquidity(registeredInput);
-        liquidityPool.registerLiquidity(registeredInputQueued);
-        log.info(" • [" + mix.getMixId() + "] queued liquidity: " + registeredInputQueued.getRegisteredInput().getInput() + " (" + liquidityPool.getNbLiquidities() + " liquidities in pool)");
+        liquidityPool.register(registeredInput);
+        log.info(" • [" + mix.getMixId() + "] queued liquidity: " + registeredInput.getInput() + " (" + liquidityPool.getSize() + " liquidities in pool)");
 
         // response
         String username = registeredInput.getUsername();
@@ -182,8 +181,8 @@ public class MixService {
         webSocketService.sendPrivate(username, registerInputResponse);
     }
 
-    public void addLiquidity(Mix mix, RegisteredLiquidity randomLiquidity) throws Exception {
-        doRegisterInput(mix, randomLiquidity.getRegisteredInput(), true);
+    public void addLiquidity(Mix mix, RegisteredInput registeredInput) throws Exception {
+        doRegisterInput(mix, registeredInput, true);
     }
 
     private boolean isRegisterLiquiditiesOpen(Mix mix) {
@@ -239,7 +238,7 @@ public class MixService {
     }
 
     private void logMixStatus(Mix mix) {
-        int liquiditiesInPool = mix.getPool().getLiquidityPool().getNbLiquidities();
+        int liquiditiesInPool = mix.getPool().getLiquidityPool().getSize();
         log.info(mix.getNbInputsMustMix() + "/" + mix.getPool().getMinMustMix() + " mustMix, " + mix.getNbInputs() + "/" + mix.getTargetAnonymitySet() + " anonymitySet, " + liquiditiesInPool + " liquidities in pool");
 
         // update mix status in database
@@ -551,7 +550,7 @@ public class MixService {
             }
 
             // remove queued liquidity
-            LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
+            InputPool liquidityPool = mix.getPool().getLiquidityPool();
             int nbLiquiditiesRemoved = liquidityPool.removeByUsername(username);
             if (nbLiquiditiesRemoved > 0) {
                 log.info(" • [" + mixId + "] removed " + nbLiquiditiesRemoved + " liquidity from pool, username=" + username);
