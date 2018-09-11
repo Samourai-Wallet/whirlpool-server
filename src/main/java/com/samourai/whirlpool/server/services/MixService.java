@@ -60,7 +60,7 @@ public class MixService {
         this.__reset();
     }
 
-    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] blindedBordereau, boolean liquidity) throws IllegalInputException, MixException, QueueInputException {
+    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] blindedBordereau, boolean liquidity) throws IllegalInputException, MixException {
         if (log.isDebugEnabled()) {
             log.debug("registerInput "+mixId+" : "+username+" : "+input);
         }
@@ -72,22 +72,34 @@ public class MixService {
         }
 
         RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, blindedBordereau, liquidity);
-        if (liquidity) {
-            if (!isRegisterLiquiditiesOpen(mix) || mix.isFull()) {
-                // place liquidity on queue instead of rejecting it
-                queueLiquidity(mix, registeredInput);
+        try {
+            if (liquidity) {
+                if (!isRegisterLiquiditiesOpen(mix) || mix.isFull()) {
+                    // place liquidity on queue instead of rejecting it
+                    queueLiquidity(mix, registeredInput);
+                } else {
+                    // register liquidity if mix opened to liquidities and not full
+                    registerInput(mix, registeredInput, true);
+                }
+            } else {
+                /*
+                 * user wants to mix
+                 */
+                registerInput(mix, registeredInput, false);
             }
-            else {
-                // register liquidity if mix opened to liquidities and not full
-                registerInput(mix, registeredInput, true);
-            }
+        } catch(QueueInputException e) {
+            queueInput(mix, registeredInput);
         }
-        else {
-            /*
-             * user wants to mix
-             */
-            registerInput(mix, registeredInput, false);
-        }
+    }
+
+    private void queueInput(Mix mix, RegisteredInput registeredInput) {
+        responseQueueInput(mix.getMixId(), registeredInput.getUsername());
+    }
+
+    public void responseQueueInput(String mixId, String username) {
+        // response
+        LiquidityQueuedResponse queuedLiquidityResponse = new LiquidityQueuedResponse(mixId);
+        webSocketService.sendPrivate(username, queuedLiquidityResponse);
     }
 
     private void queueLiquidity(Mix mix, RegisteredInput registeredInput) throws IllegalInputException, MixException {
@@ -128,7 +140,7 @@ public class MixService {
     /**
      * Last input validations when adding it to a mix (not when queueing it)
      */
-    private void validateOnAddInput(Mix mix, RegisteredInput registeredInput) throws IllegalInputException {
+    private void validateOnAddInput(Mix mix, RegisteredInput registeredInput) throws QueueInputException {
         // verify max-input-same-hash
         String inputHash = registeredInput.getInput().getHash();
         int maxInputsSameHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameHash();
@@ -137,7 +149,7 @@ public class MixService {
             if (log.isDebugEnabled()) {
                 log.debug("already " + countInputsSameHash + " inputs with same hash: " + inputHash);
             }
-            throw new IllegalInputException("Current mix is full for inputs with same hash, please try again on next mix");
+            throw new QueueInputException("Current mix is full for inputs with same hash, please try again on next mix");
         }
     }
 

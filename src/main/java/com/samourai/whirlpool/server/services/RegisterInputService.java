@@ -32,7 +32,7 @@ public class RegisterInputService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity, boolean testMode) throws IllegalInputException, UnconfirmedInputException, QueueInputException, IllegalBordereauException, MixException {
+    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity, boolean testMode) throws IllegalInputException, IllegalBordereauException, MixException {
         // verify UTXO not banned
         if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
             log.warn("Rejecting banned UTXO: "+utxoHash+":"+utxoIndex);
@@ -40,13 +40,19 @@ public class RegisterInputService {
         }
 
         // validate input
-        TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
+        try {
+            TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
 
-        // verify signature
-        checkInputSignature(mixId, pubkey, signature);
+            // verify signature
+            checkInputSignature(mixId, pubkey, signature);
 
-        // register input and send back signedBordereau
-        mixService.registerInput(mixId, username, txOutPoint, pubkey, blindedBordereau, liquidity);
+            // register input and send back signedBordereau
+            mixService.registerInput(mixId, username, txOutPoint, pubkey, blindedBordereau, liquidity);
+
+        } catch(UnconfirmedInputException e) {
+            // queue unconfirmed input
+            mixService.responseQueueInput(username, mixId);
+        }
     }
 
     private void checkInputSignature(String mixId, byte[] pubkeyHex, String signature) throws IllegalInputException {

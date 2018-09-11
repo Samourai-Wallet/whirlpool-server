@@ -40,16 +40,8 @@ public class RegisterInputController extends AbstractWebSocketController {
       log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
-    try {
-      // register inputs and send back signed bordereau
-      registerInputService.registerInput(payload.mixId, username, payload.pubkey, payload.signature, payload.blindedBordereau, payload.utxoHash, payload.utxoIndex, payload.liquidity, payload.testMode);
-    }
-    catch(UnconfirmedInputException e) {
-      log.info("Placing unconfirmed input on queue: " + payload.utxoHash+":"+payload.utxoIndex, e.getMessage());
-    }
-    catch(QueueInputException e) {
-      log.info("Placing input on queue: " + payload.utxoHash+":"+payload.utxoIndex, e.getMessage());
-    }
+    // register inputs and send back signed bordereau
+    registerInputService.registerInput(payload.mixId, username, payload.pubkey, payload.signature, payload.blindedBordereau, payload.utxoHash, payload.utxoIndex, payload.liquidity, payload.testMode);
   }
 
   @MessageExceptionHandler
