@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
@@ -17,10 +17,10 @@ public class RegisterOutputService {
     private MixService mixService;
     private CryptoService cryptoService;
     private DbService dbService;
-    private FormatsUtil formatsUtil;
+    private FormatsUtilGeneric formatsUtil;
 
     @Autowired
-    public RegisterOutputService(MixService mixService, CryptoService cryptoService, DbService dbService, FormatsUtil formatsUtil) {
+    public RegisterOutputService(MixService mixService, CryptoService cryptoService, DbService dbService, FormatsUtilGeneric formatsUtil) {
         this.mixService = mixService;
         this.cryptoService = cryptoService;
         this.dbService = dbService;

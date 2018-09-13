@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.whirlpool.server.beans.LiquidityPool;
+import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.junit.Assert;
@@ -33,8 +33,8 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
 
         MultiClientManager multiClientManager = multiClientManager(NB_ALL_CONNECTING, mix);
 
-        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
-        Assert.assertFalse(liquidityPool.hasLiquidity());
+        InputPool liquidityPool = mix.getPool().getLiquidityPool();
+        Assert.assertFalse(liquidityPool.hasInput());
 
         // connect liquidities first
         log.info("# Begin connecting "+NB_LIQUIDITIES_CONNECTING+" liquidities...");

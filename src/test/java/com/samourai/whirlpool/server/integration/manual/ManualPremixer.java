@@ -5,7 +5,7 @@ import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
-import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.wallet.util.FormatsUtilGeneric;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.ChildNumber;
@@ -96,7 +96,7 @@ public class ManualPremixer {
 
 
     public void premix(Map<String,String> utxos, long swFee, long selectedAmount, long unitSpendAmount, long unitReceiveAmount, long fee) throws Exception {
-        boolean isTestnet = FormatsUtil.getInstance().isTestNet(params);
+        boolean isTestnet = FormatsUtilGeneric.getInstance().isTestNet(params);
         int feeIdx  = 0; // address index, in prod get index from Samourai API
 
         System.out.println("tx0: -------------------------------------------");
@@ -182,7 +182,7 @@ public class ManualPremixer {
 
             // derive fee address
             final String XPUB_FEES = "vpub5YS8pQgZKVbrSn9wtrmydDWmWMjHrxL2mBCZ81BDp7Z2QyCgTLZCrnBprufuoUJaQu1ZeiRvUkvdQTNqV6hS96WbbVZgweFxYR1RXYkBcKt";
-            DeterministicKey mKey = FormatsUtil.getInstance().createMasterPubKeyFromXPub(XPUB_FEES);
+            DeterministicKey mKey = FormatsUtilGeneric.getInstance().createMasterPubKeyFromXPub(XPUB_FEES);
             DeterministicKey cKey = HDKeyDerivation.deriveChildKey(mKey, new ChildNumber(0, false)); // assume external/receive chain
             DeterministicKey adk = HDKeyDerivation.deriveChildKey(cKey, new ChildNumber(feeIdx, false));
             ECKey feeECKey = ECKey.fromPublicOnly(adk.getPubKey());

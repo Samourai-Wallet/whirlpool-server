@@ -3,7 +3,7 @@ package com.samourai.whirlpool.server.utils;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.services.CryptoService;
 import org.aspectj.util.FileUtil;
 import org.bitcoinj.crypto.DeterministicKey;
@@ -28,9 +28,9 @@ public class TestUtils {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private CryptoService cryptoService;
-    protected Bech32Util bech32Util;
+    protected Bech32UtilGeneric bech32Util;
 
-    public TestUtils(CryptoService cryptoService, Bech32Util bech32Util) {
+    public TestUtils(CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
         this.cryptoService = cryptoService;
         this.bech32Util = bech32Util;
     }

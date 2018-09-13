@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
-import com.samourai.whirlpool.server.beans.LiquidityPool;
+import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
@@ -10,7 +10,6 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
-import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.ECKey;
 import org.bouncycastle.crypto.params.RSABlindingParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -91,15 +90,15 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Mix mix = __getCurrentMix();
-        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
+        InputPool liquidityPool = mix.getPool().getLiquidityPool();
 
         // mustMix should be registered
         Assert.assertEquals(1, mix.getNbInputs());
         Assert.assertTrue(mix.hasInput(txOutPoint));
 
         // no liquidity should be queued
-        Assert.assertFalse(liquidityPool.hasLiquidity());
-        Assert.assertFalse(liquidityPool.hasLiquidity(txOutPoint));
+        Assert.assertFalse(liquidityPool.hasInput());
+        Assert.assertFalse(liquidityPool.hasInput(txOutPoint));
     }
 
     @Test
@@ -109,15 +108,15 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Mix mix = __getCurrentMix();
-        LiquidityPool liquidityPool = mix.getPool().getLiquidityPool();
+        InputPool liquidityPool = mix.getPool().getLiquidityPool();
 
         // liquidity should not be registered
         Assert.assertEquals(0, mix.getNbInputs());
         Assert.assertFalse(mix.hasInput(txOutPoint));
 
         // liquidity should be queued
-        Assert.assertTrue(liquidityPool.hasLiquidity());
-        Assert.assertTrue(liquidityPool.hasLiquidity(txOutPoint));
+        Assert.assertTrue(liquidityPool.hasInput());
+        Assert.assertTrue(liquidityPool.hasInput(txOutPoint));
     }
 
     @Test

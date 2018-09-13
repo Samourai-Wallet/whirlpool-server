@@ -1,11 +1,11 @@
 package com.samourai.whirlpool.server.services.rpc;
 
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -31,13 +31,13 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private TestUtils testUtils;
     private NetworkParameters params;
-    private Bech32Util bech32Util;
+    private Bech32UtilGeneric bech32Util;
 
     private Map<String,RpcRawTransactionResponse> mockTransactions;
 
     public static final int MOCK_TX_CONFIRMATIONS = 99;
 
-    public MockRpcClientServiceImpl(TestUtils testUtils, CryptoService cryptoService, Bech32Util bech32Util) {
+    public MockRpcClientServiceImpl(TestUtils testUtils, CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
         log.info("Instanciating MockRpcClientServiceImpl");
         this.testUtils = testUtils;
         this.params = cryptoService.getNetworkParameters();

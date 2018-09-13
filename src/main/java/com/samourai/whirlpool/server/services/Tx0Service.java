@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.SegwitAddress;
-import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.server.beans.CachedResult;
 import com.samourai.whirlpool.server.beans.rpc.RpcIn;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
@@ -34,11 +34,11 @@ public class Tx0Service {
 
     private BlockchainDataService blockchainDataService;
     private CryptoService cryptoService;
-    private FormatsUtil formatsUtil;
+    private FormatsUtilGeneric formatsUtil;
     private WhirlpoolServerConfig whirlpoolServerConfig;
     private CacheService cacheService;
 
-    public Tx0Service(BlockchainDataService blockchainDataService, CryptoService cryptoService, FormatsUtil formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig, CacheService cacheService) {
+    public Tx0Service(BlockchainDataService blockchainDataService, CryptoService cryptoService, FormatsUtilGeneric formatsUtil, WhirlpoolServerConfig whirlpoolServerConfig, CacheService cacheService) {
         this.blockchainDataService = blockchainDataService;
         this.cryptoService = cryptoService;
         this.formatsUtil = formatsUtil;

@@ -1,8 +1,7 @@
 package com.samourai.whirlpool.server.config;
 
-import com.samourai.wallet.bip47.BIP47Util;
-import com.samourai.wallet.segwit.bech32.Bech32Util;
-import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.services.CryptoService;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
@@ -47,18 +46,13 @@ public class ServicesConfig {
     WhirlpoolProtocol whirlpoolProtocol() { return new WhirlpoolProtocol(); }
 
     @Bean
-    FormatsUtil getFormatsUtil() {
-        return FormatsUtil.getInstance();
+    FormatsUtilGeneric formatsUtilGeneric() {
+        return FormatsUtilGeneric.getInstance();
     }
 
     @Bean
-    Bech32Util bech32Util() {
-        return Bech32Util.getInstance();
-    }
-
-    @Bean
-    BIP47Util bip47Util() {
-        return BIP47Util.getInstance();
+    Bech32UtilGeneric bech32UtilGeneric() {
+        return Bech32UtilGeneric.getInstance();
     }
 
 }

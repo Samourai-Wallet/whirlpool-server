@@ -1,8 +1,8 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.wallet.bip47.BIP47Util;
-import com.samourai.wallet.segwit.bech32.Bech32Util;
-import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
@@ -10,7 +10,6 @@ import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.services.*;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
-import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.MessageSignUtil;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
 import com.samourai.whirlpool.server.utils.TestUtils;
@@ -70,13 +69,12 @@ public abstract class AbstractIntegrationTest {
     protected TestUtils testUtils;
 
     @Autowired
-    protected Bech32Util bech32Util;
+    protected Bech32UtilGeneric bech32Util;
+
+    protected Bip47Util bip47Util = Bip47Util.getInstance();
 
     @Autowired
-    protected BIP47Util bip47Util;
-
-    @Autowired
-    protected FormatsUtil formatsUtil;
+    protected FormatsUtilGeneric formatsUtil;
 
     @Autowired
     protected TaskExecutor taskExecutor;

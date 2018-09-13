@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.beans.rpc;
 
-import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.services.rpc.RpcRawTransactionResponse;
 import org.bitcoinj.core.*;
 
@@ -13,7 +13,7 @@ public class RpcTransaction {
     private List<RpcIn> ins;
     private List<RpcOut> outs;
 
-    public RpcTransaction(RpcRawTransactionResponse rpcRawTransaction, NetworkParameters params, Bech32Util bech32Util) throws Exception {
+    public RpcTransaction(RpcRawTransactionResponse rpcRawTransaction, NetworkParameters params, Bech32UtilGeneric bech32Util) throws Exception {
         // parse tx with bitcoinj
         Transaction tx = new Transaction(params, Utils.HEX.decode(rpcRawTransaction.getHex()));
 
@@ -32,7 +32,7 @@ public class RpcTransaction {
         }
     }
 
-    private RpcOut newRpcOut(TransactionOutput out, String hash, NetworkParameters params, Bech32Util bech32Util) throws Exception {
+    private RpcOut newRpcOut(TransactionOutput out, String hash, NetworkParameters params, Bech32UtilGeneric bech32Util) throws Exception {
         long amount = out.getValue().getValue();
         String toAddress = com.samourai.whirlpool.server.utils.Utils.getToAddressBech32(out, bech32Util, params);
         RpcOut rpcOut = new RpcOut(hash, out.getIndex(), amount, out.getScriptPubKey().getProgram(), toAddress);

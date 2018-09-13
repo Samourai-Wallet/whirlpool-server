@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
-import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.protocol.websocket.messages.LiquidityQueuedResponse;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.*;
@@ -34,7 +34,7 @@ public class MixService {
     private DbService dbService;
     private RpcClientService rpcClientService;
     private MixLimitsService mixLimitsService;
-    private Bech32Util bech32Util;
+    private Bech32UtilGeneric bech32Util;
     private WhirlpoolServerConfig whirlpoolServerConfig;
     private PoolService poolService;
     private ExportService exportService;
@@ -42,7 +42,7 @@ public class MixService {
     private Map<String,Mix> currentMixs;
 
     @Autowired
-    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, RpcClientService rpcClientService, WebSocketService webSocketService, Bech32Util bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService, ExportService exportService) {
+    public MixService(CryptoService cryptoService, BlameService blameService, DbService dbService, RpcClientService rpcClientService, WebSocketService webSocketService, Bech32UtilGeneric bech32Util, WhirlpoolServerConfig whirlpoolServerConfig, MixLimitsService mixLimitsService, PoolService poolService, ExportService exportService) {
         this.cryptoService = cryptoService;
         this.blameService = blameService;
         this.dbService = dbService;

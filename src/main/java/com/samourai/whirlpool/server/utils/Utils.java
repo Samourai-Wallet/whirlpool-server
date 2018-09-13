@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.samourai.wallet.segwit.bech32.Bech32Util;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
@@ -155,7 +155,7 @@ public class Utils {
         }
     }
 
-    public static String getToAddressBech32(TransactionOutput out, Bech32Util bech32Util, NetworkParameters params) {
+    public static String getToAddressBech32(TransactionOutput out, Bech32UtilGeneric bech32Util, NetworkParameters params) {
         Script script = out.getScriptPubKey();
         if (script.isOpReturn()) {
             return null;

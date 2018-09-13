@@ -1,14 +1,14 @@
 package com.samourai.whirlpool.server.integration.manual;
 
-import com.samourai.wallet.bip47.BIP47Util;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip47.rpc.PaymentAddress;
 import com.samourai.wallet.bip47.rpc.PaymentCode;
+import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
-import com.samourai.wallet.util.FormatsUtil;
+import com.samourai.wallet.util.FormatsUtilGeneric;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bitcoinj.core.*;
 import org.bitcoinj.crypto.TransactionSignature;
@@ -78,7 +78,7 @@ public class ManualMixer {
     }
 
     public void mix(Map<String,String> mixables, BigInteger biUnitSpendAmount, BigInteger biUnitReceiveAmount) throws Exception {
-        boolean isTestnet = FormatsUtil.getInstance().isTestNet(params);
+        boolean isTestnet = FormatsUtilGeneric.getInstance().isTestNet(params);
         List<PaymentCodeAndAddress> paymentCodes = new ArrayList<>();
         for (Map.Entry<String,String> entry : mixables.entrySet()) {
             paymentCodes.add(new PaymentCodeAndAddress(entry.getValue(), entry.getKey()));
@@ -107,9 +107,9 @@ public class ManualMixer {
             String toPCode = paymentCodes.get(iToPaymentCode).getPaymentCode();
 
             // sender calculates address with receiver's payment code
-            PaymentAddress sendAddress = BIP47Util.getInstance().getSendAddress(bip47Wallets.get(fromPCode), new PaymentCode(toPCode), 0, params);
+            PaymentAddress sendAddress = Bip47Util.getInstance().getSendAddress(bip47Wallets.get(fromPCode), new PaymentCode(toPCode), 0, params);
             // receiver calculates address with sender's payment code
-            PaymentAddress receiveAddress = BIP47Util.getInstance().getReceiveAddress(bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
+            PaymentAddress receiveAddress = Bip47Util.getInstance().getReceiveAddress(bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
 
             // sender calculates from pubkey
             SegwitAddress addressFromSender = new SegwitAddress(sendAddress.getSendECKey().getPubKey(), params);

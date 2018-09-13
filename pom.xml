@@ -18,9 +18,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.samouraiwallet</groupId>
-			<artifactId>ext-lib-j</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<groupId>com.github.Samourai-Wallet</groupId>
+			<artifactId>extlibj</artifactId>
+			<version>adapt-for-whirlpool-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -115,7 +115,7 @@
 		<dependency>
 			<groupId>com.samouraiwallet</groupId>
 			<artifactId>whirlpool-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1-master-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -186,8 +186,8 @@
 			</plugin>
 		</plugins>
 	</build>
-	<!-- BitcoindRpcClient snapshot -->
 	<repositories>
+		<!-- BitcoindRpcClient snapshot -->
 		<repository>
 			<id>jboss-thirdparty-releases</id>
 			<name>jboss-thirdparty-releases</name>
@@ -195,6 +195,10 @@
 			<releases>
 				<enabled>true</enabled>
 			</releases>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 </project>
