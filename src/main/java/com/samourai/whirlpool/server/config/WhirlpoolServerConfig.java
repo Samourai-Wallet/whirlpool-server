@@ -18,6 +18,7 @@ public class WhirlpoolServerConfig {
 
     private SamouraiFeeConfig samouraiFees;
     private boolean testMode;
+    private int port;
     private boolean testnet;
     private RpcClientConfig rpcClient;
     private RegisterInputConfig registerInput;
@@ -32,6 +33,10 @@ public class WhirlpoolServerConfig {
         return samouraiFees;
     }
 
+    public void setSamouraiFees(SamouraiFeeConfig samouraiFees) {
+        this.samouraiFees = samouraiFees;
+    }
+
     public boolean isTestMode() {
         return testMode;
     }
@@ -40,8 +45,12 @@ public class WhirlpoolServerConfig {
         this.testMode = testMode;
     }
 
-    public void setSamouraiFees(SamouraiFeeConfig samouraiFees) {
-        this.samouraiFees = samouraiFees;
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
     public NetworkParameters getNetworkParameters() {
@@ -409,6 +418,7 @@ public class WhirlpoolServerConfig {
 
     public Map<String,String> getConfigInfo() {
         Map<String,String> configInfo = new LinkedHashMap<>();
+        configInfo.put("port", String.valueOf(getPort()));
         configInfo.put("testMode", String.valueOf(testMode));
         configInfo.put("rpcClient", rpcClient.getHost() + ":" + rpcClient.getPort() + "," + (testnet ? "testnet" : "mainnet"));
         configInfo.put("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
