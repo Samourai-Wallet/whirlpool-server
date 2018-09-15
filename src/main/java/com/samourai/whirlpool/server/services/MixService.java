@@ -13,6 +13,7 @@ import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
+import org.apache.commons.codec.binary.Base64;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -389,8 +390,8 @@ public class MixService {
         switch(mix.getMixStatus()) {
             case REGISTER_INPUT:
                 try {
-                    byte[] publicKey = cryptoService.computePublicKey(mix.getKeyPair()).getEncoded();
-                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFeeMin(), mix.getPool().getMinerFeeMax());
+                    String publicKeyBase64 = Base64.encodeBase64String(cryptoService.computePublicKey(mix.getKeyPair()).getEncoded());
+                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKeyBase64, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFeeMin(), mix.getPool().getMinerFeeMax());
                 }
                 catch(Exception e) {
                     throw new MixException("unexpected error"); // TODO
