@@ -39,7 +39,17 @@ public class SigningController extends AbstractWebSocketController {
     }
 
     // signing
-    signingService.signing(payload.mixId, username, payload.witness);
+    byte[][] witness = computeWitness(payload.witnesses64);
+    signingService.signing(payload.mixId, username, witness);
+  }
+
+  private byte[][] computeWitness(String[] witnesses64) {
+    byte[][] witnesses = new byte[witnesses64.length][];
+    for (int i=0; i<witnesses64.length; i++) {
+      String witness64 = witnesses64[i];
+      witnesses[i] = Utils.decodeBase64(witness64);
+    }
+    return witnesses;
   }
 
   @MessageExceptionHandler

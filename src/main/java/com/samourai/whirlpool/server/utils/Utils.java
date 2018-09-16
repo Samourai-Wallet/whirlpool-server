@@ -8,6 +8,7 @@ import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
@@ -173,5 +174,13 @@ public class Utils {
             log.error("unable to find toAddress", e);
         }
         return null;
+    }
+
+    public static byte[] decodeBase64(String base64) {
+        return Base64.decodeBase64(base64);
+    }
+
+    public static String encodeBase64(byte[] data) {
+        return Base64.encodeBase64String(data);
     }
 }

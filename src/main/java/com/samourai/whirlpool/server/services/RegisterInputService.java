@@ -33,6 +33,13 @@ public class RegisterInputService {
     }
 
     public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity, boolean testMode) throws IllegalInputException, IllegalBordereauException, MixException {
+        if (!cryptoService.isValidTxHash(utxoHash)) {
+            throw new IllegalInputException("Invalid utxoHash");
+        }
+        if (utxoIndex < 0) {
+            throw new IllegalInputException("Invalid utxoIndex");
+        }
+
         // verify UTXO not banned
         if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
             log.warn("Rejecting banned UTXO: "+utxoHash+":"+utxoIndex);

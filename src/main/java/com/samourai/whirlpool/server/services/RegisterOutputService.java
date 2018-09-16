@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
-import org.apache.commons.codec.binary.Base64;
+import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +15,12 @@ public class RegisterOutputService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private MixService mixService;
-    private CryptoService cryptoService;
     private DbService dbService;
     private FormatsUtilGeneric formatsUtil;
 
     @Autowired
-    public RegisterOutputService(MixService mixService, CryptoService cryptoService, DbService dbService, FormatsUtilGeneric formatsUtil) {
+    public RegisterOutputService(MixService mixService, DbService dbService, FormatsUtilGeneric formatsUtil) {
         this.mixService = mixService;
-        this.cryptoService = cryptoService;
         this.dbService = dbService;
         this.formatsUtil = formatsUtil;
     }
@@ -41,7 +39,7 @@ public class RegisterOutputService {
     private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
         // verify bordereau
         if (log.isDebugEnabled()) {
-            log.debug("Verifying unblindedSignedBordereau for receiveAddress: " + receiveAddress + " : " + Base64.encodeBase64String(unblindedSignedBordereau));
+            log.debug("Verifying unblindedSignedBordereau for receiveAddress: " + receiveAddress + " : " + Utils.encodeBase64(unblindedSignedBordereau));
         }
 
         // verify output

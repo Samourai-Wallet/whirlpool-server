@@ -36,7 +36,8 @@ public class RegisterOutputController extends AbstractRestController {
     }
 
     // register output
-    registerOutputService.registerOutput(payload.inputsHash, payload.unblindedSignedBordereau, payload.receiveAddress);
+    byte[] unblindedSignedBordereau = Utils.decodeBase64(payload.unblindedSignedBordereau64);
+    registerOutputService.registerOutput(payload.inputsHash, unblindedSignedBordereau, payload.receiveAddress);
   }
 
   @ExceptionHandler

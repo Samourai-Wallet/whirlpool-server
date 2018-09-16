@@ -13,7 +13,6 @@ import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
-import org.apache.commons.codec.binary.Base64;
 import org.bitcoinj.core.*;
 import org.bitcoinj.script.ScriptException;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -175,10 +174,10 @@ public class MixService {
         logMixStatus(mix);
 
         // sign bordereau
-        byte[] signedBordereauToReply = cryptoService.signBlindedOutput(registeredInput.getBlindedBordereau(), mix.getKeyPair());
+        String signedBordereauToReply64 = Utils.encodeBase64(cryptoService.signBlindedOutput(registeredInput.getBlindedBordereau(), mix.getKeyPair()));
 
         // response
-        RegisterInputResponse registerInputResponse = new RegisterInputResponse(mix.getMixId(), signedBordereauToReply);
+        RegisterInputResponse registerInputResponse = new RegisterInputResponse(mix.getMixId(), signedBordereauToReply64);
         webSocketService.sendPrivate(username, registerInputResponse);
     }
 
@@ -390,8 +389,8 @@ public class MixService {
         switch(mix.getMixStatus()) {
             case REGISTER_INPUT:
                 try {
-                    String publicKeyBase64 = Base64.encodeBase64String(cryptoService.computePublicKey(mix.getKeyPair()).getEncoded());
-                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKeyBase64, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFeeMin(), mix.getPool().getMinerFeeMax());
+                    String publicKey64 = Utils.encodeBase64(cryptoService.computePublicKey(mix.getKeyPair()).getEncoded());
+                    mixStatusNotification = new RegisterInputMixStatusNotification(mixId, publicKey64, cryptoService.getNetworkParameters().getPaymentProtocolId(), mix.getPool().getDenomination(), mix.getPool().getMinerFeeMin(), mix.getPool().getMinerFeeMax());
                 }
                 catch(Exception e) {
                     throw new MixException("unexpected error"); // TODO
@@ -405,7 +404,8 @@ public class MixService {
                 mixStatusNotification = new RevealOutputMixStatusNotification(mixId);
                 break;
             case SIGNING:
-                mixStatusNotification = new SigningMixStatusNotification(mixId, mix.getTx().bitcoinSerialize());
+                String tx64 = Utils.encodeBase64(mix.getTx().bitcoinSerialize());
+                mixStatusNotification = new SigningMixStatusNotification(mixId, tx64);
                 break;
             case SUCCESS:
                 mixStatusNotification = new SuccessMixStatusNotification(mixId);

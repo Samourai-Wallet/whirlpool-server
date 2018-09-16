@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.services;
 import org.bitcoinj.core.Context;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.engines.RSAEngine;
@@ -56,7 +57,7 @@ public class CryptoService {
         return kf.generatePublic(rsaPublicKeySpec);
     }
 
-    public boolean verifyMessageSignature(byte[] pubkeyHex, String message, String signatureBase64) {
+    public boolean verifyMessageSignature(byte[] pubkeyHex, String message, String signature64) {
         ECKey ecKeyFromPubkey;
         try {
             ecKeyFromPubkey = ECKey.fromPublicOnly(pubkeyHex);
@@ -65,7 +66,7 @@ public class CryptoService {
             return false;
         }
         try {
-            ecKeyFromPubkey.verifyMessage(message, signatureBase64);
+            ecKeyFromPubkey.verifyMessage(message, signature64);
         } catch (SignatureException e) {
             log.error("verifyMessageSignature: invalid signature", e);
             return false;
@@ -87,6 +88,15 @@ public class CryptoService {
         byte[] data = revealedBordereau.getBytes();
         signer.update(data, 0, data.length);
         return signer.verifySignature(unblindedSignedBordereau);
+    }
+
+    public boolean isValidTxHash(String txHash) {
+        try {
+            Sha256Hash.wrap(txHash);
+            return true;
+        } catch(Exception e) {
+            return false;
+        }
     }
 
     public NetworkParameters getNetworkParameters() {

@@ -27,6 +27,7 @@ public abstract class AbstractWebSocketController {
   }
 
   protected void handleException(Exception exception, Principal principal) {
+    log.error("handleException", exception);
     String username = principal.getName();
     webSocketService.sendPrivateError(username, exception);
   }
