@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.utils;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
+import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.app.JavaHttpClient;
@@ -39,6 +40,7 @@ public class MultiClientManager {
     private CryptoService cryptoService;
     private MockRpcClientServiceImpl rpcClientService;
     private MixLimitsService mixLimitsService;
+    private Bip47Util bip47Util;
     private int port;
     private boolean testMode;
 
@@ -52,13 +54,14 @@ public class MultiClientManager {
     private MultiWhirlpoolClientListener[] listeners;
 
 
-    public MultiClientManager(int nbClients, Mix mix, MixService mixService, TestUtils testUtils, CryptoService cryptoService, MockRpcClientServiceImpl rpcClientService, MixLimitsService mixLimitsService, int port) {
+    public MultiClientManager(int nbClients, Mix mix, MixService mixService, TestUtils testUtils, CryptoService cryptoService, MockRpcClientServiceImpl rpcClientService, MixLimitsService mixLimitsService, Bip47Util bip47Util, int port) {
         this.mix = mix;
         this.mixService = mixService;
         this.testUtils = testUtils;
         this.cryptoService = cryptoService;
         this.rpcClientService = rpcClientService;
         this.mixLimitsService = mixLimitsService;
+        this.bip47Util = bip47Util;
         this.port = port;
         this.testMode = false;
 
@@ -144,7 +147,7 @@ public class MultiClientManager {
         int paymentCodeIndex = 0;
 
         BIP47Wallet bip47Wallet = bip47Wallets[i];
-        IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet, paymentCodeIndex);
+        IMixHandler mixHandler = new MixHandler(ecKey, bip47Wallet, paymentCodeIndex, bip47Util);
 
         MixParams mixParams = new MixParams(utxo.getHash(), utxo.getIndex(), utxo.getValue(), mixHandler);
         MultiWhirlpoolClientListener listener = new MultiWhirlpoolClientListener();

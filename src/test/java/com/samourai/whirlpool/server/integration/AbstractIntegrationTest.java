@@ -153,7 +153,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected MultiClientManager multiClientManager(int nbClients, Mix mix) {
-        multiClientManager = new MultiClientManager(nbClients, mix, mixService, testUtils, cryptoService, rpcClientService, mixLimitsService, port);
+        multiClientManager = new MultiClientManager(nbClients, mix, mixService, testUtils, cryptoService, rpcClientService, mixLimitsService, bip47Util, port);
         multiClientManager.setTestMode(serverConfig.isTestMode());
         return multiClientManager;
     }

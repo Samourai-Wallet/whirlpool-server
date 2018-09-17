@@ -114,8 +114,8 @@
 		<!-- test -->
 		<dependency>
 			<groupId>com.samouraiwallet</groupId>
-			<artifactId>whirlpool-client</artifactId>
-			<version>0.0.1-master-SNAPSHOT</version>
+			<artifactId>whirlpool-client-cli</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
