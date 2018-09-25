@@ -62,12 +62,17 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
 
     @Override
     public Optional<RpcRawTransactionResponse> getRawTransaction(String txid) {
-        BitcoindRpcClient.RawTransaction rawTx = rpcClient.getRawTransaction(txid);
-        if (rawTx == null) {
+        try {
+            BitcoindRpcClient.RawTransaction rawTx = rpcClient.getRawTransaction(txid);
+            if (rawTx == null) {
+                return Optional.empty();
+            }
+            RpcRawTransactionResponse rpcTxResponse = new RpcRawTransactionResponse(rawTx.hex(), rawTx.confirmations());
+            return Optional.of(rpcTxResponse);
+        } catch(Exception e) {
+            log.error("getRawTransaction error", e);
             return Optional.empty();
         }
-        RpcRawTransactionResponse rpcTxResponse = new RpcRawTransactionResponse(rawTx.hex(), rawTx.confirmations());
-        return Optional.of(rpcTxResponse);
     }
 
     @Override
