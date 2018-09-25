@@ -68,7 +68,9 @@ public class MixLimitsService {
     public void onMixStatusChange(Mix mix) {
         // reset timeout for new mixStatus
         TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
-        limitsWatcher.resetTimeout();
+        if (limitsWatcher != null) { // may be null for tests
+            limitsWatcher.resetTimeout();
+        }
 
         // clear liquidityWatcher when REGISTER_INPUT completed
         if (!MixStatus.REGISTER_INPUT.equals(mix.getMixStatus())) {
@@ -256,25 +258,8 @@ public class MixLimitsService {
 
         int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
         if (liquiditiesToAdd > 0) {
-            // mix needs liquidities
-            InputPool liquidityPool = mix.getPool().getLiquidityPool();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Picking up to " + liquiditiesToAdd + " liquidities... ("+liquidityPool.getSize()+" available)");
-            }
-
-            int liquiditiesAdded = 0;
-            while (liquiditiesAdded < liquiditiesToAdd && liquidityPool.hasInput()) {
-                RegisteredInput randomLiquidity = liquidityPool.peekRandom();
-                log.info(" • pick liquidity #" + (liquiditiesAdded + 1) +": " + randomLiquidity.getInput());
-                try {
-                    mixService.addLiquidity(mix, randomLiquidity);
-                    liquiditiesAdded++;
-                } catch (Exception e) {
-                    log.error("registerInput error when adding liquidity", e);
-                    // ignore the error and continue with more liquidity
-                }
-            }
+            // add queued liquidities if any
+            int liquiditiesAdded = mixService.registerInputsFromQueue(mix, liquiditiesToAdd, true);
             if (liquiditiesAdded > 0) {
                 // start mix if ready
                 mixService.checkRegisterInputReady(mix);

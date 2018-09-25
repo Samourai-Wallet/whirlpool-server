@@ -3,7 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
-import com.samourai.whirlpool.protocol.websocket.messages.LiquidityQueuedResponse;
+import com.samourai.whirlpool.protocol.websocket.messages.InputQueuedResponse;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.*;
 import com.samourai.whirlpool.server.beans.*;
@@ -64,7 +64,7 @@ public class MixService {
         if (log.isDebugEnabled()) {
             log.debug("registerInput "+mixId+" : "+username+" : "+input);
         }
-        Mix mix = getMix(mixId, MixStatus.REGISTER_INPUT);
+        Mix mix = getMix(mixId);
         if (!checkInputBalance(input, mix, liquidity)) {
             long balanceMin = mix.computeInputBalanceMin(liquidity);
             long balanceMax = mix.computeInputBalanceMax(liquidity);
@@ -72,62 +72,46 @@ public class MixService {
         }
 
         RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, blindedBordereau, liquidity);
-        try {
-            if (liquidity) {
-                if (!isRegisterLiquiditiesOpen(mix) || mix.isFull()) {
-                    // place liquidity on queue instead of rejecting it
-                    queueLiquidity(mix, registeredInput);
-                } else {
-                    // register liquidity if mix opened to liquidities and not full
-                    registerInput(mix, registeredInput, true);
-                }
-            } else {
-                /*
-                 * user wants to mix
-                 */
-                registerInput(mix, registeredInput, false);
+        if (MixStatus.REGISTER_INPUT.equals(mix.getMixStatus())) {
+            // mix status is REGISTER_INPUT => register input
+            try {
+                registerInput(mix, registeredInput);
+            } catch(QueueInputException e) {
+                queueInput(mix, registeredInput, e.getMessage());
             }
-        } catch(QueueInputException e) {
-            queueInput(mix, registeredInput);
+        } else {
+            // mix is running => queue input
+            queueInput(mix, registeredInput, "Current mix already started");
         }
     }
 
-    private void queueInput(Mix mix, RegisteredInput registeredInput) {
-        responseQueueInput(mix.getMixId(), registeredInput.getUsername());
-    }
-
-    public void responseQueueInput(String mixId, String username) {
-        // response
-        LiquidityQueuedResponse queuedLiquidityResponse = new LiquidityQueuedResponse(mixId);
-        webSocketService.sendPrivate(username, queuedLiquidityResponse);
-    }
-
-    private void queueLiquidity(Mix mix, RegisteredInput registeredInput) throws IllegalInputException, MixException {
-        /*
-         * liquidity placed in waiting pool
-         */
-        InputPool liquidityPool = mix.getPool().getLiquidityPool();
-        if (liquidityPool.hasInput(registeredInput.getInput())) {
-            throw new IllegalInputException("Liquidity already registered for this mix");
+    private void queueInput(Mix mix, RegisteredInput registeredInput, String reason) throws IllegalInputException {
+        InputPool inputPool;
+        if (registeredInput.isLiquidity()) {
+            // liquidity
+            inputPool = mix.getPool().getLiquidityPool();
+        } else {
+            // mustMix
+            inputPool = mix.getPool().getMustMixPool();
         }
 
-        // queue liquidity for later
-        liquidityPool.register(registeredInput);
-        log.info(" • [" + mix.getMixId() + "] queued liquidity: " + registeredInput.getInput() + " (" + liquidityPool.getSize() + " liquidities in pool)");
+        // verify input not already queued
+        if (!inputPool.hasInput(registeredInput.getInput())) {
+            // queue input
+            inputPool.register(registeredInput);
+            log.info(" • [" + mix.getMixId() + "] queued " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ": " + registeredInput.getInput() + " (" + inputPool.getSize() + " in pool)");
+        } else {
+            log.info("input was already queued");
+        }
 
         // response
-        String username = registeredInput.getUsername();
-        LiquidityQueuedResponse queuedLiquidityResponse = new LiquidityQueuedResponse(mix.getMixId());
-        webSocketService.sendPrivate(username, queuedLiquidityResponse);
-
-        logMixStatus(mix);
+        InputQueuedResponse inputQueuedResponse = new InputQueuedResponse(mix.getMixId(), reason);
+        webSocketService.sendPrivate(registeredInput.getUsername(), inputQueuedResponse);
     }
 
-    private synchronized void registerInput(Mix mix, RegisteredInput registeredInput, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
-        validateOnAddInput(mix, registeredInput);
-
+    private synchronized void registerInput(Mix mix, RegisteredInput registeredInput) throws IllegalInputException, MixException, QueueInputException {
         // registerInput + response
-        doRegisterInput(mix, registeredInput, isLiquidity);
+        doRegisterInput(mix, registeredInput);
 
         // check mix limits
         mixLimitsService.onInputRegistered(mix);
@@ -139,7 +123,22 @@ public class MixService {
     /**
      * Last input validations when adding it to a mix (not when queueing it)
      */
-    private void validateOnAddInput(Mix mix, RegisteredInput registeredInput) throws QueueInputException {
+    private void validateOnAddInput(Mix mix, RegisteredInput registeredInput) throws QueueInputException, IllegalInputException {
+        // verify mix not full
+        if (mix.isFull()) {
+            throw new QueueInputException("Current mix is full");
+        }
+
+        // verify not already registered
+        if (mix.hasInput(registeredInput.getInput())) {
+            throw new IllegalInputException("Input already registered for this mix");
+        }
+
+        // liquidity: verify liquidities open
+        if (registeredInput.isLiquidity() && !isRegisterLiquiditiesOpen(mix)) {
+            throw new QueueInputException("Current mix not opened to liquidities yet");
+        }
+
         // verify max-input-same-hash
         String inputHash = registeredInput.getInput().getHash();
         int maxInputsSameHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameHash();
@@ -148,29 +147,17 @@ public class MixService {
             if (log.isDebugEnabled()) {
                 log.debug("already " + countInputsSameHash + " inputs with same hash: " + inputHash);
             }
-            throw new QueueInputException("Current mix is full for inputs with same hash, please try again on next mix");
+            throw new QueueInputException("Current mix is full for inputs with same hash");
         }
     }
 
-    private void doRegisterInput(Mix mix, RegisteredInput registeredInput, boolean isLiquidity) throws IllegalInputException, MixException, QueueInputException {
-        TxOutPoint input = registeredInput.getInput();
-        String username = registeredInput.getUsername();
-
-        if (mix.isFull()) {
-            throw new QueueInputException("Mix is full, please wait for next mix");
-        }
-        if (isLiquidity && !isRegisterLiquiditiesOpen(mix)) {
-            // should never go here...
-            log.error("Unexpected exception: mix is not opened to liquidities yet, but liquidity entered registerInput");
-            throw new MixException("system error");
-        }
-        if (mix.hasInput(input)) {
-            throw new IllegalInputException("Input already registered for this mix");
-        }
+    private void doRegisterInput(Mix mix, RegisteredInput registeredInput) throws IllegalInputException, MixException, QueueInputException {
+        // last input validations
+        validateOnAddInput(mix, registeredInput);
 
         // add immediately to mix inputs
         mix.registerInput(registeredInput);
-        log.info(" • registered "+(isLiquidity ? "liquidity" : "mustMix")+": " + registeredInput.getInput());
+        log.info(" • registered "+(registeredInput.isLiquidity() ? "liquidity" : "mustMix")+": " + registeredInput.getInput());
         logMixStatus(mix);
 
         // sign bordereau
@@ -178,11 +165,12 @@ public class MixService {
 
         // response
         RegisterInputResponse registerInputResponse = new RegisterInputResponse(mix.getMixId(), signedBordereauToReply64);
+        String username = registeredInput.getUsername();
         webSocketService.sendPrivate(username, registerInputResponse);
     }
 
-    public void addLiquidity(Mix mix, RegisteredInput registeredInput) throws Exception {
-        doRegisterInput(mix, registeredInput, true);
+    public void registerInputFromQueue(Mix mix, RegisteredInput registeredInput) throws Exception {
+        doRegisterInput(mix, registeredInput);
     }
 
     private boolean isRegisterLiquiditiesOpen(Mix mix) {
@@ -554,7 +542,14 @@ public class MixService {
             InputPool liquidityPool = mix.getPool().getLiquidityPool();
             int nbLiquiditiesRemoved = liquidityPool.removeByUsername(username);
             if (nbLiquiditiesRemoved > 0) {
-                log.info(" • [" + mixId + "] removed " + nbLiquiditiesRemoved + " liquidity from pool, username=" + username);
+                log.info(" • [" + mix.getPool().getPoolId() + "] removed " + nbLiquiditiesRemoved + " liquidity from pool, username=" + username);
+            }
+
+            // remove queued mustMix
+            InputPool mustMixPool = mix.getPool().getMustMixPool();
+            int nbMustMixRemoved = mustMixPool.removeByUsername(username);
+            if (nbMustMixRemoved > 0) {
+                log.info(" • [" + mix.getPool().getPoolId() + "] removed " + nbLiquiditiesRemoved + " mustMix from pool, username=" + username);
             }
         }
     }
@@ -594,6 +589,39 @@ public class MixService {
 
         log.info("[NEW MIX "+ mix.getMixId()+"]");
         logMixStatus(mix);
+
+        // add queued mustMixs if any
+        int mustMixToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
+        int mustMixAdded = registerInputsFromQueue(mix, mustMixToAdd, false);
+        if (mustMixAdded > 0) {
+            // check mix limits
+            mixLimitsService.onInputRegistered(mix);
+
+            // check mix ready
+            checkRegisterInputReady(mix);
+        }
+    }
+
+    public int registerInputsFromQueue(Mix mix, int inputsToAdd, boolean liquidity) {
+        InputPool inputPool = (liquidity ? mix.getPool().getLiquidityPool() : mix.getPool().getMustMixPool());
+        int inputsAdded = 0;
+        if (inputPool.hasInput()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Picking up to " + inputsToAdd + " " + (liquidity ? "liquidities" : "mustMixs") + "... (" + inputPool.getSize() + " available)");
+            }
+            while (inputsAdded < inputsToAdd && inputPool.hasInput()) {
+                RegisteredInput randomInput = inputPool.peekRandom();
+                log.info(" • picking input #" + (inputsAdded + 1) + ": " + randomInput.getInput());
+                try {
+                    registerInputFromQueue(mix, randomInput);
+                    inputsAdded++;
+                } catch (Exception e) {
+                    log.error("error when adding input from queue", e);
+                    // ignore the error and continue with more inputs
+                }
+            }
+        }
+        return inputsAdded;
     }
 
     public MixLimitsService __getMixLimitsService() {

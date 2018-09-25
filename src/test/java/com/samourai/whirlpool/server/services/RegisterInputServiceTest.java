@@ -46,6 +46,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         serverConfig.getRegisterInput().setMinConfirmationsMustMix(MIN_CONFIRMATIONS_MUSTMIX);
         serverConfig.getRegisterInput().setMinConfirmationsLiquidity(MIN_CONFIRMATIONS_LIQUIDITY);
+
+
     }
 
     private byte[] computeBlindedBordereau(String outputAddress) throws Exception {
@@ -147,42 +149,41 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void registerInput_shouldFailWhenInvalidMixStatus() throws Exception {
-        String mixId = __getCurrentMix().getMixId();
-
+    public void registerInput_shouldQueueInputWhenMixStatusAlreadyStarted() throws Exception {
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
-        
+
         String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
-        Mix mix = __getCurrentMix();
-        long inputBalance = mix.computeInputBalanceMin(false);
-        TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
-
-        // register first input
-        registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
-
-        // new bordereau
-        blindedBordereau = computeBlindedBordereau(outputAddress);
-
-        // TEST
         // all mixStatus != REGISTER_INPUTS
         for (MixStatus mixStatus : MixStatus.values()) {
-            if (!mixStatus.equals(MixStatus.REGISTER_INPUT)) {
-                mixService.changeMixStatus(mix.getMixId(), mixStatus);
-                thrown.expect(MixException.class);
-                thrown.expectMessage("Operation not permitted for current mix status");
-                registerInputService.registerInput(mix.getMixId(), username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+            if (!MixStatus.REGISTER_INPUT.equals(mixStatus) && !MixStatus.SUCCESS.equals(mixStatus) && !MixStatus.FAIL.equals(mixStatus)) {
+                setUp();
+
+                log.info("----- " + mixStatus + " -----");
+
+                Mix mix = __getCurrentMix();
+                String mixId = mix.getMixId();
+
+                // set status
+                mixService.changeMixStatus(mixId, mixStatus);
+
+                // TEST
+                byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
+                String signature = ecKey.signMessage(mixId);
+                long inputBalance = mix.computeInputBalanceMin(false);
+                TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
+                registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+
+                // VERIFY
+                Assert.assertEquals(0, mix.getInputs().size());
+                Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
+                Assert.assertEquals(1, mix.getPool().getMustMixPool().getSize()); // mustMix queued
             }
         }
-
-        // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
     }
 
     @Test
@@ -258,6 +259,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         thrown.expect(IllegalBordereauException.class);
         thrown.expectMessage("blindedBordereau already registered");
+        txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
         registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY

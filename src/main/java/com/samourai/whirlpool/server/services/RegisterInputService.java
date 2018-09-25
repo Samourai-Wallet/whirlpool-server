@@ -46,19 +46,19 @@ public class RegisterInputService {
             throw new IllegalBordereauException("Banned from service");
         }
 
-        // validate input
-        try {
-            TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
+        // verify signature
+        checkInputSignature(mixId, pubkey, signature);
 
-            // verify signature
-            checkInputSignature(mixId, pubkey, signature);
+        try {
+            // verify utxo & confirmations
+            TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
 
             // register input and send back signedBordereau
             mixService.registerInput(mixId, username, txOutPoint, pubkey, blindedBordereau, liquidity);
 
         } catch(UnconfirmedInputException e) {
             // queue unconfirmed input
-            mixService.responseQueueInput(username, mixId);
+            //TODO mixService.responseQueueInput(username, mixId);
         }
     }
 
