@@ -1,11 +1,11 @@
 package com.samourai.whirlpool.server.utils;
 
+import com.samourai.http.client.JavaHttpClient;
+import com.samourai.stomp.client.JavaStompClient;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
-import com.samourai.whirlpool.client.app.JavaHttpClient;
-import com.samourai.whirlpool.client.app.JavaStompClient;
 import com.samourai.whirlpool.client.mix.MixClient;
 import com.samourai.whirlpool.client.mix.MixParams;
 import com.samourai.whirlpool.client.mix.handler.IMixHandler;
