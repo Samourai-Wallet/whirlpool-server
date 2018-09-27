@@ -38,9 +38,6 @@ public class BlockchainService {
         // verify pubkey: pubkey should control this utxo
         checkPubkey(rpcOut, pubkeyHex);
 
-        // verify confirmations
-        checkInputConfirmations(rpcOutWithTx.getTx(), liquidity);
-
         // tx0 verification can be disabled in testMode
         boolean skipTx0Checks = whirlpoolServerConfig.isTestMode() && testMode;
 
@@ -59,6 +56,10 @@ public class BlockchainService {
         }
 
         TxOutPoint txOutPoint = new TxOutPoint(utxoHash, utxoIndex, rpcOut.getValue());
+
+        // verify confirmations
+        checkInputConfirmations(rpcOutWithTx.getTx(), liquidity, txOutPoint);
+
         return txOutPoint;
     }
 
@@ -70,21 +71,21 @@ public class BlockchainService {
         }
     }
 
-    protected void checkInputConfirmations(RpcTransaction tx, boolean liquidity) throws UnconfirmedInputException {
+    protected void checkInputConfirmations(RpcTransaction tx, boolean liquidity, TxOutPoint txOutPoint) throws UnconfirmedInputException {
         int inputConfirmations = tx.getConfirmations();
         if (liquidity) {
             // liquidity
             int minConfirmationsMix = whirlpoolServerConfig.getRegisterInput().getMinConfirmationsLiquidity();
             if (inputConfirmations < minConfirmationsMix) {
                 log.warn("input rejected: liquidity needs at least " + minConfirmationsMix + " confirmations: " + tx.getTxid());
-                throw new UnconfirmedInputException("Input needs at least " + minConfirmationsMix + " confirmations");
+                throw new UnconfirmedInputException("Input needs at least " + minConfirmationsMix + " confirmations", txOutPoint);
             }
         } else {
             // mustMix
             int minConfirmationsTx0 = whirlpoolServerConfig.getRegisterInput().getMinConfirmationsMustMix();
             if (inputConfirmations < minConfirmationsTx0) {
                 log.warn("input rejected: mustMix needs at least " + minConfirmationsTx0 + " confirmations: " + tx.getTxid());
-                throw new UnconfirmedInputException("Input needs at least " + minConfirmationsTx0 + " confirmations");
+                throw new UnconfirmedInputException("Input needs at least " + minConfirmationsTx0 + " confirmations", txOutPoint);
             }
         }
     }

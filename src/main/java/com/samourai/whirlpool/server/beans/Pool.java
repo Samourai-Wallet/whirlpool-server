@@ -15,6 +15,7 @@ public class Pool {
     private Mix currentMix;
     private InputPool mustMixPool;
     private InputPool liquidityPool;
+    private InputPool unconfirmedInputs;
 
     public Pool(String poolId, long denomination, long minerFeeMin, long minerFeeMax, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
         this.poolId = poolId;
@@ -29,6 +30,7 @@ public class Pool {
         this.liquidityTimeout = liquidityTimeout;
         this.mustMixPool = new InputPool();
         this.liquidityPool = new InputPool();
+        this.unconfirmedInputs = new InputPool();
     }
 
     public String getPoolId() {
@@ -85,5 +87,9 @@ public class Pool {
 
     public InputPool getLiquidityPool() {
         return liquidityPool;
+    }
+
+    public InputPool getUnconfirmedInputs() {
+        return unconfirmedInputs;
     }
 }

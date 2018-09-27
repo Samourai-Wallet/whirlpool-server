@@ -369,35 +369,51 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         if (expectedSuccess) {
             Assert.assertEquals(1, mix.getNbInputs());
             Assert.assertTrue(mix.hasInput(txOutPoint));
-        } else {
-            Assert.assertTrue(false); // exception expected before
         }
     }
 
     @Test
     public void registerInput_shouldFailWhenUnconfirmed() throws Exception {
+        Mix mix = __getCurrentMix();
+
         // mustMix
-        thrown.expect(UnconfirmedInputException.class);
-        thrown.expectMessage("Input needs at least " + MIN_CONFIRMATIONS_MUSTMIX + " confirmations");
+        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
         doRegisterInput(0, false, false);
+        Assert.assertEquals(0, mix.getInputs().size());
+        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
+        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
+        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
 
         // liquidity
-        thrown.expect(UnconfirmedInputException.class);
-        thrown.expectMessage("Input needs at least " + MIN_CONFIRMATIONS_LIQUIDITY + " confirmations");
+        mix.getPool().getUnconfirmedInputs().peekRandom(); // reset
+        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
         doRegisterInput(0, true, false);
+        Assert.assertEquals(0, mix.getInputs().size());
+        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
+        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
+        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
     }
 
     @Test
     public void registerInput_shouldFailWhenLessConfirmations() throws Exception {
+        Mix mix = __getCurrentMix();
+
         // mustMix
-        thrown.expect(UnconfirmedInputException.class);
-        thrown.expectMessage("Input needs at least " + MIN_CONFIRMATIONS_MUSTMIX + " confirmations");
+        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
         doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX-1, false, false);
+        Assert.assertEquals(0, mix.getInputs().size());
+        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
+        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
+        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
 
         // liquidity
-        thrown.expect(UnconfirmedInputException.class);
-        thrown.expectMessage("Input needs at least " + MIN_CONFIRMATIONS_LIQUIDITY + " confirmations");
+        mix.getPool().getUnconfirmedInputs().peekRandom(); // reset
+        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
         doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY-1, true, false);
+        Assert.assertEquals(0, mix.getInputs().size());
+        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
+        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
+        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
     }
 
     @Test

@@ -60,9 +60,11 @@ public class MixService {
         this.__reset();
     }
 
-    public synchronized void registerInput(String mixId, String username, TxOutPoint input, byte[] pubkey, byte[] blindedBordereau, boolean liquidity) throws IllegalInputException, MixException {
+    public synchronized void registerInput(String mixId, RegisteredInput registeredInput) throws IllegalInputException, MixException {
+        TxOutPoint input = registeredInput.getInput();
+        boolean liquidity = registeredInput.isLiquidity();
         if (log.isDebugEnabled()) {
-            log.debug("registerInput "+mixId+" : "+username+" : "+input);
+            log.debug("registerInput "+mixId+" : "+registeredInput.getUsername()+" : "+input);
         }
         Mix mix = getMix(mixId);
         if (!checkInputBalance(input, mix, liquidity)) {
@@ -71,7 +73,6 @@ public class MixService {
             throw new IllegalInputException("Invalid input balance (expected: " + balanceMin + "-" + balanceMax + ", actual:"+input.getValue()+")");
         }
 
-        RegisteredInput registeredInput = new RegisteredInput(username, input, pubkey, blindedBordereau, liquidity);
         if (MixStatus.REGISTER_INPUT.equals(mix.getMixStatus())) {
             // mix status is REGISTER_INPUT => register input
             try {
@@ -85,7 +86,18 @@ public class MixService {
         }
     }
 
-    private void queueInput(Mix mix, RegisteredInput registeredInput, String reason) throws IllegalInputException {
+    public void queueUnconfirmedInput(String mixId, RegisteredInput registeredInput, String reason) throws MixException {
+        Mix mix = getMix(mixId);
+        InputPool unconfirmedInputsPool = mix.getPool().getUnconfirmedInputs();
+
+        log.info(" • [" + mix.getMixId() + "] queued UNCONFIRMED " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ": " + registeredInput.getInput() + " (" + unconfirmedInputsPool.getSize() + " in pool)");
+        unconfirmedInputsPool.register(registeredInput);
+
+        // response
+        responseInputQueued(mix, registeredInput.getUsername(), reason);
+    }
+
+    private void queueInput(Mix mix, RegisteredInput registeredInput, String reason) {
         InputPool inputPool;
         if (registeredInput.isLiquidity()) {
             // liquidity
@@ -95,18 +107,17 @@ public class MixService {
             inputPool = mix.getPool().getMustMixPool();
         }
 
-        // verify input not already queued
-        if (!inputPool.hasInput(registeredInput.getInput())) {
-            // queue input
-            inputPool.register(registeredInput);
-            log.info(" • [" + mix.getMixId() + "] queued " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ": " + registeredInput.getInput() + " (" + inputPool.getSize() + " in pool)");
-        } else {
-            log.info("input was already queued");
-        }
+        // queue input
+        inputPool.register(registeredInput);
+        log.info(" • [" + mix.getMixId() + "] queued " + (registeredInput.isLiquidity() ? "liquidity" : "mustMix") + ": " + registeredInput.getInput() + " (" + inputPool.getSize() + " in pool)");
 
         // response
+        responseInputQueued(mix, registeredInput.getUsername(), reason);
+    }
+
+    private void responseInputQueued(Mix mix, String username, String reason) {
         InputQueuedResponse inputQueuedResponse = new InputQueuedResponse(mix.getMixId(), reason);
-        webSocketService.sendPrivate(registeredInput.getUsername(), inputQueuedResponse);
+        webSocketService.sendPrivate(username, inputQueuedResponse);
     }
 
     private synchronized void registerInput(Mix mix, RegisteredInput registeredInput) throws IllegalInputException, MixException, QueueInputException {

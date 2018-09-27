@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class InputPool {
+    private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private Map<String,RegisteredInput> inputsById;
 
     public InputPool() {
@@ -18,8 +19,12 @@ public class InputPool {
     }
 
     public synchronized void register(RegisteredInput registeredInput) {
-        String inputId = Utils.computeInputId(registeredInput.getInput());
-        inputsById.put(inputId, registeredInput);
+        if (!hasInput(registeredInput.getInput())) {
+            String inputId = Utils.computeInputId(registeredInput.getInput());
+            inputsById.put(inputId, registeredInput);
+        } else {
+            log.info("not queueing input, it was already queued");
+        }
     }
 
     public synchronized RegisteredInput peekRandom() {

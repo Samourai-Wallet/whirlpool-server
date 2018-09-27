@@ -1,8 +1,12 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.*;
+import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
+import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.exceptions.MixException;
+import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import org.bitcoinj.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,13 +56,16 @@ public class RegisterInputService {
         try {
             // verify utxo & confirmations
             TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
+            RegisteredInput registeredInput = new RegisteredInput(username, pubkey, blindedBordereau, liquidity, txOutPoint);
 
             // register input and send back signedBordereau
-            mixService.registerInput(mixId, username, txOutPoint, pubkey, blindedBordereau, liquidity);
+            mixService.registerInput(mixId, registeredInput);
 
         } catch(UnconfirmedInputException e) {
             // queue unconfirmed input
-            //TODO mixService.responseQueueInput(username, mixId);
+            TxOutPoint unconfirmedOutpoint = e.getUnconfirmedOutPoint();
+            RegisteredInput unconfirmedInput = new RegisteredInput(username, pubkey, blindedBordereau, liquidity, unconfirmedOutpoint);
+            mixService.queueUnconfirmedInput(mixId, unconfirmedInput, e.getMessage());
         }
     }
 
