@@ -4,12 +4,15 @@ import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.services.CryptoService;
 import org.aspectj.util.FileUtil;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -95,6 +98,26 @@ public class TestUtils {
             log.info("mock not found: " + mockFile);
             return Optional.empty();
         }
+    }
+
+    public void assertPool(int nbMustMix, int nbLiquidity, int nbUnconfirmed, Pool pool) {
+        Assert.assertEquals(nbMustMix, pool.getMustMixQueue().getSize());
+        Assert.assertEquals(nbLiquidity, pool.getLiquidityQueue().getSize());
+        Assert.assertEquals(nbUnconfirmed, pool.getUnconfirmedQueue().getSize());
+    }
+    public void assertPoolEmpty(Pool pool) {
+        assertPool(0, 0, 0, pool);
+    }
+
+    public void assertMix(int nbInputs, int confirming, Mix mix) {
+        Assert.assertEquals(nbInputs, mix.getNbInputs());
+        Assert.assertEquals(confirming, mix.getNbConfirmingInputs());
+    }
+    public void assertMix(int nbInputs, Mix mix) {
+        assertMix(nbInputs, 0, mix);
+    }
+    public void assertMixEmpty(Mix mix) {
+        assertMix(0, mix);
     }
 
 }

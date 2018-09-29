@@ -34,7 +34,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport 
     private static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     public static String[] WEBSOCKET_ENDPOINTS = new String[]{WhirlpoolProtocol.ENDPOINT_CONNECT,
-            WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT, WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT, WhirlpoolProtocol.ENDPOINT_SIGNING};
+            WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT, WhirlpoolProtocol.ENDPOINT_CONFIRM_INPUT, WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT, WhirlpoolProtocol.ENDPOINT_SIGNING};
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -76,7 +76,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport 
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker(whirlpoolProtocol.SOCKET_SUBSCRIBE_QUEUE, whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY);
+        registry.enableSimpleBroker(whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY);
         registry.setUserDestinationPrefix(whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE);
     }
 

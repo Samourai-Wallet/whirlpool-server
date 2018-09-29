@@ -3,9 +3,9 @@ package com.samourai.whirlpool.server.integration;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.integration.manual.ManualMixer;
 import com.samourai.whirlpool.server.integration.manual.ManualPremixer;
 import com.samourai.whirlpool.server.utils.MultiClientManager;
@@ -265,7 +265,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 final String paymentCode = mixers.get(i);
                 final BIP47Wallet bip47Wallet = premixer.bip47Wallets.get(paymentCode);
 
-                multiClientManager.connectWithMock(i, 1, segwitAddress, bip47Wallet, 0, 1000, utxoHash, utxoIndex, premixer.biUnitSpendAmount.longValue());
+                multiClientManager.connectWithMock(i, 1, segwitAddress, bip47Wallet, 0, null, utxoHash, utxoIndex, premixer.biUnitSpendAmount.longValue());
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);
@@ -273,7 +273,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             return null;
         };
 
-        // connect all clients except one, to stay in REGISTER_INPUTS
+        // connect all clients except one, to stay in CONFIRM_INPUT
         log.info("# Connect first clients...");
         for (int i=0; i<NB_CLIENTS-1; i++) {
             final int clientIndice = i;
@@ -283,7 +283,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
 
         // connected clients should have registered their inputs...
         Thread.sleep(2000);
-        Assert.assertEquals(MixStatus.REGISTER_INPUT, mix.getMixStatus());
+        Assert.assertEquals(MixStatus.CONFIRM_INPUT, mix.getMixStatus());
         Assert.assertEquals(NB_CLIENTS-1, mix.getInputs().size());
 
         // connect last client
@@ -295,7 +295,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         // all clients should have registered their inputs
         Assert.assertEquals(NB_CLIENTS, mix.getNbInputs());
 
-        for (RegisteredInput registeredInput : mix.getInputs()) {
+        for (ConfirmedInput confirmedInput : mix.getInputs()) {
+            RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
             String txOutPointStr = registeredInput.getInput().getHash() + "-" + registeredInput.getInput().getIndex();
            Assert.assertTrue(premixer.toUTXO.values().contains(txOutPointStr));
         }

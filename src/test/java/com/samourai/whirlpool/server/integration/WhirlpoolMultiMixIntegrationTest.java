@@ -58,7 +58,7 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
         taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(2, false, 1));
 
         // we have 1 mustMix + 2 liquidities
-        multiClientManager.assertMixStatusRegisterInput(1, true);
+        multiClientManager.assertMixStatusConfirmInput(1, true);
 
         multiClientManager.nextTargetAnonymitySetAdjustment();
 

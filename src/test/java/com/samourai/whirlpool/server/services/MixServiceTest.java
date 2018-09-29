@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
@@ -43,11 +44,11 @@ public class MixServiceTest extends AbstractIntegrationTest {
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 mustMix => false
-        mix.registerInput(new RegisteredInput("mustMix1", null, null, false, generateInput()));
+        mix.registerInput(new ConfirmedInput(new RegisteredInput("mustMix1", null, false, generateInput()), null));
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 mustMix => true
-        mix.registerInput(new RegisteredInput("mustMix2", null, null, false, generateInput()));
+        mix.registerInput(new ConfirmedInput(new RegisteredInput("mustMix2", null, false, generateInput()), null));
         Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
@@ -69,15 +70,15 @@ public class MixServiceTest extends AbstractIntegrationTest {
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 liquidity => false
-        mix.registerInput(new RegisteredInput("liquidity1", null, null, true, generateInput()));
+        mix.registerInput(new ConfirmedInput(new RegisteredInput("liquidity1", null, true, generateInput()), null));
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 2 liquidity => false : minMustMix not reached
-        mix.registerInput(new RegisteredInput("liquidity2", null, null, true, generateInput()));
+        mix.registerInput(new ConfirmedInput(new RegisteredInput("liquidity2", null, true, generateInput()), null));
         Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
         // 1 mustMix => true : minMustMix reached
-        mix.registerInput(new RegisteredInput("mustMix1", null, null, false, generateInput()));
+        mix.registerInput(new ConfirmedInput(new RegisteredInput("mustMix1", null, false, generateInput()), null));
         Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
     }
 
@@ -91,7 +92,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     }
 
     private TxOutPoint generateInput() {
-        TxOutPoint txOutPoint = new TxOutPoint(Utils.getRandomString(65), 0, 99999);
+        TxOutPoint txOutPoint = new TxOutPoint(Utils.getRandomString(65), 0, 99999, 99);
         return txOutPoint;
     }
 }

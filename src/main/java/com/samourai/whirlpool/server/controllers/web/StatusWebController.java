@@ -26,7 +26,6 @@ import java.util.Map;
 public class StatusWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status";
-  private static final String STATUS_READY = "READY";
 
   private PoolService poolService;
   private MixService mixService;
@@ -47,7 +46,7 @@ public class StatusWebController {
         Map<String,Object> poolAttributes = new HashMap<>();
         poolAttributes.put("poolId", pool.getPoolId());
         poolAttributes.put("denomination", Utils.satoshisToBtc(pool.getDenomination()).setScale(2).doubleValue());
-        poolAttributes.put("mixStatus", mix.getNbInputsMustMix() > 0 ? mix.getMixStatus() : STATUS_READY);
+        poolAttributes.put("mixStatus", mix.getMixStatus());
         poolAttributes.put("targetAnonymitySet", mix.getTargetAnonymitySet());
         poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());
         poolAttributes.put("minAnonymitySet", pool.getMinAnonymitySet());
@@ -67,12 +66,13 @@ public class StatusWebController {
         String currentStepProgressLabel = computeCurrentStepProgressLabel(mix.getMixStatus(), currentStepElapsedTime, currentStepRemainingTime);
         poolAttributes.put("currentStepProgressLabel", currentStepProgressLabel);
 
-        poolAttributes.put("nbLiquiditiesAvailable", mix.getPool().getLiquidityPool().getSize());
+        poolAttributes.put("mustMixQueued", mix.getPool().getMustMixQueue().getSize());
+        poolAttributes.put("liquiditiesQueued", mix.getPool().getLiquidityQueue().getSize());
+        poolAttributes.put("unconfirmedQueued", mix.getPool().getUnconfirmedQueue().getSize());
 
         Map<MixStatus, Timestamp> timeStatus = mix.getTimeStatus();
         List<StatusStep> steps = new ArrayList<>();
-        steps.add(new StatusStep(!timeStatus.isEmpty(), timeStatus.isEmpty(), STATUS_READY, null));
-        steps.add(computeStep(MixStatus.REGISTER_INPUT, timeStatus));
+        steps.add(computeStep(MixStatus.CONFIRM_INPUT, timeStatus));
         steps.add(computeStep(MixStatus.REGISTER_OUTPUT, timeStatus));
         if (timeStatus.containsKey(MixStatus.REVEAL_OUTPUT)) {
             steps.add(computeStep(MixStatus.REVEAL_OUTPUT, timeStatus));
@@ -90,7 +90,7 @@ public class StatusWebController {
         poolAttributes.put("steps", steps);
 
         List<StatusEvent> events = new ArrayList<>();
-        events.add(new StatusEvent(mix.getTimeStarted(), STATUS_READY, "Mix id: "+mix.getMixId()));
+        events.add(new StatusEvent(mix.getTimeStarted(), MixStatus.CONFIRM_INPUT.toString(), "Mix id: "+mix.getMixId()));
         timeStatus.forEach(((mixStatus, timestamp) -> events.add(new StatusEvent(timestamp, mixStatus.toString(), null))));
         poolAttributes.put("events", events);
         pools.add(poolAttributes);
@@ -112,7 +112,7 @@ public class StatusWebController {
       if (currentStepElapsedTime != null && currentStepRemainingTime != null) {
           progressLabel = currentStepElapsedTime + "s elapsed, " + currentStepRemainingTime + "s remaining ";
           switch (mixStatus) {
-              case REGISTER_INPUT:
+              case CONFIRM_INPUT:
                   progressLabel += "before anonymitySet adjustment";
                   break;
               case REGISTER_OUTPUT:

@@ -30,18 +30,17 @@ public class RegisterInputController extends AbstractWebSocketController {
   }
 
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT)
-  public void registerInputs(@Payload RegisterInputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
+  public void registerInput(@Payload RegisterInputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
     validateHeaders(headers);
 
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + headers.getDestination() + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
-    // register inputs and send back signed bordereau
+    // register input in pool
     byte[] pubKey = Utils.decodeBase64(payload.pubkey64);
-    byte[] blindedBordereau = Utils.decodeBase64(payload.blindedBordereau64);
-    registerInputService.registerInput(payload.mixId, username, pubKey, payload.signature, blindedBordereau, payload.utxoHash, payload.utxoIndex, payload.liquidity, payload.testMode);
+    registerInputService.registerInput(payload.poolId, username, pubKey, payload.signature, payload.utxoHash, payload.utxoIndex, payload.liquidity, payload.testMode);
   }
 
   @MessageExceptionHandler

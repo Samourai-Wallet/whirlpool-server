@@ -132,9 +132,10 @@ public class MockRpcClientServiceImpl implements RpcClientService {
 
         RpcOutWithTx rpcOutWithTx = Utils.getRpcOutWithTx(rpcTransaction, utxoIndex).orElseThrow(() -> new NoSuchElementException());
         RpcOut rpcOut = rpcOutWithTx.getRpcOut();
+        RpcTransaction tx = rpcOutWithTx.getTx();
         Assert.assertEquals(addressBech32, bech32Util.getAddressFromScript(new Script(rpcOut.getScriptPubKey()), params));
 
-        TxOutPoint txOutPoint = new TxOutPoint(rpcOut.getHash(), rpcOut.getIndex(), amount);
+        TxOutPoint txOutPoint = new TxOutPoint(rpcOut.getHash(), rpcOut.getIndex(), amount, tx.getConfirmations());
         return txOutPoint;
     }
 

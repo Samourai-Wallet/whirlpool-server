@@ -1,7 +1,10 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
-import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.BlameReason;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
+import com.samourai.whirlpool.server.beans.FailReason;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
@@ -19,7 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class MixLimitsService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private MixService mixService;
+    private MixService mixService;;
+    private PoolService poolService;
     private BlameService blameService;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
@@ -27,7 +31,8 @@ public class MixLimitsService {
     private Map<String, TimeoutWatcher> liquidityWatchers;
 
     @Autowired
-    public MixLimitsService(BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
+    public MixLimitsService(PoolService poolService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
+        this.poolService = poolService;
         this.blameService = blameService;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
 
@@ -72,8 +77,8 @@ public class MixLimitsService {
             limitsWatcher.resetTimeout();
         }
 
-        // clear liquidityWatcher when REGISTER_INPUT completed
-        if (!MixStatus.REGISTER_INPUT.equals(mix.getMixStatus())) {
+        // clear liquidityWatcher when CONFIRM_INPUT completed
+        if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
             TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
             if (liquidityWatcher != null) {
                 String mixId = mix.getMixId();
@@ -92,7 +97,7 @@ public class MixLimitsService {
 
                 Long timeToWait = null;
                 switch(mix.getMixStatus()) {
-                    case REGISTER_INPUT:
+                    case CONFIRM_INPUT:
                         if (mix.getTargetAnonymitySet() > mix.getPool().getMinAnonymitySet()) {
                             // timeout before next targetAnonymitySet adjustment
                             timeToWait = mix.getPool().getTimeoutAdjustAnonymitySet()*1000 - elapsedTime;
@@ -124,7 +129,7 @@ public class MixLimitsService {
                     log.debug("limitsWatcher.onTimeout");
                 }
                 switch(mix.getMixStatus()) {
-                    case REGISTER_INPUT:
+                    case CONFIRM_INPUT:
                         // adjust targetAnonymitySet
                         adjustTargetAnonymitySet(mix, timeoutWatcher);
                         break;
@@ -162,7 +167,7 @@ public class MixLimitsService {
                 if (log.isDebugEnabled()) {
                     log.debug("liquidityWatcher.onTimeout");
                 }
-                if (MixStatus.REGISTER_INPUT.equals(mix.getMixStatus()) && !mix.isAcceptLiquidities()) {
+                if (MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus()) && !mix.isAcceptLiquidities()) {
                     // accept liquidities
                     if (log.isDebugEnabled()) {
                         log.debug("accepting liquidities now (liquidityTimeout elapsed)");
@@ -178,7 +183,7 @@ public class MixLimitsService {
         return mixLimitsWatcher;
     }
 
-    // REGISTER_INPUTS
+    // CONFIRM_INPUT
 
     private void adjustTargetAnonymitySet(Mix mix, TimeoutWatcher timeoutWatcher) {
         // no input registered yet => nothing to do
@@ -202,12 +207,12 @@ public class MixLimitsService {
             // add liquidities first
             checkAddLiquidities(mix);
 
-            // start mix
-            mixService.checkRegisterInputReady(mix);
+            // notify mixService - which doesn't know targetAnonymitySet was adjusted
+            mixService.checkConfirmInputReady(mix);
         }
     }
 
-    public synchronized void onInputRegistered(Mix mix) {
+    public synchronized void onInputConfirmed(Mix mix) {
         // first mustMix registered => instanciate limitsWatcher & liquidityWatcher
         if (mix.getNbInputs() == 1) {
             String mixId = mix.getMixId();
@@ -228,7 +233,7 @@ public class MixLimitsService {
 
             if (!mix.isAcceptLiquidities()) {
                 if (mixService.isRegisterInputReady(mix)) {
-                    // mix is ready to start => add liquidities now
+                    // mix is ready to start => add liquidities now (up to maxAnonymitySet)
 
                     if (log.isDebugEnabled()) {
                         log.debug("adding liquidities now (mix is ready to start)");
@@ -239,7 +244,7 @@ public class MixLimitsService {
             }
             else {
                 if (mix.hasMinMustMixReached()) {
-                    // mix is not ready to start but minMustMix reached and liquidities accepted => ad liquidities now
+                    // mix is not ready to start but minMustMix reached and liquidities accepted => add liquidities now
                     if (log.isDebugEnabled()) {
                         log.debug("adding liquidities now (minMustMix reached and acceptLiquidities=true)");
                     }
@@ -251,7 +256,7 @@ public class MixLimitsService {
 
     private void addLiquidities(Mix mix) {
         if (!mix.hasMinMustMixReached()) {
-            // will retry to add on onInputRegistered
+            // will retry to add on onInputConfirmed
             log.info("Cannot add liquidities yet, minMustMix not reached");
             return;
         }
@@ -259,11 +264,7 @@ public class MixLimitsService {
         int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
         if (liquiditiesToAdd > 0) {
             // add queued liquidities if any
-            int liquiditiesAdded = mixService.registerInputsFromQueue(mix, liquiditiesToAdd, true);
-            if (liquiditiesAdded > 0) {
-                // start mix if ready
-                mixService.checkRegisterInputReady(mix);
-            }
+            poolService.inviteAllToMix(mix, true);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("No liquidity to add: maxAnonymitySet=" + mix.getPool().getMaxAnonymitySet() + ", nbInputs=" + mix.getNbInputs());
@@ -275,8 +276,8 @@ public class MixLimitsService {
         String mixId = mix.getMixId();
 
         // blame users who didn't register outputs
-        Set<RegisteredInput> registeredInputsToBlame = mix.getInputs().parallelStream().filter(input -> !mix.hasRevealedOutputUsername(input.getUsername())).collect(Collectors.toSet());
-        registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
+        Set<ConfirmedInput> confirmedInputsToBlame = mix.getInputs().parallelStream().filter(input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername())).collect(Collectors.toSet());
+        confirmedInputsToBlame.forEach(confirmedInputToBlame -> blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
 
         // reset mix
         mixService.goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
@@ -287,8 +288,8 @@ public class MixLimitsService {
         String mixId = mix.getMixId();
 
         // blame users who didn't sign
-        Set<RegisteredInput> registeredInputsToBlame = mix.getInputs().parallelStream().filter(input -> mix.getSignatureByUsername(input.getUsername()) == null).collect(Collectors.toSet());
-        registeredInputsToBlame.forEach(registeredInputToBlame -> blameService.blame(registeredInputToBlame, BlameReason.NO_SIGNING, mixId));
+        Set<ConfirmedInput> confirmedInputsToBlame = mix.getInputs().parallelStream().filter(input -> mix.getSignatureByUsername(input.getRegisteredInput().getUsername()) == null).collect(Collectors.toSet());
+        confirmedInputsToBlame.forEach(confirmedInputToBlame -> blameService.blame(confirmedInputToBlame, BlameReason.NO_SIGNING, mixId));
 
         // reset mix
         mixService.goFail(mix, FailReason.FAIL_SIGNING);

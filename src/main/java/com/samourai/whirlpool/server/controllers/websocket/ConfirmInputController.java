@@ -1,8 +1,8 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.websocket.messages.RevealOutputRequest;
-import com.samourai.whirlpool.server.services.MixService;
+import com.samourai.whirlpool.protocol.websocket.messages.ConfirmInputRequest;
+import com.samourai.whirlpool.server.services.ConfirmInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
@@ -18,19 +18,19 @@ import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 
 @Controller
-public class RevealOutputController extends AbstractWebSocketController {
+public class ConfirmInputController extends AbstractWebSocketController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private MixService mixService;
+  private ConfirmInputService confirmInputService;
 
   @Autowired
-  public RevealOutputController(WebSocketService webSocketService, MixService mixService) {
+  public ConfirmInputController(WebSocketService webSocketService, ConfirmInputService confirmInputService) {
     super(webSocketService);
-    this.mixService = mixService;
+    this.confirmInputService = confirmInputService;
   }
 
-  @MessageMapping(WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT)
-  public void revealOutput(@Payload RevealOutputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
+  @MessageMapping(WhirlpoolProtocol.ENDPOINT_CONFIRM_INPUT)
+  public void confirmInput(@Payload ConfirmInputRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
     validateHeaders(headers);
 
     String username = principal.getName();
@@ -38,8 +38,9 @@ public class RevealOutputController extends AbstractWebSocketController {
       log.debug("[controller] " + headers.getDestination() + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
-    // register output
-    mixService.revealOutput(payload.mixId, username, payload.receiveAddress);
+    // confirm input and send back signed bordereau, or enqueue back to pool
+    byte[] blindedBordereau = Utils.decodeBase64(payload.blindedBordereau64);
+    confirmInputService.confirmInputOrQueuePool(payload.mixId, username, blindedBordereau);
   }
 
   @MessageExceptionHandler

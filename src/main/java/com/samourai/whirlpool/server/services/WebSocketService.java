@@ -29,13 +29,6 @@ public class WebSocketService {
         messagingTemplate.setMessageConverter(new MappingJackson2MessageConverter());
     }
 
-    public void broadcast(Object payload){
-        if (log.isDebugEnabled()) {
-            log.debug("(broadcast) --> "+ Utils.toJsonString(payload));
-        }
-        taskExecutor.execute(() -> messagingTemplate.convertAndSend(whirlpoolProtocol.SOCKET_SUBSCRIBE_QUEUE, payload, computeHeaders(payload)));
-    }
-
     public void sendPrivate(String username, Object payload){
         sendPrivate(Arrays.asList(username), payload);
     }

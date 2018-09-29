@@ -1,5 +1,7 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+
 public class Pool {
     private String poolId;
     private long denomination; // in satoshis
@@ -13,9 +15,9 @@ public class Pool {
     private long liquidityTimeout; // wait X seconds for accepting liquidities
 
     private Mix currentMix;
-    private InputPool mustMixPool;
-    private InputPool liquidityPool;
-    private InputPool unconfirmedInputs;
+    private InputPool mustMixQueue;
+    private InputPool liquidityQueue;
+    private InputPool unconfirmedQueue;
 
     public Pool(String poolId, long denomination, long minerFeeMin, long minerFeeMax, int minMustMix, int targetAnonymitySet, int minAnonymitySet, int maxAnonymitySet, long timeoutAdjustAnonymitySet, long liquidityTimeout) {
         this.poolId = poolId;
@@ -28,9 +30,22 @@ public class Pool {
         this.maxAnonymitySet = maxAnonymitySet;
         this.timeoutAdjustAnonymitySet = timeoutAdjustAnonymitySet;
         this.liquidityTimeout = liquidityTimeout;
-        this.mustMixPool = new InputPool();
-        this.liquidityPool = new InputPool();
-        this.unconfirmedInputs = new InputPool();
+        this.mustMixQueue = new InputPool();
+        this.liquidityQueue = new InputPool();
+        this.unconfirmedQueue = new InputPool();
+    }
+
+    public boolean checkInputBalance(long inputBalance, boolean liquidity) {
+        long minBalance = computeInputBalanceMin(liquidity);
+        long maxBalance = computeInputBalanceMax(liquidity);
+        return inputBalance >= minBalance && inputBalance <= maxBalance;
+    }
+    public long computeInputBalanceMin(boolean liquidity) {
+        return WhirlpoolProtocol.computeInputBalanceMin(denomination, liquidity, minerFeeMin);
+    }
+
+    public long computeInputBalanceMax(boolean liquidity) {
+        return WhirlpoolProtocol.computeInputBalanceMax(denomination, liquidity, minerFeeMax);
     }
 
     public String getPoolId() {
@@ -81,15 +96,15 @@ public class Pool {
         this.currentMix = currentMix;
     }
 
-    public InputPool getMustMixPool() {
-        return mustMixPool;
+    public InputPool getMustMixQueue() {
+        return mustMixQueue;
     }
 
-    public InputPool getLiquidityPool() {
-        return liquidityPool;
+    public InputPool getLiquidityQueue() {
+        return liquidityQueue;
     }
 
-    public InputPool getUnconfirmedInputs() {
-        return unconfirmedInputs;
+    public InputPool getUnconfirmedQueue() {
+        return unconfirmedQueue;
     }
 }

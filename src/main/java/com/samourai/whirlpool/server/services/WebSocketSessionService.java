@@ -17,10 +17,12 @@ public class WebSocketSessionService {
 
     private Map<String, Map<String, WebSocketSession>> sessions;
     private MixService mixService;
+    private PoolService poolService;
 
     @Autowired
-    public WebSocketSessionService(MixService mixService, WebSocketConfig websocketConfig) {
+    public WebSocketSessionService(MixService mixService, PoolService poolService, WebSocketConfig websocketConfig) {
         this.mixService = mixService;
+        this.poolService = poolService;
         this.sessions = new HashMap<>();
 
         // subscribe to websocket activity
@@ -54,6 +56,7 @@ public class WebSocketSessionService {
         }
         if (sessions.getOrDefault(username, new HashMap<>()).containsKey(sessionId)) {
             mixService.onClientDisconnect(username);
+            poolService.onClientDisconnect(username);
             sessions.getOrDefault(username, new HashMap<>()).remove(sessionId);
         }
         else {

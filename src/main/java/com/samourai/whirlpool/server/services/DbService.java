@@ -1,9 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.beans.BlameReason;
-import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.RevocationType;
+import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.persistence.repositories.MixRepository;
 import com.samourai.whirlpool.server.persistence.repositories.RevocationRepository;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
@@ -32,8 +29,8 @@ public class DbService {
         return Utils.sha512Hex(blindedBordereau);
     }
 
-    public void saveBlame(RegisteredInput registeredInput, BlameReason blameReason, String mixId) {
-        BlameTO blameTO = new BlameTO(registeredInput, blameReason, mixId);
+    public void saveBlame(ConfirmedInput confirmedInput, BlameReason blameReason, String mixId) {
+        BlameTO blameTO = new BlameTO(confirmedInput, blameReason, mixId);
         blames.add(blameTO);
     }
 

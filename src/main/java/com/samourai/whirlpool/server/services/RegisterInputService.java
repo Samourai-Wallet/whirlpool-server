@@ -1,12 +1,11 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
-import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import org.bitcoinj.core.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,24 +18,22 @@ import java.lang.invoke.MethodHandles;
 public class RegisterInputService {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private MixService mixService;
+    private PoolService poolService;
     private CryptoService cryptoService;
     private BlockchainService blockchainService;
-    private DbService dbService;
     private BlameService blameService;
     private WhirlpoolServerConfig whirlpoolServerConfig;
 
     @Autowired
-    public RegisterInputService(MixService mixService, CryptoService cryptoService, BlockchainService blockchainService, DbService dbService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
-        this.mixService = mixService;
+    public RegisterInputService(PoolService poolService, CryptoService cryptoService, BlockchainService blockchainService, BlameService blameService, WhirlpoolServerConfig whirlpoolServerConfig) {
+        this.poolService = poolService;
         this.cryptoService = cryptoService;
         this.blockchainService = blockchainService;
-        this.dbService = dbService;
         this.blameService = blameService;
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public synchronized void registerInput(String mixId, String username, byte[] pubkey, String signature, byte[] blindedBordereau, String utxoHash, long utxoIndex, boolean liquidity, boolean testMode) throws IllegalInputException, IllegalBordereauException, MixException {
+    public synchronized void registerInput(String poolId, String username, byte[] pubkey, String signature, String utxoHash, long utxoIndex, boolean liquidity, boolean testMode) throws IllegalInputException, IllegalBordereauException, MixException {
         if (!cryptoService.isValidTxHash(utxoHash)) {
             throw new IllegalInputException("Invalid utxoHash");
         }
@@ -51,31 +48,22 @@ public class RegisterInputService {
         }
 
         // verify signature
-        checkInputSignature(mixId, pubkey, signature);
+        checkInputSignature(poolId, pubkey, signature);
 
-        try {
-            // verify utxo & confirmations
-            TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
-            RegisteredInput registeredInput = new RegisteredInput(username, pubkey, blindedBordereau, liquidity, txOutPoint);
+        // verify input is a valid mustMix or liquidity
+        TxOutPoint txOutPoint = blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, pubkey, liquidity, testMode);
 
-            // register input and send back signedBordereau
-            mixService.registerInput(mixId, registeredInput);
-
-        } catch(UnconfirmedInputException e) {
-            // queue unconfirmed input
-            TxOutPoint unconfirmedOutpoint = e.getUnconfirmedOutPoint();
-            RegisteredInput unconfirmedInput = new RegisteredInput(username, pubkey, blindedBordereau, liquidity, unconfirmedOutpoint);
-            mixService.queueUnconfirmedInput(mixId, unconfirmedInput, e.getMessage());
-        }
+        // register input to pool
+        poolService.registerInput(poolId, username, pubkey, liquidity, txOutPoint);
     }
 
-    private void checkInputSignature(String mixId, byte[] pubkeyHex, String signature) throws IllegalInputException {
+    private void checkInputSignature(String message, byte[] pubkeyHex, String signature) throws IllegalInputException {
         if (log.isDebugEnabled()) {
-            log.debug("Verifying signature: " + signature + "\n  for pubkey: " + Utils.HEX.encode(pubkeyHex) + "\n  for mixId: " + mixId);
+            log.debug("Verifying signature: " + signature + "\n  for pubkey: " + Utils.HEX.encode(pubkeyHex) + "\n  for message: " + message);
         }
 
-        // verify signature of 'mixId' for pubkey
-        if (!cryptoService.verifyMessageSignature(pubkeyHex, mixId, signature)) {
+        // verify signature of message for pubkey
+        if (!cryptoService.verifyMessageSignature(pubkeyHex, message, signature)) {
             throw new IllegalInputException("Invalid signature");
         }
     }

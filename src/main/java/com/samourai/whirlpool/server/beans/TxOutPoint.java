@@ -5,11 +5,13 @@ public class TxOutPoint {
     private String hash;
     private long index;
     private long value;
+    private int confirmations;
 
-    public TxOutPoint(String hash, long index, long value) {
+    public TxOutPoint(String hash, long index, long value, int confirmations) {
         this.hash = hash;
         this.index = index;
         this.value = value;
+        this.confirmations = confirmations;
     }
 
     public String getHash() {
@@ -22,6 +24,10 @@ public class TxOutPoint {
 
     public long getValue() {
         return value;
+    }
+
+    public int getConfirmations() {
+        return confirmations;
     }
 
     public boolean equals(Object obj) {

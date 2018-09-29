@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.persistence.to;
 
-import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.BlameReason;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -19,7 +19,7 @@ public class BlameTO extends EntityTO {
     public BlameTO() {
     }
 
-    public BlameTO(RegisteredInput registeredInput, BlameReason blameReason, String mixId) {
+    public BlameTO(ConfirmedInput confirmedInput, BlameReason blameReason, String mixId) {
         super();
         this.blameReason = blameReason;
         this.mixId = mixId;

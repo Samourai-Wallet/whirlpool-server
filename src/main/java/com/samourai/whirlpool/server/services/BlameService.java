@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.beans.BlameReason;
-import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +22,9 @@ public class BlameService {
         this.whirlpoolServerConfig = whirlpoolServerConfig;
     }
 
-    public void blame(RegisteredInput registeredInput, BlameReason reason, String mixId) {
-        log.info("blameForNoSigning "+registeredInput.getUsername());
-        dbService.saveBlame(registeredInput, reason, mixId);
+    public void blame(ConfirmedInput confirmedInput, BlameReason reason, String mixId) {
+        log.info("blameForNoSigning "+confirmedInput.getRegisteredInput().getUsername());
+        dbService.saveBlame(confirmedInput, reason, mixId);
     }
 
     public boolean isBannedUTXO(String utxoHash, long utxoIndex) {

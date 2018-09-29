@@ -35,7 +35,7 @@ public class SigningController extends AbstractWebSocketController {
 
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_SIGNING + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
+      log.debug("[controller] " + headers.getDestination() + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
     }
 
     // signing

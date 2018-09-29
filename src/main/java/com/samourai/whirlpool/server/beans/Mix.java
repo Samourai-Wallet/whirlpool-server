@@ -5,12 +5,14 @@ import com.samourai.whirlpool.protocol.beans.Utxo;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
+import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.Transaction;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 public class Mix {
@@ -18,15 +20,18 @@ public class Mix {
 
     private String mixId;
     private AsymmetricCipherKeyPair keyPair;
+    private byte[] publicKey;
     private Timestamp timeStarted;
     private Map<MixStatus,Timestamp> timeStatus;
+    private ScheduledFuture scheduleRegisterOutput;
 
     private Pool pool;
     private int targetAnonymitySet;
     private boolean acceptLiquidities;
 
     private MixStatus mixStatus;
-    private Map<String,RegisteredInput> inputsById;
+    private InputPool confirmingInputs;
+    private Map<String,ConfirmedInput> inputsById;
 
     private Set<String> receiveAddresses;
     private Map<String,String> revealedReceiveAddressesByUsername;
@@ -35,18 +40,25 @@ public class Mix {
     private Transaction tx;
     private FailReason failReason;
 
-    public Mix(String mixId, Pool pool, AsymmetricCipherKeyPair keyPair) {
+    public Mix(String mixId, Pool pool, CryptoService cryptoService) {
         this.mixTO = null;
         this.mixId = mixId;
-        this.keyPair = keyPair;
+        this.keyPair = cryptoService.generateKeyPair();
+        try {
+            this.publicKey = cryptoService.computePublicKey(keyPair).getEncoded();
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
         this.timeStarted = new Timestamp(System.currentTimeMillis());
         this.timeStatus = new HashMap<>();
+        this.scheduleRegisterOutput = null;
 
         this.pool = pool;
         this.targetAnonymitySet = pool.getTargetAnonymitySet();
         this.acceptLiquidities = false;
 
-        this.mixStatus = MixStatus.REGISTER_INPUT;
+        this.mixStatus = MixStatus.CONFIRM_INPUT;
+        this.confirmingInputs = new InputPool();
         this.inputsById = new HashMap<>();
 
         this.receiveAddresses = new HashSet<>();
@@ -77,19 +89,6 @@ public class Mix {
         return (getNbInputs() >= pool.getMaxAnonymitySet());
     }
 
-    public boolean checkInputBalance(long inputBalance, boolean liquidity) {
-        long minBalance = computeInputBalanceMin(liquidity);
-        long maxBalance = computeInputBalanceMax(liquidity);
-        return inputBalance >= minBalance && inputBalance <= maxBalance;
-    }
-    public long computeInputBalanceMin(boolean liquidity) {
-        return WhirlpoolProtocol.computeInputBalanceMin(getPool().getDenomination(), liquidity, getPool().getMinerFeeMin());
-    }
-
-    public long computeInputBalanceMax(boolean liquidity) {
-        return WhirlpoolProtocol.computeInputBalanceMax(getPool().getDenomination(), liquidity, getPool().getMinerFeeMax());
-    }
-
     public String getMixId() {
         return mixId;
     }
@@ -98,12 +97,31 @@ public class Mix {
         return keyPair;
     }
 
+    public byte[] getPublicKey() {
+        return publicKey;
+    }
+
     public Timestamp getTimeStarted() {
         return timeStarted;
     }
 
     public Map<MixStatus, Timestamp> getTimeStatus() {
         return timeStatus;
+    }
+
+    public ScheduledFuture getScheduleRegisterOutput() {
+        return scheduleRegisterOutput;
+    }
+
+    public void setScheduleRegisterOutput(ScheduledFuture scheduleRegisterOutput) {
+        this.scheduleRegisterOutput = scheduleRegisterOutput;
+    }
+
+    public void clearScheduleRegisterOutput() {
+        if (scheduleRegisterOutput != null) {
+            scheduleRegisterOutput.cancel(false);
+            scheduleRegisterOutput = null;
+        }
     }
 
     public Pool getPool() {
@@ -135,7 +153,27 @@ public class Mix {
         timeStatus.put(mixStatus, new Timestamp(System.currentTimeMillis()));
     }
 
-    public Collection<RegisteredInput> getInputs() {
+    public boolean hasConfirmingInput(TxOutPoint txOutPoint) {
+        return confirmingInputs.hasInput(txOutPoint);
+    }
+
+    public synchronized void registerConfirmingInput(RegisteredInput registeredInput) {
+        confirmingInputs.register(registeredInput);
+    }
+
+    public synchronized Optional<RegisteredInput> peekConfirmingInputByUsername(String username) {
+        return confirmingInputs.removeByUsername(username);
+    }
+
+    public boolean hasPendingConfirmingInputs() {
+        return confirmingInputs.hasInputs();
+    }
+
+    public int getNbConfirmingInputs() {
+        return confirmingInputs.getSize();
+    }
+
+    public Collection<ConfirmedInput> getInputs() {
         return inputsById.values();
     }
 
@@ -144,27 +182,27 @@ public class Mix {
     }
 
     public int getNbInputsMustMix() {
-        return (int)getInputs().parallelStream().filter(input -> !input.isLiquidity()).count();
+        return (int)getInputs().parallelStream().filter(input -> !input.getRegisteredInput().isLiquidity()).count();
     }
 
     public int getNbInputsLiquidities() {
-        return (int)getInputs().parallelStream().filter(input -> input.isLiquidity()).count();
+        return (int)getInputs().parallelStream().filter(input -> input.getRegisteredInput().isLiquidity()).count();
     }
 
-    public synchronized void registerInput(RegisteredInput registeredInput) throws MixException {
-        String inputId = Utils.computeInputId(registeredInput.getInput());
+    public synchronized void registerInput(ConfirmedInput confirmedInput) throws MixException {
+        String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getInput());
         if (inputsById.containsKey(inputId)) {
             throw new MixException("input already registered");
         }
-        inputsById.put(inputId, registeredInput);
+        inputsById.put(inputId, confirmedInput);
 
-        if (!registeredInput.isLiquidity() && getNbInputsMustMix() == 1) {
-            timeStatus.put(MixStatus.REGISTER_INPUT, new Timestamp(System.currentTimeMillis()));
+        if (!confirmedInput.getRegisteredInput().isLiquidity() && getNbInputsMustMix() == 1) {
+            timeStatus.put(MixStatus.CONFIRM_INPUT, new Timestamp(System.currentTimeMillis()));
         }
     }
 
-    public synchronized void unregisterInput(RegisteredInput registeredInput) {
-        String inputId = Utils.computeInputId(registeredInput.getInput());
+    public synchronized void unregisterInput(ConfirmedInput confirmedInput) {
+        String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getInput());
         inputsById.remove(inputId);
     }
 
@@ -173,7 +211,7 @@ public class Mix {
     }
 
     public String computeInputsHash() {
-        Collection<Utxo> inputs = getInputs().parallelStream().map(input -> new Utxo(input.getInput().getHash(), input.getInput().getIndex())).collect(Collectors.toList());
+        Collection<Utxo> inputs = getInputs().parallelStream().map(confirmedInput -> confirmedInput.getRegisteredInput().getInput()).map(input -> new Utxo(input.getHash(), input.getIndex())).collect(Collectors.toList());
         return WhirlpoolProtocol.computeInputsHash(inputs);
     }
 
@@ -182,8 +220,8 @@ public class Mix {
     }
 
     public long getElapsedTime() {
-        // return first input registration time when 1 mustMix already connected, otherwise return mix started time
-        long timeStarted = getTimeStatus().getOrDefault(MixStatus.REGISTER_INPUT, getTimeStarted()).getTime();
+        // return elapsed time since first mustMix confirmed, otherwise return mix start time
+        long timeStarted = getTimeStatus().getOrDefault(MixStatus.CONFIRM_INPUT, getTimeStarted()).getTime();
         long elapsedTime = System.currentTimeMillis() - timeStarted;
         return elapsedTime;
     }
@@ -234,5 +272,9 @@ public class Mix {
 
     public FailReason getFailReason() {
         return failReason;
+    }
+
+    public boolean isInvitationOpen(boolean liquidity) {
+        return MixStatus.CONFIRM_INPUT.equals(mixStatus) && (!liquidity || acceptLiquidities);
     }
 }

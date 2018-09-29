@@ -21,7 +21,9 @@ import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.services.*;
+import com.samourai.whirlpool.server.services.CryptoService;
+import com.samourai.whirlpool.server.services.MixLimitsService;
+import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
@@ -180,7 +182,7 @@ public class MultiClientManager {
     }
 
     public void waitLiquiditiesInPool(int nbLiquiditiesInPoolExpected) throws Exception {
-        InputPool liquidityPool = mix.getPool().getLiquidityPool();
+        InputPool liquidityPool = mix.getPool().getLiquidityQueue();
 
         int MAX_WAITS = 5;
         int WAIT_DURATION = 4000;
@@ -230,17 +232,17 @@ public class MultiClientManager {
         log.info("============= NEW MIX DETECTED: " + nextMix.getMixId() + " =============");
     }
 
-    public void assertMixStatusRegisterInput(int nbInputsExpected, boolean hasLiquidityExpected) throws Exception {
+    public void assertMixStatusConfirmInput(int nbInputsExpected, boolean hasLiquidityExpected) throws Exception {
         // wait inputs to register
         waitRegisteredInputs(nbInputsExpected);
 
-        InputPool liquidityPool = mix.getPool().getLiquidityPool();
+        InputPool liquidityPool = mix.getPool().getLiquidityQueue();
         System.out.println("=> mixStatus="+ mix.getMixStatus()+", nbInputs="+ mix.getNbInputs());
 
         // all clients should have registered their outputs
-        Assert.assertEquals(MixStatus.REGISTER_INPUT, mix.getMixStatus());
+        Assert.assertEquals(MixStatus.CONFIRM_INPUT, mix.getMixStatus());
         Assert.assertEquals(nbInputsExpected, mix.getNbInputs());
-        Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasInput());
+        Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasInputs());
     }
 
     public void assertMixStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected) throws Exception {
@@ -258,8 +260,8 @@ public class MultiClientManager {
         Assert.assertEquals(MixStatus.SUCCESS, mix.getMixStatus());
         Assert.assertEquals(nbAllRegisteredExpected, mix.getNbInputs());
 
-        InputPool liquidityPool = mix.getPool().getLiquidityPool();
-        Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasInput());
+        InputPool liquidityPool = mix.getPool().getLiquidityQueue();
+        Assert.assertEquals(hasLiquidityExpected, liquidityPool.hasInputs());
 
         // all clients should have registered their outputs
         Assert.assertEquals(nbAllRegisteredExpected, mix.getReceiveAddresses().size());

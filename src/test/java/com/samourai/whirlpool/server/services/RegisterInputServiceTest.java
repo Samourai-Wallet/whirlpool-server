@@ -4,11 +4,10 @@ import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
-import com.samourai.whirlpool.server.exceptions.UnconfirmedInputException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import org.bitcoinj.core.ECKey;
 import org.bouncycastle.crypto.params.RSABlindingParameters;
@@ -61,22 +60,19 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint = null;
         try {
             Mix mix = __getCurrentMix();
-            String mixId = mix.getMixId();
+            String poolId = mix.getPool().getPoolId();
             String username = "user1";
 
             ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
             byte[] pubkey = ecKey.getPubKey();
-            String signature = ecKey.signMessage(mixId);
-            
-            SegwitAddress outputAddress = testUtils.createSegwitAddress();
-            validBlindedBordereau = computeBlindedBordereau(outputAddress.toString());
+            String signature = ecKey.signMessage(poolId);
 
-            long inputBalance = mix.computeInputBalanceMin(liquidity);
+            long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
             int confirmations = liquidity ? MIN_CONFIRMATIONS_LIQUIDITY : MIN_CONFIRMATIONS_MUSTMIX;
             txOutPoint = rpcClientService.createAndMockTxOutPoint(new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance, confirmations);
 
             // TEST
-            registerInputService.registerInput(mixId, username, pubkey, signature, validBlindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
+            registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,15 +88,12 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Mix mix = __getCurrentMix();
-        InputPool liquidityPool = mix.getPool().getLiquidityPool();
+        Pool pool = mix.getPool();
 
         // mustMix should be registered
-        Assert.assertEquals(1, mix.getNbInputs());
-        Assert.assertTrue(mix.hasInput(txOutPoint));
-
-        // no liquidity should be queued
-        Assert.assertFalse(liquidityPool.hasInput());
-        Assert.assertFalse(liquidityPool.hasInput(txOutPoint));
+        testUtils.assertPoolEmpty(pool);
+        testUtils.assertMix(0, 1, mix); // mustMix confirming
+        Assert.assertTrue(mix.hasConfirmingInput(txOutPoint));
     }
 
     @Test
@@ -110,42 +103,73 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // VERIFY
         Mix mix = __getCurrentMix();
-        InputPool liquidityPool = mix.getPool().getLiquidityPool();
-
-        // liquidity should not be registered
-        Assert.assertEquals(0, mix.getNbInputs());
-        Assert.assertFalse(mix.hasInput(txOutPoint));
+        Pool pool = mix.getPool();
+        InputPool liquidityPool = mix.getPool().getLiquidityQueue();
 
         // liquidity should be queued
-        Assert.assertTrue(liquidityPool.hasInput());
         Assert.assertTrue(liquidityPool.hasInput(txOutPoint));
+        testUtils.assertPool(0, 1, 0, pool); // mustMix queued
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
-    public void registerInput_shouldFailWhenInvalidMixId() throws Exception {
+    public void registerInput_shouldQueueMustMixWhenValidAndMixStarted() throws Exception {
+        Mix mix = __getCurrentMix();
+        Pool pool = mix.getPool();
+        mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT); // mix already started
+
+        // TEST
+        TxOutPoint txOutPoint = runTestValidInput.apply(false);
+
+        // VERIFY
+
+        // mustMix should be registered
+        testUtils.assertPool(1, 0, 0, pool); // mustMix queued
+        testUtils.assertMixEmpty(mix);
+        Assert.assertTrue(mix.getPool().getMustMixQueue().hasInput(txOutPoint));
+    }
+
+    @Test
+    public void registerInput_shouldQueueLiquidityWhenValidAndMixStarted() throws Exception {
+        Mix mix = __getCurrentMix();
+        Pool pool = mix.getPool();
+        mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT); // mix already started
+
+        // TEST
+        TxOutPoint txOutPoint = runTestValidInput.apply(true);
+
+        // VERIFY
+        InputPool liquidityPool = mix.getPool().getLiquidityQueue();
+
+        // liquidity should be queued
+        Assert.assertTrue(liquidityPool.hasInput(txOutPoint));
+        testUtils.assertPool(0, 1, 0, pool); // mustMix queued
+        testUtils.assertMixEmpty(mix);
+    }
+
+    @Test
+    public void registerInput_shouldFailWhenInvalidPoolId() throws Exception {
         Mix mix = __getCurrentMix();
 
-        String mixId = "INVALID"; // INVALID
+        String poolId = "INVALID"; // INVALID
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
-        
-        String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
+        String signature = ecKey.signMessage(poolId);
 
-        long inputBalance = mix.computeInputBalanceMin(false);
+        long inputBalance = mix.getPool().computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(MixException.class);
-        thrown.expectMessage("Mix not found");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        thrown.expectMessage("Pool not found");
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
+        testUtils.assertPoolEmpty(mix.getPool());
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
@@ -156,32 +180,29 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
 
-        String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-
-        // all mixStatus != REGISTER_INPUTS
+        // all mixStatus != CONFIRM_INPUT
         for (MixStatus mixStatus : MixStatus.values()) {
-            if (!MixStatus.REGISTER_INPUT.equals(mixStatus) && !MixStatus.SUCCESS.equals(mixStatus) && !MixStatus.FAIL.equals(mixStatus)) {
+            if (!MixStatus.CONFIRM_INPUT.equals(mixStatus) && !MixStatus.SUCCESS.equals(mixStatus) && !MixStatus.FAIL.equals(mixStatus)) {
                 setUp();
 
                 log.info("----- " + mixStatus + " -----");
 
                 Mix mix = __getCurrentMix();
                 String mixId = mix.getMixId();
+                String poolId = mix.getPool().getPoolId();
 
                 // set status
                 mixService.changeMixStatus(mixId, mixStatus);
 
                 // TEST
-                byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
-                String signature = ecKey.signMessage(mixId);
-                long inputBalance = mix.computeInputBalanceMin(false);
+                String signature = ecKey.signMessage(poolId);
+                long inputBalance = mix.getPool().computeInputBalanceMin(false);
                 TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
-                registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+                registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
                 // VERIFY
-                Assert.assertEquals(0, mix.getInputs().size());
-                Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
-                Assert.assertEquals(1, mix.getPool().getMustMixPool().getSize()); // mustMix queued
+                testUtils.assertPool(1, 0, 0, mix.getPool()); // mustMix queued
+                testUtils.assertMixEmpty(mix);
             }
         }
     }
@@ -189,240 +210,196 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     @Test
     public void registerInput_shouldFailWhenInvalidSignature() throws Exception {
         Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
+        String poolId = mix.getPool().getPoolId();
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
         String signature = "INVALID";
-        
-        String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
 
-        long inputBalance = mix.computeInputBalanceMin(false);
+        long inputBalance = mix.getPool().computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid signature");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
+        testUtils.assertPoolEmpty(mix.getPool());
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
     public void registerInput_shouldFailWhenInvalidPubkey() throws Exception {
         Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
+        String poolId = mix.getPool().getPoolId();
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = testUtils.createSegwitAddress(); // INVALID: not related to pubkey
-        String signature = ecKey.signMessage(mixId);
-        
-        String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
+        String signature = ecKey.signMessage(poolId);
 
-        long inputBalance = mix.computeInputBalanceMin(false);
+        long inputBalance = mix.getPool().computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid pubkey for UTXO");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
-    }
-
-    @Test
-    public void registerInput_shouldFailWhenDuplicateBordereau() throws Exception {
-        Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
-        String username = "user1";
-
-        ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-        byte[] pubkey = ecKey.getPubKey();
-        SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
-
-        byte[] blindedBordereau = computeBlindedBordereau("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ");
-
-        long inputBalance = mix.computeInputBalanceMin(false);
-        TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
-
-        // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
-
-        thrown.expect(IllegalBordereauException.class);
-        thrown.expectMessage("blindedBordereau already registered");
-        txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
-
-        // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
+        testUtils.assertPoolEmpty(mix.getPool());
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
     public void registerInput_shouldFailWhenDuplicateInputsSameMix() throws Exception {
         Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
+        Pool pool = mix.getPool();
+        String poolId = mix.getPool().getPoolId();
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
+        String signature = ecKey.signMessage(poolId);
 
-        byte[] blindedBordereau1 = computeBlindedBordereau("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ");
-        byte[] blindedBordereau2 = computeBlindedBordereau("3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBZ");
-
-        long inputBalance = mix.computeInputBalanceMin(false);
+        long inputBalance = mix.getPool().computeInputBalanceMin(false);
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau1, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        testUtils.assertPoolEmpty(pool);
+        testUtils.assertMix(0, 1, mix); // confirming
 
-        thrown.expect(IllegalInputException.class);
-        thrown.expectMessage("Input already registered for this mix");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau2, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
-
-        // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        testUtils.assertPoolEmpty(pool);
+        testUtils.assertMix(0, 1, mix); // not confirming twice
     }
 
     @Test
     public void registerInput_shouldFailWhenBalanceTooLow() throws Exception {
         Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
+        String poolId = mix.getPool().getPoolId();
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
-        
-        String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
+        String signature = ecKey.signMessage(poolId);
 
-        long inputBalance = mix.computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
+        long inputBalance = mix.getPool().computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid input balance");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
+        testUtils.assertPoolEmpty(mix.getPool());
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
     public void registerInput_shouldFailWhenBalanceTooHigh() throws Exception {
         Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
+        String poolId = mix.getPool().getPoolId();
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
-        
-        String outputAddress = "3Jt9MU7Lin4QyRnHQa1wN8Csfq6GM2AkBQ";
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress);
+        String signature = ecKey.signMessage(poolId);
 
-        long inputBalance = mix.computeInputBalanceMax(false) + 1;// BALANCE TOO HIGH
+        long inputBalance = mix.getPool().computeInputBalanceMax(false) + 1;// BALANCE TOO HIGH
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
         // TEST
         thrown.expect(IllegalInputException.class);
         thrown.expectMessage("Invalid input balance");
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
-        Assert.assertEquals(0, mix.getInputs().size());
+        testUtils.assertPoolEmpty(mix.getPool());
+        testUtils.assertMixEmpty(mix);
     }
 
-    private void doRegisterInput(int confirmations, boolean liquidity, boolean expectedSuccess) throws Exception {
+    private void doRegisterInput(int confirmations, boolean liquidity) throws Exception {
         Mix mix = __getCurrentMix();
-        String mixId = mix.getMixId();
+        String poolId = mix.getPool().getPoolId();
         String username = "user1";
 
         ECKey ecKey = ECKey.fromPrivate(new BigInteger("34069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey = ecKey.getPubKey();
         SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
-        String signature = ecKey.signMessage(mixId);
+        String signature = ecKey.signMessage(poolId);
 
-        SegwitAddress outputAddress = testUtils.createSegwitAddress();
-        byte[] blindedBordereau = computeBlindedBordereau(outputAddress.toString());
-
-        long inputBalance = mix.computeInputBalanceMin(false);
+        long inputBalance = mix.getPool().computeInputBalanceMin(false);
         // mock input with 0 confirmations
         TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);
 
-        registerInputService.registerInput(mixId, username, pubkey, signature, blindedBordereau, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
-
-        // VERIFY
-        if (expectedSuccess) {
-            Assert.assertEquals(1, mix.getNbInputs());
-            Assert.assertTrue(mix.hasInput(txOutPoint));
-        }
+        registerInputService.registerInput(poolId, username, pubkey, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
     }
 
     @Test
-    public void registerInput_shouldFailWhenUnconfirmed() throws Exception {
+    public void registerInput_shouldQueueUnconfirmedWhenZeroConfirmations() throws Exception {
         Mix mix = __getCurrentMix();
+        Pool pool = mix.getPool();
 
         // mustMix
-        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
-        doRegisterInput(0, false, false);
-        Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
-        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
-        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
+        //        testUtils.assertPool(0, 0, 0, pool);
+        doRegisterInput(0, false);
+        testUtils.assertPool(0, 0, 1, pool);
+        testUtils.assertMixEmpty(mix);
 
         // liquidity
-        mix.getPool().getUnconfirmedInputs().peekRandom(); // reset
-        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
-        doRegisterInput(0, true, false);
-        Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
-        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
-        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
+        mix.getPool().getUnconfirmedQueue().peekRandom(); // reset
+        testUtils.assertPool(0, 0, 0, pool);
+        doRegisterInput(0, true);
+        testUtils.assertPool(0, 0, 1, pool);
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
-    public void registerInput_shouldFailWhenLessConfirmations() throws Exception {
+    public void registerInput_shouldQueueUnconfirmedWhenLessConfirmations() throws Exception {
         Mix mix = __getCurrentMix();
+        Pool pool = mix.getPool();
+        testUtils.assertPoolEmpty(pool);
+        testUtils.assertMixEmpty(mix);
 
         // mustMix
-        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
-        doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX-1, false, false);
-        Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
-        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
-        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
+        doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX-1, false);
+        testUtils.assertPool(0, 0, 1, pool);
+        testUtils.assertMixEmpty(mix);
 
         // liquidity
-        mix.getPool().getUnconfirmedInputs().peekRandom(); // reset
-        Assert.assertEquals(0, mix.getPool().getUnconfirmedInputs().getSize());
-        doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY-1, true, false);
-        Assert.assertEquals(0, mix.getInputs().size());
-        Assert.assertEquals(0, mix.getPool().getMustMixPool().getSize());
-        Assert.assertEquals(0, mix.getPool().getLiquidityPool().getSize());
-        Assert.assertEquals(1, mix.getPool().getUnconfirmedInputs().getSize()); // unconfirmed
+        mix.getPool().getUnconfirmedQueue().peekRandom(); // reset
+        testUtils.assertPool(0, 0, 0, pool);
+        doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY-1, true);
+        testUtils.assertPool(0, 0, 1, pool);
+        testUtils.assertMixEmpty(mix);
     }
 
     @Test
     public void registerInput_shouldSuccessWhenMoreConfirmations() throws Exception {
+        Mix mix = __getCurrentMix();
+        Pool pool = mix.getPool();
+        testUtils.assertPoolEmpty(pool);
+        testUtils.assertMixEmpty(mix);
+
         // mustMix
-        doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX+1, false, true);
+        doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX+1, false);
+        testUtils.assertPoolEmpty(pool);
+        testUtils.assertMix(0, 1, mix);
 
         // liquidity
-        doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY+1, true, true);
+        doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY+1, true);
+        testUtils.assertPool(0, 1, 0, pool);
+        testUtils.assertMix(0, 1, mix);
     }
 
     // TODO test noSamouraiFeesCheck for liquidities vs feesCheck for mustMix

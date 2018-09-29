@@ -6,9 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 public class InputPool {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -20,30 +19,39 @@ public class InputPool {
 
     public synchronized void register(RegisteredInput registeredInput) {
         if (!hasInput(registeredInput.getInput())) {
-            String inputId = Utils.computeInputId(registeredInput.getInput());
-            inputsById.put(inputId, registeredInput);
+            String username = registeredInput.getUsername();
+            if (!findByUsername(username).isPresent()) {
+                String inputId = Utils.computeInputId(registeredInput.getInput());
+                inputsById.put(inputId, registeredInput);
+            } else {
+                log.error("WEIRD: not queueing input, another one was already queued for this username:" + username); // shouldn't happen...
+            }
         } else {
             log.info("not queueing input, it was already queued");
         }
     }
 
-    public synchronized RegisteredInput peekRandom() {
-        RegisteredInput registeredInput = null;
-        if (!inputsById.isEmpty()) {
-            Map.Entry<String,RegisteredInput> entry = Utils.getRandomEntry(inputsById);
-            registeredInput = entry.getValue();
-            inputsById.remove(entry.getKey());
-        }
-        return registeredInput;
+    public Optional<RegisteredInput> findByUsername(String username) {
+        return inputsById.values().parallelStream().filter(registeredInput -> registeredInput.getUsername().equals(username)).findFirst();
     }
 
-    public synchronized int removeByUsername(String username) {
-        List<RegisteredInput> inputsToRemove = inputsById.values().parallelStream().filter(registeredInput -> registeredInput.getUsername().equals(username)).collect(Collectors.toList());
-        inputsToRemove.forEach(registeredInput -> {
-            String inputId = Utils.computeInputId(registeredInput.getInput());
+    public synchronized Optional<RegisteredInput> peekRandom() {
+        if (!inputsById.isEmpty()) {
+            Map.Entry<String,RegisteredInput> entry = Utils.getRandomEntry(inputsById);
+            RegisteredInput registeredInput = entry.getValue();
+            inputsById.remove(entry.getKey());
+            return Optional.of(registeredInput);
+        }
+        return Optional.empty();
+    }
+
+    public synchronized Optional<RegisteredInput> removeByUsername(String username) {
+        Optional<RegisteredInput> inputByUsername = findByUsername(username);
+        if (inputByUsername.isPresent()) {
+            String inputId = Utils.computeInputId(inputByUsername.get().getInput());
             inputsById.remove(inputId);
-        });
-        return inputsToRemove.size();
+        }
+        return inputByUsername;
     }
 
     // ------------
@@ -52,7 +60,7 @@ public class InputPool {
         return inputsById.containsKey(Utils.computeInputId(outPoint)) ;
     }
 
-    public boolean hasInput() {
+    public boolean hasInputs() {
         return !inputsById.isEmpty();
     }
 
