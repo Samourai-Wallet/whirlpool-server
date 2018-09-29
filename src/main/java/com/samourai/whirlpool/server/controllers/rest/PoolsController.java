@@ -31,25 +31,18 @@ public class PoolsController extends AbstractRestController {
 
   @RequestMapping(value = WhirlpoolProtocol.ENDPOINT_POOLS, method = RequestMethod.GET)
   public PoolsResponse pools() {
-    PoolsResponse poolsResponse = new PoolsResponse();
-    poolsResponse.pools = poolService.getPools().parallelStream().map(pool -> computePoolInfo(pool)).toArray((i) -> new PoolInfo[i]);
+    PoolInfo[] pools = poolService.getPools().parallelStream().map(pool -> computePoolInfo(pool)).toArray((i) -> new PoolInfo[i]);
+    PoolsResponse poolsResponse = new PoolsResponse(pools);
     return poolsResponse;
   }
 
   private PoolInfo computePoolInfo(Pool pool) {
     Mix currentMix = pool.getCurrentMix();
-    PoolInfo poolInfo = new PoolInfo();
-    poolInfo.poolId = pool.getPoolId();
-    poolInfo.denomination = pool.getDenomination();
-    poolInfo.minerFeeMin = pool.getMinerFeeMin();
-    poolInfo.minerFeeMax = pool.getMinerFeeMax();
-    poolInfo.minAnonymitySet = pool.getMinAnonymitySet();
-    poolInfo.mixAnonymitySet = currentMix.getTargetAnonymitySet();
-    poolInfo.mixStatus = currentMix.getMixStatus();
-    poolInfo.elapsedTime = currentMix.getElapsedTime();
-    int nbInputs = currentMix.getNbInputs();
-    poolInfo.mixNbConnected = nbInputs + currentMix.getNbInputsLiquidities();
-    poolInfo.mixNbRegistered = nbInputs;
+
+    int nbRegistered = currentMix.getNbConfirmingInputs() + pool.getMustMixQueue().getSize() + pool.getLiquidityQueue().getSize() + pool.getUnconfirmedQueue().getSize();
+    int mixNbConfirmed = currentMix.getNbInputs();
+    PoolInfo poolInfo = new PoolInfo(pool.getPoolId(), pool.getDenomination(), pool.getMinerFeeMin(), pool.getMinerFeeMax(), pool.getMinAnonymitySet(), nbRegistered,
+            currentMix.getTargetAnonymitySet(), currentMix.getMixStatus(), currentMix.getElapsedTime(), mixNbConfirmed);
     return poolInfo;
   }
 
