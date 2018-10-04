@@ -35,8 +35,10 @@ public class RegisterOutputService {
         // register
         mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
 
-        // revoke receiveAddress
-        dbService.revokeReceiveAddress(receiveAddress);
+        if (!serverConfig.isTestMode()) { // TODO
+            // revoke receiveAddress
+            dbService.revokeReceiveAddress(receiveAddress);
+        }
     }
 
     private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
@@ -55,7 +57,7 @@ public class RegisterOutputService {
             if (!serverConfig.isTestMode()) {
                 throw new IllegalBordereauException("receiveAddress already registered: "+ receiveAddress);
             } else {
-                log.error("testMode ignoring error: receiveAddress already registered: " + receiveAddress);
+                log.error("testMode ignoring error: receiveAddress already registered: " + receiveAddress); // TODO
             }
         }
     }
