@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
@@ -17,12 +18,14 @@ public class RegisterOutputService {
     private MixService mixService;
     private DbService dbService;
     private FormatsUtilGeneric formatsUtil;
+    private WhirlpoolServerConfig serverConfig;
 
     @Autowired
-    public RegisterOutputService(MixService mixService, DbService dbService, FormatsUtilGeneric formatsUtil) {
+    public RegisterOutputService(MixService mixService, DbService dbService, FormatsUtilGeneric formatsUtil, WhirlpoolServerConfig serverConfig) {
         this.mixService = mixService;
         this.dbService = dbService;
         this.formatsUtil = formatsUtil;
+        this.serverConfig = serverConfig;
     }
 
     public void registerOutput(String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
@@ -49,7 +52,11 @@ public class RegisterOutputService {
 
         // verify receiveAddress not revoked
         if (dbService.isRevokedReceiveAddress(receiveAddress)) {
-            throw new IllegalBordereauException("receiveAddress already registered");
+            if (!serverConfig.isTestMode()) {
+                throw new IllegalBordereauException("receiveAddress already registered: "+ receiveAddress);
+            } else {
+                log.error("testMode ignoring error: receiveAddress already registered: " + receiveAddress);
+            }
         }
     }
 

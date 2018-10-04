@@ -53,11 +53,6 @@ public class InputPool {
         if (inputByUsername.isPresent()) {
             String inputId = Utils.computeInputId(inputByUsername.get().getInput());
             inputsById.remove(inputId);
-        } else {
-            if (log.isDebugEnabled()) {//TODO
-                log.debug("removeByUsername not found: username="+username);
-                inputsById.values().stream().forEach(i -> log.debug("username="+i.getUsername()+", input="+i.getInput()));
-            }
         }
         return inputByUsername;
     }
