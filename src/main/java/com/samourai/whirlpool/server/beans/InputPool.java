@@ -27,7 +27,10 @@ public class InputPool {
                 log.error("WEIRD: not queueing input, another one was already queued for this username:" + username); // shouldn't happen...
             }
         } else {
-            log.info("not queueing input, it was already queued");
+            log.warn("not queueing input, it was already queued: "+registeredInput.getInput());
+            if (log.isDebugEnabled()) {//TODO
+                inputsById.values().forEach(i -> log.debug("input: " + i.getInput() + ", username=" + i.getUsername()));
+            }
         }
     }
 
@@ -51,8 +54,9 @@ public class InputPool {
             String inputId = Utils.computeInputId(inputByUsername.get().getInput());
             inputsById.remove(inputId);
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("removeByUsername not found: username="+username+", usernames="+inputsById.values().stream().map(i -> i.getUsername()).toArray());
+            if (log.isDebugEnabled()) {//TODO
+                log.debug("removeByUsername not found: username="+username);
+                inputsById.values().stream().forEach(i -> log.debug("username="+i.getUsername()+", input="+i.getInput()));
             }
         }
         return inputByUsername;
