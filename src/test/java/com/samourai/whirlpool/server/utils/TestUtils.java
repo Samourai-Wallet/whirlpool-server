@@ -12,13 +12,20 @@ import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -118,6 +125,28 @@ public class TestUtils {
     }
     public void assertMixEmpty(Mix mix) {
         assertMix(0, mix);
+    }
+
+
+    public AsymmetricCipherKeyPair readPkPEM(String pkPem) throws Exception {
+        PemReader pemReader = new PemReader(new InputStreamReader(new ByteArrayInputStream(pkPem.getBytes())));
+        PemObject pemObject = pemReader.readPemObject();
+
+        RSAPrivateCrtKeyParameters privateKeyParams = (RSAPrivateCrtKeyParameters) PrivateKeyFactory.createKey(pemObject.getContent());
+        return new AsymmetricCipherKeyPair(privateKeyParams, privateKeyParams); // TODO
+    }
+
+    public String computePkPEM(AsymmetricCipherKeyPair keyPair) throws Exception {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PemWriter writer = new PemWriter(new OutputStreamWriter(os));
+
+        PrivateKeyInfo pkInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(keyPair.getPrivate());
+
+        writer.writeObject(new PemObject("PRIVATE KEY", pkInfo.getEncoded()));
+        writer.flush();
+        writer.close();
+        String pem = new String(os.toByteArray());
+        return pem;
     }
 
 }

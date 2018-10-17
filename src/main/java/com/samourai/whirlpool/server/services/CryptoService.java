@@ -57,10 +57,10 @@ public class CryptoService {
         return kf.generatePublic(rsaPublicKeySpec);
     }
 
-    public boolean verifyMessageSignature(byte[] pubkeyHex, String message, String signature64) {
+    public boolean verifyMessageSignature(byte[] pubkey, String message, String signature64) {
         ECKey ecKeyFromPubkey;
         try {
-            ecKeyFromPubkey = ECKey.fromPublicOnly(pubkeyHex);
+            ecKeyFromPubkey = ECKey.fromPublicOnly(pubkey);
         } catch (Exception e) {
             log.error("verifyMessageSignature: couldn't extract eckey", e);
             return false;

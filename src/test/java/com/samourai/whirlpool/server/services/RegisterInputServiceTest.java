@@ -10,8 +10,6 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import org.bitcoinj.core.ECKey;
-import org.bouncycastle.crypto.params.RSABlindingParameters;
-import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,20 +40,10 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-
         serverConfig.getRegisterInput().setMinConfirmationsMustMix(MIN_CONFIRMATIONS_MUSTMIX);
         serverConfig.getRegisterInput().setMinConfirmationsLiquidity(MIN_CONFIRMATIONS_LIQUIDITY);
-
-
     }
 
-    private byte[] computeBlindedBordereau(String outputAddress) throws Exception {
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters) cryptoService.generateKeyPair().getPublic();
-        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
-        return clientCryptoService.blind(outputAddress.toString(), blindingParams);
-    }
-
-    private byte[] validBlindedBordereau = null;
     final Function<Boolean,TxOutPoint> runTestValidInput = (Boolean liquidity) -> {
         TxOutPoint txOutPoint = null;
         try {
