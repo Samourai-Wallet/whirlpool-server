@@ -4,6 +4,8 @@ import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.ECKey;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.params.RSABlindingParameters;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,5 +102,87 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
         ECKey ecKey2 = ECKey.fromPrivate(new BigInteger("24069012401142361066035129995856280497224474312925604298733347744482107649210"));
         byte[] pubkey2 = ecKey2.getPubKey();
         Assert.assertFalse(cryptoService.verifyMessageSignature(pubkey2, message, signature));
+    }
+
+    @Test
+    public void verifyUnblindedSignedBordereau_shouldSuccessWhenValid() throws Exception {
+        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
+        RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
+
+        // blind
+        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPubKey);
+        byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
+
+        // sign
+        byte[] signedBlindedBordereau = cryptoService.signBlindedOutput(blindedBordereau, serverKeyPair);
+
+        // unblind
+        byte[] unblindedSignedBordereau = clientCryptoService.unblind(signedBlindedBordereau, blindingParams);
+
+        // verify
+        Assert.assertTrue(cryptoService.verifyUnblindedSignedBordereau(receiveAddress, unblindedSignedBordereau, serverKeyPair));
+    }
+
+    @Test
+    public void verifyUnblindedSignedBordereau_shouldFailWhenInvalidUnblindedData() throws Exception {
+        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
+        RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
+
+        // blind
+        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPubKey);
+        byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
+
+        // sign
+        byte[] signedBlindedBordereau = cryptoService.signBlindedOutput(blindedBordereau, serverKeyPair);
+
+        // unblind
+        byte[] unblindedSignedBordereau = clientCryptoService.unblind(signedBlindedBordereau, blindingParams);
+
+        // verify
+        String fakeReceiveAddress = "fakeReceiveAddress";
+        Assert.assertFalse(cryptoService.verifyUnblindedSignedBordereau(fakeReceiveAddress, unblindedSignedBordereau, serverKeyPair)); // reject
+    }
+
+    @Test
+    public void verifyUnblindedSignedBordereau_shouldFailWhenUnblindInvalidBlindingParams() throws Exception {
+        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
+        RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
+
+        // blind
+        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPubKey);
+        byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
+
+        // sign
+        byte[] signedBlindedBordereau = cryptoService.signBlindedOutput(blindedBordereau, serverKeyPair);
+
+        // unblind
+        RSABlindingParameters fakeBlindingParams = clientCryptoService.computeBlindingParams(serverPubKey);
+        byte[] unblindedSignedBordereau = clientCryptoService.unblind(signedBlindedBordereau, fakeBlindingParams); // unblind from different blindingParams
+
+        // verify
+        Assert.assertFalse(cryptoService.verifyUnblindedSignedBordereau(receiveAddress, unblindedSignedBordereau, serverKeyPair)); // reject
+    }
+
+    @Test
+    public void verifyUnblindedSignedBordereau_shouldFailWhenBlindFromInvalidPubkey() throws Exception {
+        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
+
+        // blind
+        RSAKeyParameters fakePubKey = (RSAKeyParameters) cryptoService.generateKeyPair().getPublic();
+        RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(fakePubKey); // blind from wrong pubKey
+        byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
+
+        // sign
+        byte[] signedBlindedBordereau = cryptoService.signBlindedOutput(blindedBordereau, serverKeyPair);
+
+        // unblind
+        byte[] unblindedSignedBordereau = clientCryptoService.unblind(signedBlindedBordereau, blindingParams);
+
+        // verify
+        Assert.assertFalse(cryptoService.verifyUnblindedSignedBordereau(receiveAddress, unblindedSignedBordereau, serverKeyPair)); // reject
     }
 }
