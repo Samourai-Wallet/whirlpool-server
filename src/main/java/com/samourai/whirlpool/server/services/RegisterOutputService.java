@@ -35,10 +35,8 @@ public class RegisterOutputService {
         // register
         mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
 
-        if (!serverConfig.isTestMode()) { // TODO
-            // revoke receiveAddress
-            dbService.revokeReceiveAddress(receiveAddress);
-        }
+        // revoke receiveAddress
+        dbService.revokeReceiveAddress(receiveAddress);
     }
 
     private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
