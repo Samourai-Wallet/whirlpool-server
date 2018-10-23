@@ -10,8 +10,8 @@ import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.services.*;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
+import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import com.samourai.whirlpool.server.utils.MessageSignUtil;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
 import org.bitcoinj.core.NetworkParameters;
@@ -89,7 +89,7 @@ public abstract class AbstractIntegrationTest {
 
     protected MixLimitsService mixLimitsService;
 
-    private MultiClientManager multiClientManager;
+    private AssertMultiClientManager multiClientManager;
 
     protected NetworkParameters params;
 
@@ -152,8 +152,8 @@ public abstract class AbstractIntegrationTest {
         }
     }
 
-    protected MultiClientManager multiClientManager(int nbClients, Mix mix) {
-        multiClientManager = new MultiClientManager(nbClients, mix, mixService, testUtils, cryptoService, rpcClientService, mixLimitsService, bip47Util, port);
+    protected AssertMultiClientManager multiClientManager(int nbClients, Mix mix) {
+        multiClientManager = new AssertMultiClientManager(nbClients, mix, testUtils, cryptoService, rpcClientService, mixLimitsService, bip47Util, port);
         multiClientManager.setTestMode(serverConfig.isTestMode());
         return multiClientManager;
     }

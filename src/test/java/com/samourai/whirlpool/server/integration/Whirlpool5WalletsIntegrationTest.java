@@ -8,7 +8,7 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.integration.manual.ManualMixer;
 import com.samourai.whirlpool.server.integration.manual.ManualPremixer;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
+import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.TestNet3Params;
@@ -245,7 +245,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
         long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
+        AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
         // prepare inputs & outputs
         final IntFunction connectClient = (int i) -> {
@@ -265,7 +265,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 final String paymentCode = mixers.get(i);
                 final BIP47Wallet bip47Wallet = premixer.bip47Wallets.get(paymentCode);
 
-                multiClientManager.connectWithMock(i, 1, segwitAddress, bip47Wallet, 0, null, utxoHash, utxoIndex, premixer.biUnitSpendAmount.longValue());
+                multiClientManager.connectWithMock(1, segwitAddress, bip47Wallet, 0, null, utxoHash, utxoIndex, premixer.biUnitSpendAmount.longValue());
             } catch (Exception e) {
                 log.error("", e);
                 Assert.assertTrue(false);

@@ -411,13 +411,13 @@ public class MixService {
     }
 
     private Mix getMixByInputsHash(String inputsHash, MixStatus mixStatus) throws MixException {
-        List<Mix> mixsFound = currentMixs.values().parallelStream().filter(mix -> mix.getMixStatus().equals(mixStatus) && mix.computeInputsHash().equals(inputsHash)).collect(Collectors.toList());
+        List<Mix> mixsFound = currentMixs.values().parallelStream().filter(mix -> mix.computeInputsHash().equals(inputsHash)).collect(Collectors.toList());
         if (mixsFound.size() != 1) {
             throw new MixException("Mix not found for inputsHash");
         }
         Mix mix = mixsFound.get(0);
         if (mixStatus != null && !mixStatus.equals(mix.getMixStatus())) {
-            throw new MixException("Operation not permitted for current mix status");
+            throw new MixException("Operation not permitted for current mix status: expected="+mixStatus+", actual="+mix.getMixStatus());
         }
         return mix;
     }

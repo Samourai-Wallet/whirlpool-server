@@ -60,7 +60,7 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
         Mix mix = __getCurrentMix();
         String mixId = mix.getMixId();
         String username = "testusername";
-        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
 
 
         // REGISTER_INPUT
@@ -69,7 +69,7 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
 
 
         // blind bordereau
-        RSAKeyParameters serverPublicKey = (RSAKeyParameters) cryptoService.generateKeyPair().getPublic();
+        RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();
         RSABlindingParameters blindingParams = clientCryptoService.computeBlindingParams(serverPublicKey);
         byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
 

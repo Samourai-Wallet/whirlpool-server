@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.integration;
 
 import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
+import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +20,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractIntegrationTest {
     private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private MultiClientManager runMustmixWithLiquidities(int mustMixMin, int anonymitySetMin, int anonymitySetTarget, int anonymitySetMax, int NB_MUSTMIX_CONNECTING, int NB_LIQUIDITIES_CONNECTING) throws Exception {
+    private AssertMultiClientManager runMustmixWithLiquidities(int mustMixMin, int anonymitySetMin, int anonymitySetTarget, int anonymitySetMax, int NB_MUSTMIX_CONNECTING, int NB_LIQUIDITIES_CONNECTING) throws Exception {
         final int NB_ALL_CONNECTING = NB_MUSTMIX_CONNECTING + NB_LIQUIDITIES_CONNECTING;
 
         // start mix
@@ -31,7 +31,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_ALL_CONNECTING, mix);
+        AssertMultiClientManager multiClientManager = multiClientManager(NB_ALL_CONNECTING, mix);
 
         InputPool liquidityPool = mix.getPool().getLiquidityQueue();
         Assert.assertFalse(liquidityPool.hasInputs());
@@ -40,8 +40,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         log.info("# Begin connecting "+NB_LIQUIDITIES_CONNECTING+" liquidities...");
         for (int i=0; i<NB_LIQUIDITIES_CONNECTING; i++) {
             log.info("Connecting liquidity #"+(i+1)+"/"+NB_LIQUIDITIES_CONNECTING);
-            final int clientIndice = i;
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, true, 1));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true, 1));
         }
 
         // liquidities should be placed on queue...
@@ -54,7 +53,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         for (int i=NB_LIQUIDITIES_CONNECTING; i<NB_ALL_CONNECTING; i++) {
             log.info("Connecting mustMix #"+(i+1)+"/"+NB_ALL_CONNECTING);
             final int clientIndice = i;
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 1));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 1));
         }
 
         return multiClientManager;
@@ -73,7 +72,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = NB_MUSTMIX_CONNECTING + NB_LIQUIDITIES_CONNECTING;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusSuccess(NB_ALL_REGISTERED_EXPECTED, false);
@@ -92,7 +91,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = 8; // capped by maxAnonymitySet
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusSuccess(NB_ALL_REGISTERED_EXPECTED, true); // still liquidities
@@ -111,7 +110,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = 9;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusSuccess(NB_ALL_REGISTERED_EXPECTED, false); // no more liquidity
@@ -130,7 +129,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = NB_MUSTMIX_CONNECTING + NB_LIQUIDITIES_CONNECTING;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusSuccess(NB_ALL_REGISTERED_EXPECTED, false);
@@ -149,7 +148,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = NB_MUSTMIX_CONNECTING + NB_LIQUIDITIES_CONNECTING;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusSuccess(NB_ALL_REGISTERED_EXPECTED, false);
@@ -168,7 +167,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = 4;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusConfirmInput(NB_ALL_REGISTERED_EXPECTED, true); // liquidities not registered yet
@@ -187,7 +186,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         int NB_MUSTMIX_EXPECTED = 5;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusConfirmInput(NB_MUSTMIX_EXPECTED, true);
@@ -221,7 +220,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
         final int NB_ALL_REGISTERED_EXPECTED = 5;
 
         // TEST
-        MultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
+        AssertMultiClientManager multiClientManager = runMustmixWithLiquidities(minMustMix, minAnonymitySet, targetAnonymitySet, maxAnonymitySet, NB_MUSTMIX_CONNECTING, NB_LIQUIDITIES_CONNECTING);
 
         // VERIFY
         multiClientManager.assertMixStatusConfirmInput(NB_MUSTMIX_EXPECTED, false);

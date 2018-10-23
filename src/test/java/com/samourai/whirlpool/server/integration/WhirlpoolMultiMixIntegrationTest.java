@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.integration;
 
 import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
+import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -35,17 +35,16 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
         long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
+        AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
         // connect 2 clients
         log.info("# Connect 2 clients for first mix...");
         for (int i=0; i<NB_CLIENTS_FIRST_MIX; i++) {
-            final int clientIndice = i;
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 2)); // stay for 2 mixs
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 2)); // stay for 2 mixs
         }
 
         // all clients should have registered their outputs and signed
-        multiClientManager.assertMixStatusSuccess(NB_CLIENTS_FIRST_MIX, false);
+        multiClientManager.assertMixStatusSuccess(NB_CLIENTS_FIRST_MIX, true);
 
         // MIX #2
         Thread.sleep(2000);
@@ -55,14 +54,13 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
         multiClientManager.waitLiquiditiesInPool(NB_CLIENTS_FIRST_MIX);
 
         log.info("# Connect 1 mustMix for second mix...");
-        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(2, false, 1));
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 1));
 
         // we have 1 mustMix + 2 liquidities
         multiClientManager.assertMixStatusConfirmInput(1, true);
 
-        multiClientManager.nextTargetAnonymitySetAdjustment();
-
-        //multiClientManager.assertMixstatusSuccess(2, true); // still one liquidity
+        multiClientManager.nextTargetAnonymitySetAdjustment(); // add liquidities
+        multiClientManager.assertMixStatusSuccess(2, true, 2); // still one liquidity
     }
 
 }

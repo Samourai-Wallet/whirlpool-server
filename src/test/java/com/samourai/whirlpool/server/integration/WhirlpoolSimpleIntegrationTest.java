@@ -6,8 +6,8 @@ import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import com.samourai.whirlpool.server.utils.BIP47WalletAndHDWallet;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.junit.Assert;
@@ -65,8 +65,8 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         long inputBalance = mix.getPool().computeInputBalanceMin(false);
         TxOutPoint utxo = rpcClientService.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
 
-        MultiClientManager multiClientManager = multiClientManager(1, mix);
-        multiClientManager.connectWithMock(0, 1, inputP2SH_P2WPKH, bip47OutputWallet, 0, null, utxo.getHash(), (int)utxo.getIndex(), inputBalance);
+        AssertMultiClientManager multiClientManager = multiClientManager(1, mix);
+        multiClientManager.connectWithMock(1, inputP2SH_P2WPKH, bip47OutputWallet, 0, null, utxo.getHash(), (int)utxo.getIndex(), inputBalance);
 
         // register inputs...
         multiClientManager.assertMixStatusConfirmInput(1, false);

@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.integration;
 
 import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.utils.MultiClientManager;
+import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,13 +34,12 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
+        AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
         // connect all clients except one, to stay in CONFIRM_INPUT
         log.info("# Connect first clients...");
         for (int i=0; i<NB_CLIENTS-1; i++) {
-            final int clientIndice = i;
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, false, 1));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 1));
         }
 
         // connected clients should have registered their inputs...
@@ -48,7 +47,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
         // connect last client
         log.info("# Connect last client...");
-        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(NB_CLIENTS-1, false, 1));
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 1));
 
         // all clients should have registered their inputs
         // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
@@ -72,15 +71,14 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         long liquidityTimeout = 60;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
+        AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
         long inputBalanceMin = mix.getPool().computeInputBalanceMin(false);
 
         // connect all clients except one, to stay in CONFIRM_INPUT
         log.info("# Connect first clients...");
         for (int i=0; i<NB_CLIENTS-1; i++) {
-            final int clientIndice = i;
             long inputBalance = inputBalanceMin + (100 * i); // mixed amounts
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, 1, inputBalance));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(1, inputBalance));
         }
 
         // connected clients should have registered their inputs...
@@ -88,7 +86,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
         // connect last client
         log.info("# Connect last client...");
-        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(NB_CLIENTS-1, false, 1));
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 1));
 
         // all clients should have registered their inputs
         // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
@@ -116,16 +114,15 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
         long liquidityTimeout = 1;
         Mix mix = __nextMix(denomination, minerFeeMin, minerFeeMax, mustMixMin, anonymitySetTarget, anonymitySetMin, anonymitySetMax, anonymitySetAdjustTimeout, liquidityTimeout);
 
-        MultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
+        AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 
         // connect all clients except one, to stay in CONFIRM_INPUT
         log.info("# Connect first clients...");
         for (int i=0; i<NB_CLIENTS-1; i++) {
-            final int clientIndice = i;
             boolean liquidity = (i < mustMixMin ? false : true);
             long inputBalanceMin = mix.getPool().computeInputBalanceMin(liquidity);
             long inputBalance = (liquidity ? inputBalanceMin : inputBalanceMin + (100 * i)); // mixed amounts
-            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(clientIndice, 1, inputBalance));
+            taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(1, inputBalance));
         }
 
         // connected clients should have registered their inputs...
@@ -133,7 +130,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
         // connect last client
         log.info("# Connect last client...");
-        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(NB_CLIENTS-1, true, 1));
+        taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true, 1));
 
         // all clients should have registered their inputs
         // mix automatically switches to REGISTER_OUTPUTS, then SIGNING

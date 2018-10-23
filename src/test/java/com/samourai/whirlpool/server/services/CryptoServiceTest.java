@@ -106,7 +106,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
 
     @Test
     public void verifyUnblindedSignedBordereau_shouldSuccessWhenValid() throws Exception {
-        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
         AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
         RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
 
@@ -126,7 +126,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
 
     @Test
     public void verifyUnblindedSignedBordereau_shouldFailWhenInvalidUnblindedData() throws Exception {
-        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
         AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
         RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
 
@@ -147,7 +147,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
 
     @Test
     public void verifyUnblindedSignedBordereau_shouldFailWhenUnblindInvalidBlindingParams() throws Exception {
-        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
         AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
         RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
 
@@ -168,7 +168,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
 
     @Test
     public void verifyUnblindedSignedBordereau_shouldFailWhenBlindFromInvalidPubkey() throws Exception {
-        String receiveAddress = "tb1qg3z38tda68guak84yltx5hp7lfwgjrczls2luu";
+        String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
         AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
 
         // blind
