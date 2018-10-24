@@ -8,21 +8,23 @@ import org.springframework.security.config.annotation.web.socket.AbstractSecurit
 @Configuration
 public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer {
 
-    @Override
-    protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
-        super.configureInbound(messages);
+  @Override
+  protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
+    super.configureInbound(messages);
 
-        messages
+    messages
 
         // allow websocket server endpoints
-        .simpMessageDestMatchers(WebSocketConfig.WEBSOCKET_ENDPOINTS).permitAll()
+        .simpMessageDestMatchers(WebSocketConfig.WEBSOCKET_ENDPOINTS)
+        .permitAll()
 
         // deny any other messages (including client-to-client)
-        .simpMessageDestMatchers("/**").denyAll();
-    }
+        .simpMessageDestMatchers("/**")
+        .denyAll();
+  }
 
-    @Override
-    protected boolean sameOriginDisabled() {
-        return true;
-    }
+  @Override
+  protected boolean sameOriginDisabled() {
+    return true;
+  }
 }

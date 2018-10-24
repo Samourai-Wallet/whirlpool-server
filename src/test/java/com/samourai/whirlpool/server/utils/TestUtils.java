@@ -7,6 +7,13 @@ import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.services.CryptoService;
+import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.security.SecureRandom;
+import java.util.Optional;
 import org.aspectj.util.FileUtil;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.MnemonicCode;
@@ -25,128 +32,126 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.lang.invoke.MethodHandles;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.security.SecureRandom;
-import java.util.Optional;
-
 @Service
 public class TestUtils {
-    private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private CryptoService cryptoService;
-    protected Bech32UtilGeneric bech32Util;
+  private CryptoService cryptoService;
+  protected Bech32UtilGeneric bech32Util;
 
-    public TestUtils(CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
-        this.cryptoService = cryptoService;
-        this.bech32Util = bech32Util;
+  public TestUtils(CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
+    this.cryptoService = cryptoService;
+    this.bech32Util = bech32Util;
+  }
+
+  public SegwitAddress createSegwitAddress() throws Exception {
+    // BIP47WalletAndHDWallet inputWallets = generateWallet(44);
+    // HD_Wallet inputWallet = inputWallets.getHdWallet();
+    // ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
+
+    KeyChainGroup kcg = new KeyChainGroup(cryptoService.getNetworkParameters());
+    DeterministicKey utxoKey = kcg.freshKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
+    SegwitAddress p2shp2wpkh = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
+    return p2shp2wpkh;
+  }
+
+  public BIP47WalletAndHDWallet generateWallet(int purpose, byte[] seed, String passphrase)
+      throws Exception {
+    final String BIP39_ENGLISH_SHA256 =
+        "ad90bf3beb7b0eb7e5acd74727dc0da96e0a280a258354e7293fb7e211ac03db";
+    InputStream wis = HD_Wallet.class.getResourceAsStream("/en_US.txt");
+    if (wis != null) {
+      MnemonicCode mc = new MnemonicCode(wis, BIP39_ENGLISH_SHA256);
+
+      // init BIP44 wallet for input
+      HD_Wallet inputWallet =
+          new HD_Wallet(purpose, mc, cryptoService.getNetworkParameters(), seed, passphrase, 1);
+      // init BIP47 wallet for input
+      BIP47Wallet bip47InputWallet = new BIP47Wallet(47, inputWallet, 1);
+
+      wis.close();
+      return new BIP47WalletAndHDWallet(bip47InputWallet, inputWallet);
     }
+    throw new Exception("wis is null");
+  }
 
-    public SegwitAddress createSegwitAddress() throws Exception {
-        //BIP47WalletAndHDWallet inputWallets = generateWallet(44);
-        //HD_Wallet inputWallet = inputWallets.getHdWallet();
-        //ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
+  public BIP47WalletAndHDWallet generateWallet(int purpose) throws Exception {
+    int nbWords = 12;
+    // len == 16 (12 words), len == 24 (18 words), len == 32 (24 words)
+    int len = (nbWords / 3) * 4;
 
-        KeyChainGroup kcg = new KeyChainGroup(cryptoService.getNetworkParameters());
-        DeterministicKey utxoKey = kcg.freshKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-        SegwitAddress p2shp2wpkh = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
-        return p2shp2wpkh;
+    SecureRandom random = new SecureRandom();
+    byte seed[] = new byte[len];
+    random.nextBytes(seed);
+
+    return generateWallet(purpose, seed, "test");
+  }
+
+  private String getMockFileName(String txid) {
+    return "./src/test/resources/mocks/" + txid + ".txt";
+  }
+
+  public void writeMockRpc(String txid, String rawTxHex) throws Exception {
+    String fileName = getMockFileName(txid);
+    System.out.println("writing " + fileName + ": " + rawTxHex);
+    Files.write(Paths.get(fileName), rawTxHex.getBytes(), StandardOpenOption.CREATE);
+  }
+
+  public Optional<String> loadMockRpc(String txid) {
+    String mockFile = getMockFileName(txid);
+    try {
+      log.info("reading mock: " + mockFile);
+      String rawTx = FileUtil.readAsString(new File(mockFile));
+      return Optional.of(rawTx);
+    } catch (Exception e) {
+      log.info("mock not found: " + mockFile);
+      return Optional.empty();
     }
+  }
 
-    public BIP47WalletAndHDWallet generateWallet(int purpose, byte[] seed, String passphrase) throws Exception {
-        final String BIP39_ENGLISH_SHA256 = "ad90bf3beb7b0eb7e5acd74727dc0da96e0a280a258354e7293fb7e211ac03db";
-        InputStream wis = HD_Wallet.class.getResourceAsStream("/en_US.txt");
-        if (wis != null) {
-            MnemonicCode mc = new MnemonicCode(wis, BIP39_ENGLISH_SHA256);
+  public void assertPool(int nbMustMix, int nbLiquidity, int nbUnconfirmed, Pool pool) {
+    Assert.assertEquals(nbMustMix, pool.getMustMixQueue().getSize());
+    Assert.assertEquals(nbLiquidity, pool.getLiquidityQueue().getSize());
+    Assert.assertEquals(nbUnconfirmed, pool.getUnconfirmedQueue().getSize());
+  }
 
-            // init BIP44 wallet for input
-            HD_Wallet inputWallet = new HD_Wallet(purpose, mc, cryptoService.getNetworkParameters(), seed, passphrase, 1);
-            // init BIP47 wallet for input
-            BIP47Wallet bip47InputWallet = new BIP47Wallet(47, inputWallet, 1);
+  public void assertPoolEmpty(Pool pool) {
+    assertPool(0, 0, 0, pool);
+  }
 
-            wis.close();
-            return new BIP47WalletAndHDWallet(bip47InputWallet, inputWallet);
-        }
-        throw new Exception("wis is null");
-    }
+  public void assertMix(int nbInputs, int confirming, Mix mix) {
+    Assert.assertEquals(nbInputs, mix.getNbInputs());
+    Assert.assertEquals(confirming, mix.getNbConfirmingInputs());
+  }
 
-    public BIP47WalletAndHDWallet generateWallet(int purpose) throws Exception {
-        int nbWords = 12;
-        // len == 16 (12 words), len == 24 (18 words), len == 32 (24 words)
-        int len = (nbWords / 3) * 4;
+  public void assertMix(int nbInputs, Mix mix) {
+    assertMix(nbInputs, 0, mix);
+  }
 
-        SecureRandom random = new SecureRandom();
-        byte seed[] = new byte[len];
-        random.nextBytes(seed);
+  public void assertMixEmpty(Mix mix) {
+    assertMix(0, mix);
+  }
 
-        return generateWallet(purpose, seed, "test");
-    }
+  public AsymmetricCipherKeyPair readPkPEM(String pkPem) throws Exception {
+    PemReader pemReader =
+        new PemReader(new InputStreamReader(new ByteArrayInputStream(pkPem.getBytes())));
+    PemObject pemObject = pemReader.readPemObject();
 
-    private String getMockFileName(String txid) {
-        return "./src/test/resources/mocks/" + txid + ".txt";
-    }
+    RSAPrivateCrtKeyParameters privateKeyParams =
+        (RSAPrivateCrtKeyParameters) PrivateKeyFactory.createKey(pemObject.getContent());
+    return new AsymmetricCipherKeyPair(privateKeyParams, privateKeyParams); // TODO
+  }
 
-    public void writeMockRpc(String txid, String rawTxHex) throws Exception {
-        String fileName = getMockFileName(txid);
-        System.out.println("writing " + fileName + ": " + rawTxHex);
-        Files.write(Paths.get(fileName), rawTxHex.getBytes(), StandardOpenOption.CREATE);
-    }
+  public String computePkPEM(AsymmetricCipherKeyPair keyPair) throws Exception {
+    ByteArrayOutputStream os = new ByteArrayOutputStream();
+    PemWriter writer = new PemWriter(new OutputStreamWriter(os));
 
-    public Optional<String> loadMockRpc(String txid) {
-        String mockFile = getMockFileName(txid);
-        try {
-            log.info("reading mock: " + mockFile);
-            String rawTx = FileUtil.readAsString(new File(mockFile));
-            return Optional.of(rawTx);
-        } catch(Exception e) {
-            log.info("mock not found: " + mockFile);
-            return Optional.empty();
-        }
-    }
+    PrivateKeyInfo pkInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(keyPair.getPrivate());
 
-    public void assertPool(int nbMustMix, int nbLiquidity, int nbUnconfirmed, Pool pool) {
-        Assert.assertEquals(nbMustMix, pool.getMustMixQueue().getSize());
-        Assert.assertEquals(nbLiquidity, pool.getLiquidityQueue().getSize());
-        Assert.assertEquals(nbUnconfirmed, pool.getUnconfirmedQueue().getSize());
-    }
-    public void assertPoolEmpty(Pool pool) {
-        assertPool(0, 0, 0, pool);
-    }
-
-    public void assertMix(int nbInputs, int confirming, Mix mix) {
-        Assert.assertEquals(nbInputs, mix.getNbInputs());
-        Assert.assertEquals(confirming, mix.getNbConfirmingInputs());
-    }
-    public void assertMix(int nbInputs, Mix mix) {
-        assertMix(nbInputs, 0, mix);
-    }
-    public void assertMixEmpty(Mix mix) {
-        assertMix(0, mix);
-    }
-
-
-    public AsymmetricCipherKeyPair readPkPEM(String pkPem) throws Exception {
-        PemReader pemReader = new PemReader(new InputStreamReader(new ByteArrayInputStream(pkPem.getBytes())));
-        PemObject pemObject = pemReader.readPemObject();
-
-        RSAPrivateCrtKeyParameters privateKeyParams = (RSAPrivateCrtKeyParameters) PrivateKeyFactory.createKey(pemObject.getContent());
-        return new AsymmetricCipherKeyPair(privateKeyParams, privateKeyParams); // TODO
-    }
-
-    public String computePkPEM(AsymmetricCipherKeyPair keyPair) throws Exception {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        PemWriter writer = new PemWriter(new OutputStreamWriter(os));
-
-        PrivateKeyInfo pkInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(keyPair.getPrivate());
-
-        writer.writeObject(new PemObject("PRIVATE KEY", pkInfo.getEncoded()));
-        writer.flush();
-        writer.close();
-        String pem = new String(os.toByteArray());
-        return pem;
-    }
-
+    writer.writeObject(new PemObject("PRIVATE KEY", pkInfo.getEncoded()));
+    writer.flush();
+    writer.close();
+    String pem = new String(os.toByteArray());
+    return pem;
+  }
 }
