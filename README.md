@@ -1,5 +1,7 @@
 # whirlpool-server
-Whirlpool server
+
+Server for [Whirlpool](https://github.com/Samourai-Wallet/Whirlpool) by Samourai-Wallet.
+
 
 ## Usage
 - create local server configuration to override default settings:
@@ -8,7 +10,7 @@ cd whirlpool-server
 cp src/main/resources/application.properties ./custom.properties
 ```
 
-- run from commandline:
+- build and run:
 ```
 mvn clean install -Dmaven.test.skip=true
 java -jar target/whirlpool-server-0.0.1-SNAPSHOT.jar --spring.config.location=./custom.properties [--debug]
@@ -75,18 +77,12 @@ server.export.mixs.filename
 ### Testing
 ```
 server.rpc-client.mock-tx-broadcast = false
+server.test-mode = false
 ```
 For testing purpose, *server.rpc-client.mock-tx-broadcast* can be enabled to mock txs instead of broadcasting it.
-When enabled, server will keep whirlpool txs in memory until server restart and act as if these txs are confirmed in blockchain.
+When enabled, *server.test-mode* allows client to bypass tx0 checks.
 
-### Building
-- Use *build.sh* on your local developer machine:
-```
-./build.sh
-```
-
-This script:
- * clones whirlpool modules from git remote
- * mvn install each module
- * generate whirlpool-server-*.jar to *./build* directory
-
+## Resources
+ * [whirlpool](https://github.com/Samourai-Wallet/Whirlpool)
+ * [whirlpool-protocol](https://github.com/Samourai-Wallet/whirlpool-protocol)
+ * [whirlpool-client](https://github.com/Samourai-Wallet/whirlpool-client)
