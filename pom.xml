@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.Samourai-Wallet</groupId>
 	<artifactId>whirlpool-server</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>develop-SNAPSHOT</version>
 	<name>whirlpool-server</name>
     <properties>
         <spring.version>2.0.3.RELEASE</spring.version>
@@ -14,12 +14,6 @@
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>whirlpool-protocol</artifactId>
-			<version>develop-SNAPSHOT</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.Samourai-Wallet</groupId>
-			<artifactId>extlibj</artifactId>
 			<version>develop-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
@@ -77,12 +71,6 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.11</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.10</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
