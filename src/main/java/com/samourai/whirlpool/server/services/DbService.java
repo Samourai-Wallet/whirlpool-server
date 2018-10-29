@@ -6,7 +6,6 @@ import com.samourai.whirlpool.server.persistence.repositories.RevocationReposito
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.persistence.to.RevocationTO;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.Sort;
@@ -22,10 +21,6 @@ public class DbService {
     this.mixRepository = mixRepository;
     this.revokedBordereauRepository = revokedBordereauRepository;
     __reset(); // TODO
-  }
-
-  private String computeKeyBlindedBordereau(byte[] blindedBordereau) {
-    return Utils.sha512Hex(blindedBordereau);
   }
 
   public void saveBlame(ConfirmedInput confirmedInput, BlameReason blameReason, String mixId) {

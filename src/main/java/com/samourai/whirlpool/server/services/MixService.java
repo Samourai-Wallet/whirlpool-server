@@ -3,9 +3,22 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.ConfirmInputResponse;
-import com.samourai.whirlpool.protocol.websocket.notifications.*;
-import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.protocol.websocket.notifications.FailMixStatusNotification;
+import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
+import com.samourai.whirlpool.protocol.websocket.notifications.MixStatusNotification;
+import com.samourai.whirlpool.protocol.websocket.notifications.RegisterOutputMixStatusNotification;
+import com.samourai.whirlpool.protocol.websocket.notifications.RevealOutputMixStatusNotification;
+import com.samourai.whirlpool.protocol.websocket.notifications.SigningMixStatusNotification;
+import com.samourai.whirlpool.protocol.websocket.notifications.SuccessMixStatusNotification;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
+import com.samourai.whirlpool.server.beans.FailReason;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.Signature;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
@@ -13,11 +26,23 @@ import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.bitcoinj.core.*;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionInput;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.TransactionWitness;
 import org.bitcoinj.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +121,7 @@ public class MixService {
           "Current mix not opened to liquidities yet"); // should not happen
     }
 
-    // verify max-input-same-hash
+    // verify max-inputs-same-hash
     String inputHash = registeredInput.getInput().getHash();
     int maxInputsSameHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameHash();
     long countInputsSameHash =
@@ -138,7 +163,8 @@ public class MixService {
 
     // sign bordereau to reply
     String signedBordereau64 =
-        Utils.encodeBytes(cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair()));
+        WhirlpoolProtocol.encodeBytes(
+            cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair()));
 
     // add to mix inputs
     mix.registerInput(confirmedInput);
@@ -445,7 +471,7 @@ public class MixService {
         mixStatusNotification = new RevealOutputMixStatusNotification(mixId);
         break;
       case SIGNING:
-        String tx64 = Utils.encodeBytes(mix.getTx().bitcoinSerialize());
+        String tx64 = WhirlpoolProtocol.encodeBytes(mix.getTx().bitcoinSerialize());
         mixStatusNotification = new SigningMixStatusNotification(mixId, tx64);
         break;
       case SUCCESS:

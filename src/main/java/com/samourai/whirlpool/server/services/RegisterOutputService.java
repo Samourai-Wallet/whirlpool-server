@@ -1,9 +1,9 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class RegisterOutputService {
           "Verifying unblindedSignedBordereau for receiveAddress: "
               + receiveAddress
               + " : "
-              + Utils.encodeBytes(unblindedSignedBordereau));
+              + WhirlpoolProtocol.encodeBytes(unblindedSignedBordereau));
     }
 
     // verify output

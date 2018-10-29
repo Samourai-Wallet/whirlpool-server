@@ -2,7 +2,6 @@ package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
-import com.samourai.wallet.util.Z85;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
@@ -12,12 +11,21 @@ import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
-import org.bitcoinj.core.*;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionInput;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.TransactionWitness;
 import org.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +35,6 @@ public class Utils {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final SecureRandom secureRandom = new SecureRandom();
   private static final ObjectMapper objectMapper = new ObjectMapper();
-  private static final Z85 z85 = Z85.getInstance();
 
   private static int BTC_TO_SATOSHIS = 100000000;
   public static final String PROFILE_TEST = "test";
@@ -49,10 +56,6 @@ public class Utils {
     return (first.size() == second.size()
         && first.containsAll(second)
         && second.containsAll(first));
-  }
-
-  public static String sha512Hex(byte[] data) {
-    return org.bitcoinj.core.Utils.HEX.encode(DigestUtils.getSha512Digest().digest(data));
   }
 
   public static Integer findTxInput(Transaction tx, String hash, long index) {
@@ -178,13 +181,5 @@ public class Utils {
       log.error("unable to find toAddress", e);
     }
     return null;
-  }
-
-  public static byte[] decodeBytes(String encoded) {
-    return z85.decode(encoded);
-  }
-
-  public static String encodeBytes(byte[] data) {
-    return z85.encode(data);
   }
 }

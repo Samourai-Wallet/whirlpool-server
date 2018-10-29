@@ -1,12 +1,16 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.ConfirmInputMixStatusNotification;
-import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.InputPool;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.HashMap;
@@ -166,7 +170,7 @@ public class PoolService {
 
   private void inviteToMix(Mix mix, RegisteredInput registeredInput) {
     // register confirming input
-    String publicKey64 = Utils.encodeBytes(mix.getPublicKey());
+    String publicKey64 = WhirlpoolProtocol.encodeBytes(mix.getPublicKey());
     ConfirmInputMixStatusNotification confirmInputMixStatusNotification =
         new ConfirmInputMixStatusNotification(mix.getMixId(), publicKey64);
     mix.registerConfirmingInput(registeredInput);
