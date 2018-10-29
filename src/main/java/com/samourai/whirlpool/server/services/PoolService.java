@@ -102,7 +102,12 @@ public class PoolService {
   }
 
   public synchronized void registerInput(
-      String poolId, String username, byte[] pubkey, boolean liquidity, TxOutPoint input)
+      String poolId,
+      String username,
+      byte[] pubkey,
+      boolean liquidity,
+      TxOutPoint input,
+      boolean inviteIfPossible)
       throws IllegalInputException, MixException {
     Pool pool = getPool(poolId);
 
@@ -137,11 +142,11 @@ public class PoolService {
     }
 
     Mix currentMix = pool.getCurrentMix();
-    if (currentMix.isInvitationOpen(liquidity)) {
+    if (inviteIfPossible && currentMix.isInvitationOpen(liquidity)) {
       // mix invitation open => directly invite to mix
       inviteToMix(currentMix, registeredInput);
     } else {
-      // mix invitation closed => enqueue in pool
+      // enqueue in pool
       queueToPool(pool, registeredInput);
     }
   }

@@ -16,14 +16,11 @@ public class ConfirmInputService {
 
   private MixService mixService;
   private PoolService poolService;
-  private WebSocketService webSocketService;
 
   @Autowired
-  public ConfirmInputService(
-      MixService mixService, PoolService poolService, WebSocketService webSocketService) {
+  public ConfirmInputService(MixService mixService, PoolService poolService) {
     this.mixService = mixService;
     this.poolService = poolService;
-    this.webSocketService = webSocketService;
   }
 
   public synchronized void confirmInputOrQueuePool(
@@ -41,7 +38,8 @@ public class ConfirmInputService {
           registeredInput.getUsername(),
           registeredInput.getPubkey(),
           registeredInput.isLiquidity(),
-          registeredInput.getInput());
+          registeredInput.getInput(),
+          false);
     }
   }
 }

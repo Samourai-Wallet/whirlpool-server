@@ -68,7 +68,7 @@ public class RegisterInputService {
             utxoHash, utxoIndex, pubkey, liquidity, testMode);
 
     // register input to pool
-    poolService.registerInput(poolId, username, pubkey, liquidity, txOutPoint);
+    poolService.registerInput(poolId, username, pubkey, liquidity, txOutPoint, true);
   }
 
   private void checkInputSignature(String message, byte[] pubkeyHex, String signature)
