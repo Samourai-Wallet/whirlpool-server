@@ -2,21 +2,8 @@
 
 Server for [Whirlpool](https://github.com/Samourai-Wallet/Whirlpool) by Samourai-Wallet.
 
-
-## Usage
-- create local server configuration to override default settings:
-```
-cd whirlpool-server
-cp src/main/resources/application.properties ./custom.properties
-```
-
-- build and run:
-```
-mvn clean install -Dmaven.test.skip=true
-java -jar target/whirlpool-server-0.0.1-SNAPSHOT.jar --spring.config.location=./custom.properties [--debug]
-```
-
-
+## Installation
+See [README-install.md](README-install.md)
 
 ## Configuration
 ### RPC client
