@@ -50,7 +50,7 @@ public class RegisterOutputService {
           "Verifying unblindedSignedBordereau for receiveAddress: "
               + receiveAddress
               + " : "
-              + Utils.encodeBase64(unblindedSignedBordereau));
+              + Utils.encodeBytes(unblindedSignedBordereau));
     }
 
     // verify output

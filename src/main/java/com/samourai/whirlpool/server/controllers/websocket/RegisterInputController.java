@@ -47,7 +47,7 @@ public class RegisterInputController extends AbstractWebSocketController {
     }
 
     // register input in pool
-    byte[] pubKey = Utils.decodeBase64(payload.pubkey64);
+    byte[] pubKey = Utils.decodeBytes(payload.pubkey64);
     registerInputService.registerInput(
         payload.poolId,
         username,

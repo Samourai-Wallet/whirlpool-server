@@ -47,7 +47,7 @@ public class ConfirmInputController extends AbstractWebSocketController {
     }
 
     // confirm input and send back signed bordereau, or enqueue back to pool
-    byte[] blindedBordereau = Utils.decodeBase64(payload.blindedBordereau64);
+    byte[] blindedBordereau = Utils.decodeBytes(payload.blindedBordereau64);
     confirmInputService.confirmInputOrQueuePool(payload.mixId, username, blindedBordereau);
   }
 

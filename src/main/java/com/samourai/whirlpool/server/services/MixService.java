@@ -138,7 +138,7 @@ public class MixService {
 
     // sign bordereau to reply
     String signedBordereau64 =
-        Utils.encodeBase64(cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair()));
+        Utils.encodeBytes(cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair()));
 
     // add to mix inputs
     mix.registerInput(confirmedInput);
@@ -445,7 +445,7 @@ public class MixService {
         mixStatusNotification = new RevealOutputMixStatusNotification(mixId);
         break;
       case SIGNING:
-        String tx64 = Utils.encodeBase64(mix.getTx().bitcoinSerialize());
+        String tx64 = Utils.encodeBytes(mix.getTx().bitcoinSerialize());
         mixStatusNotification = new SigningMixStatusNotification(mixId, tx64);
         break;
       case SUCCESS:

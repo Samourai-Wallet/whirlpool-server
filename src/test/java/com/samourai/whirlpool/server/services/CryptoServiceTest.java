@@ -80,7 +80,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
     // VERIFY
     Assert.assertEquals(
         "MIICITANBgkqhkiG9w0BAQEFAAOCAg4AMIICCQKCAQEAuq0pPhbpWxnCk3j0OR9MPldBoA59gohQ4+vPPNeoQXZT8UBcYRz9Ki0XUSJIF+Z54sffAUjWxHUW9+ZoJMuEupIzbOKNKCKyo29PstRp/zB+URtXhFQqI0UMyEA18YQVHP5InRNGt+sGUM7LbcPqW3C7dzMV726hy+9FsM+OZs5LM4ARvWYPQRU1xe6gz0FAiJnXFJGDK2gxw8zuT6LTd6BWCdcce/k9CAEd8sNE6kqc+LyuCKPP9ojt7ahB4Fn0A+ISnDEke+6DCAUkfmNmbLya/xQFJAtO/w2xu9/Z5HKXpV7BCUB1QSYWYYLThVcsaWMgwIunb2s8YF+BKbU1iwKCAQAe+paMtxOnFSQiV2ERdl1aPnO7DTyMjspRu0krG897Ju5blmaI4ofW2cseoUBH4G0bZ+IyXd/vk/jUTzhlhsqyMDSi3gk2fw+Yf2PsAEPONWzOUT8ZoY1T82UMJFpvXTp9vcCCJKKd6ehPPQorCedYoQwohgyerS7iNNp4CEcQTeRYX7K1EgLDA36nPzkAU39H+eH8PTbMN5LVLonCJvTiPkd9PxUfyuL0jIVcVmlDPDMf2X5Dtvd82rRA9crmeSP2ANHa0z9SmjHIxPWmQPiGYEvsNnf8LyUqfpc6GBlzZ1ZJ+xkXfDiUGoDlwlifLU2VFumbu3PDm643E48laVRR",
-        Utils.encodeBase64(pubKey.getEncoded()));
+        Utils.encodeBytes(pubKey.getEncoded()));
   }
 
   @Test

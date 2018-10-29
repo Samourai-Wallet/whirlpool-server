@@ -54,7 +54,7 @@ public class SigningController extends AbstractWebSocketController {
     byte[][] witnesses = new byte[witnesses64.length][];
     for (int i = 0; i < witnesses64.length; i++) {
       String witness64 = witnesses64[i];
-      witnesses[i] = Utils.decodeBase64(witness64);
+      witnesses[i] = Utils.decodeBytes(witness64);
     }
     return witnesses;
   }

@@ -166,7 +166,7 @@ public class PoolService {
 
   private void inviteToMix(Mix mix, RegisteredInput registeredInput) {
     // register confirming input
-    String publicKey64 = Utils.encodeBase64(mix.getPublicKey());
+    String publicKey64 = Utils.encodeBytes(mix.getPublicKey());
     ConfirmInputMixStatusNotification confirmInputMixStatusNotification =
         new ConfirmInputMixStatusNotification(mix.getMixId(), publicKey64);
     mix.registerConfirmingInput(registeredInput);

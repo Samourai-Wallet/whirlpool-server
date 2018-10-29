@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.wallet.util.Z85;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
@@ -13,7 +14,6 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
@@ -27,6 +27,7 @@ public class Utils {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final SecureRandom secureRandom = new SecureRandom();
   private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final Z85 z85 = Z85.getInstance();
 
   private static int BTC_TO_SATOSHIS = 100000000;
   public static final String PROFILE_TEST = "test";
@@ -179,11 +180,11 @@ public class Utils {
     return null;
   }
 
-  public static byte[] decodeBase64(String base64) {
-    return Base64.decodeBase64(base64);
+  public static byte[] decodeBytes(String encoded) {
+    return z85.decode(encoded);
   }
 
-  public static String encodeBase64(byte[] data) {
-    return Base64.encodeBase64String(data);
+  public static String encodeBytes(byte[] data) {
+    return z85.encode(data);
   }
 }
