@@ -58,17 +58,6 @@ public class Utils {
         && second.containsAll(first));
   }
 
-  public static Integer findTxInput(Transaction tx, String hash, long index) {
-    for (int i = 0; i < tx.getInputs().size(); i++) {
-      TransactionInput input = tx.getInput(i);
-      TransactionOutPoint outPoint = input.getOutpoint();
-      if (outPoint.getHash().toString().equals(hash) && outPoint.getIndex() == index) {
-        return i;
-      }
-    }
-    return null;
-  }
-
   public static Optional<RpcOut> findTxOutput(RpcTransaction rpcTransaction, long utxoIndex) {
     for (RpcOut rpcOut : rpcTransaction.getOuts()) {
       if (rpcOut.getIndex() == utxoIndex) {
