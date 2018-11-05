@@ -41,7 +41,7 @@ public final class LogbackUtils {
 
       // Use ROOT logger if given logger name is blank.
       if ((loggerName == null) || loggerName.trim().isEmpty()) {
-        loggerName = (String) getFieldVaulue(LOGBACK_CLASSIC_LOGGER, "ROOT_LOGGER_NAME");
+        loggerName = (String) getFieldValue(LOGBACK_CLASSIC_LOGGER, "ROOT_LOGGER_NAME");
       }
 
       // Obtain logger by the name
@@ -52,7 +52,7 @@ public final class LogbackUtils {
         return false;
       }
 
-      Object logLevelObj = getFieldVaulue(LOGBACK_CLASSIC_LEVEL, logLevelUpper);
+      Object logLevelObj = getFieldValue(LOGBACK_CLASSIC_LEVEL, logLevelUpper);
       if (logLevelObj == null) {
         logger.warn("No such log level: {}", logLevelUpper);
         return false;
@@ -73,7 +73,7 @@ public final class LogbackUtils {
     }
   }
 
-  private static Object getFieldVaulue(String fullClassName, String fieldName) {
+  private static Object getFieldValue(String fullClassName, String fieldName) {
     try {
       Class<?> clazz = Class.forName(fullClassName);
       Field field = clazz.getField(fieldName);
