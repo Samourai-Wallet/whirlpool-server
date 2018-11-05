@@ -588,7 +588,8 @@ public class MixService {
 
       TxOutPoint registeredOutPoint = registeredInput.getInput();
       Integer inputIndex =
-          TxUtil.getInstance().findInputIndex(tx, registeredOutPoint.getHash(), registeredOutPoint.getIndex());
+          TxUtil.getInstance()
+              .findInputIndex(tx, registeredOutPoint.getHash(), registeredOutPoint.getIndex());
       if (inputIndex == null) {
         throw new ScriptException("Transaction input not found");
       }

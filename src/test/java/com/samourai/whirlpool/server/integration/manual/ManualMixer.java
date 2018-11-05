@@ -8,6 +8,7 @@ import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import java.math.BigInteger;
 import java.util.*;
@@ -19,6 +20,8 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 
 public class ManualMixer {
+  protected Bech32UtilGeneric bech32Util = Bech32UtilGeneric.getInstance();
+
   // parameters
   private final int nbMixes;
   private final NetworkParameters params;
@@ -123,15 +126,14 @@ public class ManualMixer {
               .getReceiveAddress(bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
 
       // sender calculates from pubkey
-      SegwitAddress addressFromSender =
-          new SegwitAddress(sendAddress.getSendECKey().getPubKey(), params);
+      String addressFromSender =
+          bech32Util.toBech32(sendAddress.getSendECKey().getPubKey(), params);
       // receiver can calculate from privkey
-      SegwitAddress addressToReceiver = new SegwitAddress(receiveAddress.getReceiveECKey(), params);
-      Assert.assertEquals(
-          addressFromSender.getBech32AsString(), addressToReceiver.getBech32AsString());
+      String addressToReceiver =
+          bech32Util.toBech32(receiveAddress.getReceiveECKey().getPubKey(), params);
+      Assert.assertEquals(addressFromSender, addressToReceiver);
 
-      Pair<Byte, byte[]> pair =
-          Bech32Segwit.decode(isTestnet ? "tb" : "bc", addressToReceiver.getBech32AsString());
+      Pair<Byte, byte[]> pair = Bech32Segwit.decode(isTestnet ? "tb" : "bc", addressToReceiver);
       byte[] scriptPubKey = Bech32Segwit.getScriptPubkey(pair.getLeft(), pair.getRight());
       TransactionOutput txOutSpend =
           new TransactionOutput(

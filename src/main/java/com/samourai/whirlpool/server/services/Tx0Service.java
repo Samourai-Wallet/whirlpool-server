@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.server.beans.CachedResult;
 import com.samourai.whirlpool.server.beans.rpc.RpcIn;
@@ -36,18 +36,21 @@ public class Tx0Service {
   private FormatsUtilGeneric formatsUtil;
   private WhirlpoolServerConfig whirlpoolServerConfig;
   private CacheService cacheService;
+  private Bech32UtilGeneric bech32Util;
 
   public Tx0Service(
       BlockchainDataService blockchainDataService,
       CryptoService cryptoService,
       FormatsUtilGeneric formatsUtil,
       WhirlpoolServerConfig whirlpoolServerConfig,
-      CacheService cacheService) {
+      CacheService cacheService,
+      Bech32UtilGeneric bech32UtilGeneric) {
     this.blockchainDataService = blockchainDataService;
     this.cryptoService = cryptoService;
     this.formatsUtil = formatsUtil;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.cacheService = cacheService;
+    this.bech32Util = bech32UtilGeneric;
   }
 
   protected boolean checkInput(RpcOutWithTx rpcOutWithTx) throws IllegalInputException {
@@ -228,8 +231,7 @@ public class Tx0Service {
     DeterministicKey adk = HDKeyDerivation.deriveChildKey(cKey, new ChildNumber(x, false));
     ECKey feeECKey = ECKey.fromPublicOnly(adk.getPubKey());
     String feeAddressBech32 =
-        new SegwitAddress(feeECKey.getPubKey(), cryptoService.getNetworkParameters())
-            .getBech32AsString();
+        bech32Util.toBech32(feeECKey.getPubKey(), cryptoService.getNetworkParameters());
     return feeAddressBech32;
   }
 

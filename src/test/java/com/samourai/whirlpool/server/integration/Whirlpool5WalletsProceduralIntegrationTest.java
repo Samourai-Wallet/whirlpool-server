@@ -330,8 +330,7 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
         // collect addresses for tx0 utxos
         //
         String tx0spendFrom =
-            new SegwitAddress(hdw84.getAccount(0).getChain(0).getAddressAt(0).getPubKey(), params)
-                .getBech32AsString();
+            bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
         System.out.println("tx0 spend address:" + tx0spendFrom);
 
         //
@@ -383,13 +382,11 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
       BIP47Wallet bip47w = _bip47Wallets.get(i);
 
       String tx0spendFrom =
-          new SegwitAddress(hdw84.getAccount(0).getChain(0).getAddressAt(0).getPubKey(), params)
-              .getBech32AsString();
+          bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
       ECKey ecKeySpendFrom = hdw84.getAccount(0).getChain(0).getAddressAt(0).getECKey();
       System.out.println("tx0 spend address:" + tx0spendFrom);
       String tx0change =
-          new SegwitAddress(hdw84.getAccount(0).getChain(1).getAddressAt(0).getPubKey(), params)
-              .getBech32AsString();
+          bech32Util.toBech32(hdw84.getAccount(0).getChain(1).getAddressAt(0), params);
       System.out.println("tx0 change address:" + tx0change);
 
       String pcode = bip47w.getAccount(0).getPaymentCode();
@@ -399,14 +396,8 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
       JSONArray spendTos = new JSONArray();
       for (int j = 0; j < nbMixes; j++) {
         String toAddress =
-            new SegwitAddress(
-                    hdw84
-                        .getAccountAt(Integer.MAX_VALUE - 2)
-                        .getChain(0)
-                        .getAddressAt(j)
-                        .getPubKey(),
-                    params)
-                .getBech32AsString();
+            bech32Util.toBech32(
+                hdw84.getAccountAt(Integer.MAX_VALUE - 2).getChain(0).getAddressAt(j), params);
         toPrivKeys.put(
             toAddress,
             hdw84.getAccountAt(Integer.MAX_VALUE - 2).getChain(0).getAddressAt(j).getECKey());
@@ -462,7 +453,7 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
               mKey, new ChildNumber(0, false)); // assume external/receive chain
       DeterministicKey adk = HDKeyDerivation.deriveChildKey(cKey, new ChildNumber(feeIdx, false));
       ECKey feeECKey = ECKey.fromPublicOnly(adk.getPubKey());
-      String feeAddress = new SegwitAddress(feeECKey.getPubKey(), params).getBech32AsString();
+      String feeAddress = bech32Util.toBech32(feeECKey.getPubKey(), params);
       System.out.println("fee address:" + feeAddress);
 
       Script outputScript = ScriptBuilder.createP2WPKHOutputScript(feeECKey);
@@ -553,15 +544,14 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
               bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
 
       // sender calculates from pubkey
-      SegwitAddress addressFromSender =
-          new SegwitAddress(sendAddress.getSendECKey().getPubKey(), params);
+      String addressFromSender =
+          bech32Util.toBech32(sendAddress.getSendECKey().getPubKey(), params);
       // receiver can calculate from privkey
-      SegwitAddress addressToReceiver = new SegwitAddress(receiveAddress.getReceiveECKey(), params);
-      Assert.assertEquals(
-          addressFromSender.getBech32AsString(), addressToReceiver.getBech32AsString());
+      String addressToReceiver =
+          bech32Util.toBech32(receiveAddress.getReceiveECKey().getPubKey(), params);
+      Assert.assertEquals(addressFromSender, addressToReceiver);
 
-      Pair<Byte, byte[]> pair =
-          Bech32Segwit.decode(isTestnet ? "tb" : "bc", addressToReceiver.getBech32AsString());
+      Pair<Byte, byte[]> pair = Bech32Segwit.decode(isTestnet ? "tb" : "bc", addressToReceiver);
       byte[] scriptPubKey = Bech32Segwit.getScriptPubkey(pair.getLeft(), pair.getRight());
       TransactionOutput txOutSpend =
           new TransactionOutput(

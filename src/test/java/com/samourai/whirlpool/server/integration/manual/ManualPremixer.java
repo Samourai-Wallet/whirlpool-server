@@ -3,8 +3,8 @@ package com.samourai.whirlpool.server.integration.manual;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.hd.HD_Wallet;
-import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ManualPremixer {
+  protected Bech32UtilGeneric bech32Util = Bech32UtilGeneric.getInstance();
 
   // parameters
   private final NetworkParameters params;
@@ -78,8 +79,7 @@ public class ManualPremixer {
         // collect addresses for tx0 utxos
         //
         String tx0spendFrom =
-            new SegwitAddress(hdw84.getAccount(0).getChain(0).getAddressAt(0).getPubKey(), params)
-                .getBech32AsString();
+            bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
         System.out.println("tx0 spend address:" + tx0spendFrom);
 
         //
@@ -140,13 +140,11 @@ public class ManualPremixer {
       BIP47Wallet bip47w = _bip47Wallets.get(i);
 
       String tx0spendFrom =
-          new SegwitAddress(hdw84.getAccount(0).getChain(0).getAddressAt(0).getPubKey(), params)
-              .getBech32AsString();
+          bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
       ECKey ecKeySpendFrom = hdw84.getAccount(0).getChain(0).getAddressAt(0).getECKey();
       System.out.println("tx0 spend address:" + tx0spendFrom);
       String tx0change =
-          new SegwitAddress(hdw84.getAccount(0).getChain(1).getAddressAt(0).getPubKey(), params)
-              .getBech32AsString();
+          bech32Util.toBech32(hdw84.getAccount(0).getChain(1).getAddressAt(0), params);
       System.out.println("tx0 change address:" + tx0change);
 
       String pcode = bip47w.getAccount(0).getPaymentCode();
@@ -156,14 +154,8 @@ public class ManualPremixer {
       JSONArray spendTos = new JSONArray();
       for (int j = 0; j < nbMixes; j++) {
         String toAddress =
-            new SegwitAddress(
-                    hdw84
-                        .getAccountAt(Integer.MAX_VALUE - 2)
-                        .getChain(0)
-                        .getAddressAt(j)
-                        .getPubKey(),
-                    params)
-                .getBech32AsString();
+            bech32Util.toBech32(
+                hdw84.getAccountAt(Integer.MAX_VALUE - 2).getChain(0).getAddressAt(j), params);
         toPrivKeys.put(
             toAddress,
             hdw84.getAccountAt(Integer.MAX_VALUE - 2).getChain(0).getAddressAt(j).getECKey());
@@ -220,7 +212,7 @@ public class ManualPremixer {
               mKey, new ChildNumber(0, false)); // assume external/receive chain
       DeterministicKey adk = HDKeyDerivation.deriveChildKey(cKey, new ChildNumber(feeIdx, false));
       ECKey feeECKey = ECKey.fromPublicOnly(adk.getPubKey());
-      String feeAddress = new SegwitAddress(feeECKey.getPubKey(), params).getBech32AsString();
+      String feeAddress = bech32Util.toBech32(feeECKey.getPubKey(), params);
       System.out.println("fee address:" + feeAddress);
 
       Script outputScript = ScriptBuilder.createP2WPKHOutputScript(feeECKey);

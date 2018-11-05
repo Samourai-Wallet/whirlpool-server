@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
@@ -19,16 +19,19 @@ public class BlockchainService {
   private BlockchainDataService blockchainDataService;
   private Tx0Service tx0Service;
   private WhirlpoolServerConfig whirlpoolServerConfig;
+  private Bech32UtilGeneric bech32Util;
 
   public BlockchainService(
       CryptoService cryptoService,
       BlockchainDataService blockchainDataService,
       Tx0Service tx0Service,
-      WhirlpoolServerConfig whirlpoolServerConfig) {
+      WhirlpoolServerConfig whirlpoolServerConfig,
+      Bech32UtilGeneric bech32Util) {
     this.cryptoService = cryptoService;
     this.blockchainDataService = blockchainDataService;
     this.tx0Service = tx0Service;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
+    this.bech32Util = bech32Util;
   }
 
   public TxOutPoint validateAndGetPremixInput(
@@ -71,7 +74,7 @@ public class BlockchainService {
 
   protected void checkPubkey(RpcOut rpcOut, byte[] pubkeyHex) throws IllegalInputException {
     String toAddressFromPubkey =
-        new SegwitAddress(pubkeyHex, cryptoService.getNetworkParameters()).getBech32AsString();
+        bech32Util.toBech32(pubkeyHex, cryptoService.getNetworkParameters());
     String toAddressFromUtxo = rpcOut.getToAddress();
     if (toAddressFromUtxo == null || !toAddressFromPubkey.equals(toAddressFromUtxo)) {
       throw new IllegalInputException("Invalid pubkey for UTXO");

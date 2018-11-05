@@ -22,8 +22,6 @@ import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.TransactionWitness;
 import org.bitcoinj.script.Script;
