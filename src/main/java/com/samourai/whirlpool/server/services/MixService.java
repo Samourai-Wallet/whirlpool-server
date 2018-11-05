@@ -13,6 +13,7 @@ import com.samourai.whirlpool.protocol.websocket.notifications.RegisterOutputMix
 import com.samourai.whirlpool.protocol.websocket.notifications.RevealOutputMixStatusNotification;
 import com.samourai.whirlpool.protocol.websocket.notifications.SigningMixStatusNotification;
 import com.samourai.whirlpool.protocol.websocket.notifications.SuccessMixStatusNotification;
+import com.samourai.whirlpool.server.beans.BlameReason;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.FailReason;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -355,7 +357,7 @@ public class MixService {
     log.info(" • revealed output: username=" + username);
 
     if (isRevealOutputReady(mix)) {
-      mixLimitsService.blameForRevealOutputAndResetMix(mix);
+      blameForRevealOutputAndResetMix(mix);
     }
   }
 
@@ -602,10 +604,39 @@ public class MixService {
     return tx;
   }
 
-  public void goRevealOutput(String mixId) {
-    log.info(
-        " • REGISTER_OUTPUT time over (mix failed, blaming users who didn't register output...)");
-    changeMixStatus(mixId, MixStatus.REVEAL_OUTPUT);
+  public void onTimeoutRegisterOutput(Mix mix) {
+    if (mix.getReceiveAddresses().isEmpty()) {
+      // no output registered at all => no legit user suffered, skip REVEAL_OUTPUT and immediately
+      // restart round
+      goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
+    } else {
+      // we have legit output registered => go REVEAL_OUTPUT to blame the others
+      log.info(
+          " • REGISTER_OUTPUT time over (mix failed, blaming users who didn't register output...)");
+      changeMixStatus(mix.getMixId(), MixStatus.REVEAL_OUTPUT);
+    }
+  }
+
+  public void onTimeoutRevealOutput(Mix mix) {
+    blameForRevealOutputAndResetMix(mix);
+  }
+
+  private void blameForRevealOutputAndResetMix(Mix mix) {
+    String mixId = mix.getMixId();
+
+    // blame users who didn't register outputs
+    Set<ConfirmedInput> confirmedInputsToBlame =
+        mix.getInputs()
+            .parallelStream()
+            .filter(
+                input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername()))
+            .collect(Collectors.toSet());
+    confirmedInputsToBlame.forEach(
+        confirmedInputToBlame ->
+            blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
+
+    // reset mix
+    goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
   }
 
   public void goFail(Mix mix, FailReason failReason) {

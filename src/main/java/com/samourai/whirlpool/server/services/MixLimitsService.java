@@ -140,11 +140,11 @@ public class MixLimitsService {
                 break;
 
               case REGISTER_OUTPUT:
-                mixService.goRevealOutput(mix.getMixId());
+                mixService.onTimeoutRegisterOutput(mix);
                 break;
 
               case REVEAL_OUTPUT:
-                blameForRevealOutputAndResetMix(mix);
+                mixService.onTimeoutRevealOutput(mix);
                 break;
 
               case SIGNING:
@@ -281,24 +281,6 @@ public class MixLimitsService {
                 + mix.getNbInputs());
       }
     }
-  }
-
-  public void blameForRevealOutputAndResetMix(Mix mix) {
-    String mixId = mix.getMixId();
-
-    // blame users who didn't register outputs
-    Set<ConfirmedInput> confirmedInputsToBlame =
-        mix.getInputs()
-            .parallelStream()
-            .filter(
-                input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername()))
-            .collect(Collectors.toSet());
-    confirmedInputsToBlame.forEach(
-        confirmedInputToBlame ->
-            blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
-
-    // reset mix
-    mixService.goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
   }
 
   public void blameForSigningAndResetMix(Mix mix) {

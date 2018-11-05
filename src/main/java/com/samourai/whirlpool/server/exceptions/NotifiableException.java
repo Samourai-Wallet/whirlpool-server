@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 public class NotifiableException extends Exception {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   public NotifiableException(String message) {
     super(message);
   }
