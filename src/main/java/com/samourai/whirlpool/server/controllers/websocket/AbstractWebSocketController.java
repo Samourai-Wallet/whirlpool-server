@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
@@ -33,7 +34,8 @@ public abstract class AbstractWebSocketController {
   protected void handleException(Exception exception, Principal principal) {
     log.error("handleException", exception);
     String username = principal.getName();
-    webSocketService.sendPrivateError(username, exception);
+    String message = NotifiableException.computeNotifiableMessage(exception);
+    webSocketService.sendPrivateError(username, message);
   }
 
   protected WebSocketService getWebSocketService() {

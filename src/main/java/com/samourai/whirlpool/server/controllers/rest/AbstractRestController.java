@@ -8,8 +8,7 @@ public abstract class AbstractRestController {
   public AbstractRestController() {}
 
   protected ResponseEntity<RestErrorResponse> handleException(Exception e) {
-    String message =
-        NotifiableException.class.isAssignableFrom(e.getClass()) ? e.getMessage() : "Server error";
+    String message = NotifiableException.computeNotifiableMessage(e);
     RestErrorResponse restErrorResponse = new RestErrorResponse(message);
     return ResponseEntity.badRequest().body(restErrorResponse);
   }

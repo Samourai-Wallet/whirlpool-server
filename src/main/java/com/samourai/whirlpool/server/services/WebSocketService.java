@@ -57,8 +57,7 @@ public class WebSocketService {
         });
   }
 
-  public void sendPrivateError(String username, Exception exception) {
-    String message = exception.getMessage();
+  public void sendPrivateError(String username, String message) {
     log.warn("sendPrivateError (-> " + username + "): " + message);
     ErrorResponse errorResponse = new ErrorResponse(message);
     sendPrivate(username, errorResponse);
