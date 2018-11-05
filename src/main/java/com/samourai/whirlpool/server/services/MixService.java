@@ -279,7 +279,7 @@ public class MixService {
     // verify unblindedSignedBordereau
     if (!cryptoService.verifyUnblindedSignedBordereau(
         receiveAddress, unblindedSignedBordereau, mix.getKeyPair())) {
-      throw new Exception("Invalid unblindedSignedBordereau");
+      throw new IllegalInputException("Invalid unblindedSignedBordereau");
     }
 
     log.info(" • registered output: " + receiveAddress);
@@ -507,7 +507,8 @@ public class MixService {
     return mix;
   }
 
-  private Mix getMixByInputsHash(String inputsHash, MixStatus mixStatus) throws MixException {
+  private Mix getMixByInputsHash(String inputsHash, MixStatus mixStatus)
+      throws IllegalInputException, MixException {
     List<Mix> mixsFound =
         currentMixs
             .values()
@@ -515,7 +516,7 @@ public class MixService {
             .filter(mix -> mix.computeInputsHash().equals(inputsHash))
             .collect(Collectors.toList());
     if (mixsFound.size() != 1) {
-      throw new MixException("Mix not found for inputsHash");
+      throw new IllegalInputException("Mix not found for inputsHash");
     }
     Mix mix = mixsFound.get(0);
     if (mixStatus != null && !mixStatus.equals(mix.getMixStatus())) {
@@ -538,9 +539,6 @@ public class MixService {
     for (String receiveAddress : mix.getReceiveAddresses()) {
       TransactionOutput txOutSpend =
           bech32Util.getTransactionOutput(receiveAddress, mix.getPool().getDenomination(), params);
-      if (txOutSpend == null) {
-        throw new Exception("unable to create output for " + receiveAddress);
-      }
       outputs.add(txOutSpend);
     }
 

@@ -33,6 +33,15 @@ public class ConfirmInputService {
       // input queued => re-enqueue in pool
       RegisteredInput registeredInput = e.getRegisteredInput();
       String poolId = e.getPoolId();
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "Input queued: poolId="
+                + poolId
+                + ", input="
+                + registeredInput.getInput()
+                + ", reason="
+                + e.getMessage());
+      }
       poolService.registerInput(
           poolId,
           registeredInput.getUsername(),

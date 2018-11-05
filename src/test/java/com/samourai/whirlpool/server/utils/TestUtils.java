@@ -60,19 +60,16 @@ public class TestUtils {
     final String BIP39_ENGLISH_SHA256 =
         "ad90bf3beb7b0eb7e5acd74727dc0da96e0a280a258354e7293fb7e211ac03db";
     InputStream wis = HD_Wallet.class.getResourceAsStream("/en_US.txt");
-    if (wis != null) {
-      MnemonicCode mc = new MnemonicCode(wis, BIP39_ENGLISH_SHA256);
+    MnemonicCode mc = new MnemonicCode(wis, BIP39_ENGLISH_SHA256);
 
-      // init BIP44 wallet for input
-      HD_Wallet inputWallet =
-          new HD_Wallet(purpose, mc, cryptoService.getNetworkParameters(), seed, passphrase, 1);
-      // init BIP47 wallet for input
-      BIP47Wallet bip47InputWallet = new BIP47Wallet(47, inputWallet, 1);
+    // init BIP44 wallet for input
+    HD_Wallet inputWallet =
+        new HD_Wallet(purpose, mc, cryptoService.getNetworkParameters(), seed, passphrase, 1);
+    // init BIP47 wallet for input
+    BIP47Wallet bip47InputWallet = new BIP47Wallet(47, inputWallet, 1);
 
-      wis.close();
-      return new BIP47WalletAndHDWallet(bip47InputWallet, inputWallet);
-    }
-    throw new Exception("wis is null");
+    wis.close();
+    return new BIP47WalletAndHDWallet(bip47InputWallet, inputWallet);
   }
 
   public BIP47WalletAndHDWallet generateWallet(int purpose) throws Exception {

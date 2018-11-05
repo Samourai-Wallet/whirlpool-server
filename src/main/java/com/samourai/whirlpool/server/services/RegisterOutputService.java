@@ -3,7 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
+import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,18 +55,12 @@ public class RegisterOutputService {
 
     // verify output
     if (!formatsUtil.isValidBech32(receiveAddress)) {
-      throw new Exception("Invalid receiveAddress");
+      throw new IllegalInputException("Invalid receiveAddress");
     }
 
     // verify receiveAddress not revoked
     if (dbService.isRevokedReceiveAddress(receiveAddress)) {
-      if (!serverConfig.isTestMode()) {
-        throw new IllegalBordereauException("receiveAddress already registered: " + receiveAddress);
-      } else {
-        log.error(
-            "testMode ignoring error: receiveAddress already registered: "
-                + receiveAddress); // TODO
-      }
+      throw new IllegalInputException("receiveAddress already registered: " + receiveAddress);
     }
   }
 }

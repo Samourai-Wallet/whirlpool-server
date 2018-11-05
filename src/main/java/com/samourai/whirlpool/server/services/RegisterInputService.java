@@ -2,7 +2,6 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.IllegalBordereauException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import java.lang.invoke.MethodHandles;
@@ -45,7 +44,7 @@ public class RegisterInputService {
       long utxoIndex,
       boolean liquidity,
       boolean testMode)
-      throws IllegalInputException, IllegalBordereauException, MixException {
+      throws IllegalInputException, MixException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
       throw new IllegalInputException("Invalid utxoHash");
     }
@@ -56,7 +55,7 @@ public class RegisterInputService {
     // verify UTXO not banned
     if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
       log.warn("Rejecting banned UTXO: " + utxoHash + ":" + utxoIndex);
-      throw new IllegalBordereauException("Banned from service");
+      throw new IllegalInputException("Banned from service");
     }
 
     // verify signature

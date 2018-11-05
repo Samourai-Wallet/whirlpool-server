@@ -82,15 +82,16 @@ public class PoolService {
     return pools.values();
   }
 
-  public Pool getPool(String poolId) throws MixException {
+  public Pool getPool(String poolId) throws IllegalInputException {
     Pool pool = pools.get(poolId);
     if (pool == null) {
-      throw new MixException("Pool not found");
+      throw new IllegalInputException("Pool not found");
     }
     return pool;
   }
 
-  public SubscribePoolResponse computeSubscribePoolResponse(String poolId) throws MixException {
+  public SubscribePoolResponse computeSubscribePoolResponse(String poolId)
+      throws IllegalInputException {
     Pool pool = getPool(poolId);
     SubscribePoolResponse poolStatusNotification =
         new SubscribePoolResponse(
