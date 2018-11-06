@@ -38,6 +38,7 @@ public class AssertMultiClientManager extends MultiClientManager {
   private MixLimitsService mixLimitsService;
   private Bip47Util bip47Util;
   private int port;
+  private boolean ssl;
   private boolean testMode;
 
   private Mix mix;
@@ -64,6 +65,7 @@ public class AssertMultiClientManager extends MultiClientManager {
     this.mixLimitsService = mixLimitsService;
     this.bip47Util = bip47Util;
     this.port = port;
+    this.ssl = true;
     this.testMode = false;
 
     inputs = new TxOutPoint[nbClients];
@@ -81,6 +83,7 @@ public class AssertMultiClientManager extends MultiClientManager {
             server,
             cryptoService.getNetworkParameters());
     config.setTestMode(testMode);
+    config.setSsl(ssl);
     return WhirlpoolClientImpl.newClient(config);
   }
 
@@ -411,5 +414,9 @@ public class AssertMultiClientManager extends MultiClientManager {
 
   public void setTestMode(boolean testMode) {
     this.testMode = testMode;
+  }
+
+  public void setSsl(boolean ssl) {
+    this.ssl = ssl;
   }
 }
