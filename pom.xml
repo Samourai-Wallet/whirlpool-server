@@ -101,9 +101,9 @@
 		</dependency>
 		<!-- test -->
 		<dependency>
-			<groupId>com.samouraiwallet</groupId>
+			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>whirlpool-client-cli</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>develop-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
