@@ -73,19 +73,22 @@ public class MixCsv {
   private Long feesPrice;
 
   @CsvBindByPosition(position = 13)
+  private int mixDuration;
+
+  @CsvBindByPosition(position = 14)
   @Enumerated(EnumType.STRING)
   private MixStatus mixStatus;
 
-  @CsvBindByPosition(position = 14)
+  @CsvBindByPosition(position = 15)
   @Enumerated(EnumType.STRING)
   private FailReason failReason;
 
   //
 
-  @CsvBindByPosition(position = 15)
+  @CsvBindByPosition(position = 16)
   private String txid;
 
-  @CsvBindByPosition(position = 16)
+  @CsvBindByPosition(position = 17)
   private String rawTx;
 
   public MixCsv(MixTO to) {
@@ -103,6 +106,7 @@ public class MixCsv {
     this.amountOut = to.getAmountOut();
     this.feesAmount = to.getFeesAmount();
     this.feesPrice = to.getFeesPrice();
+    this.mixDuration = to.getMixDuration();
     this.mixStatus = to.getMixStatus();
     this.failReason = to.getFailReason();
 
@@ -162,6 +166,10 @@ public class MixCsv {
 
   public Long getFeesPrice() {
     return feesPrice;
+  }
+
+  public int getMixDuration() {
+    return mixDuration;
   }
 
   public MixStatus getMixStatus() {

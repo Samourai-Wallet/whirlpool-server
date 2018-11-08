@@ -21,6 +21,7 @@ public class MixTO extends EntityTO {
   private long amountOut;
   private Long feesAmount;
   private Long feesPrice;
+  private int mixDuration;
 
   @Enumerated(EnumType.STRING)
   private MixStatus mixStatus;
@@ -44,6 +45,7 @@ public class MixTO extends EntityTO {
     this.amountOut = mix.computeAmountOut();
     this.feesAmount = feesAmount;
     this.feesPrice = feesPrice;
+    this.mixDuration = mix.computeMixDuration();
     this.mixStatus = mix.getMixStatus();
     this.failReason = mix.getFailReason();
 
@@ -91,6 +93,10 @@ public class MixTO extends EntityTO {
 
   public Long getFeesPrice() {
     return feesPrice;
+  }
+
+  public int getMixDuration() {
+    return mixDuration;
   }
 
   public MixStatus getMixStatus() {

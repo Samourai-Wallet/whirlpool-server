@@ -314,4 +314,12 @@ public class Mix {
   public long computeAmountOut() {
     return getNbInputs() * getPool().getDenomination();
   }
+
+  public int computeMixDuration() {
+    if (mixTO == null || mixTO.getCreated() == null) {
+      return 0;
+    }
+    int mixDuration = (int) (System.currentTimeMillis() - mixTO.getCreated().getTime()) / 1000;
+    return mixDuration;
+  }
 }
