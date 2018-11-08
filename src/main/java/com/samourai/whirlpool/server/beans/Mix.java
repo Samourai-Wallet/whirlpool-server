@@ -21,6 +21,7 @@ import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 
 public class Mix {
   private MixTO mixTO;
+  private Long created;
 
   private String mixId;
   private AsymmetricCipherKeyPair keyPair;
@@ -46,6 +47,7 @@ public class Mix {
 
   public Mix(String mixId, Pool pool, CryptoService cryptoService) {
     this.mixTO = null;
+    this.created = null;
     this.mixId = mixId;
     this.keyPair = cryptoService.generateKeyPair();
     try {
@@ -169,6 +171,10 @@ public class Mix {
 
   public synchronized void registerConfirmingInput(RegisteredInput registeredInput) {
     confirmingInputs.register(registeredInput);
+    if (this.created == null) {
+      timeStatus.put(MixStatus.CONFIRM_INPUT, new Timestamp(System.currentTimeMillis()));
+      this.created = System.currentTimeMillis();
+    }
   }
 
   public synchronized Optional<RegisteredInput> peekConfirmingInputByUsername(String username) {
@@ -214,10 +220,6 @@ public class Mix {
       throw new IllegalInputException("input already registered");
     }
     inputsById.put(inputId, confirmedInput);
-
-    if (!confirmedInput.getRegisteredInput().isLiquidity() && getNbInputsMustMix() == 1) {
-      timeStatus.put(MixStatus.CONFIRM_INPUT, new Timestamp(System.currentTimeMillis()));
-    }
   }
 
   public synchronized void unregisterInput(ConfirmedInput confirmedInput) {
@@ -316,10 +318,10 @@ public class Mix {
   }
 
   public int computeMixDuration() {
-    if (mixTO == null || mixTO.getCreated() == null) {
+    if (this.created == null) {
       return 0;
     }
-    int mixDuration = (int) (System.currentTimeMillis() - mixTO.getCreated().getTime()) / 1000;
+    int mixDuration = (int) ((System.currentTimeMillis() - created) / 1000);
     return mixDuration;
   }
 }
