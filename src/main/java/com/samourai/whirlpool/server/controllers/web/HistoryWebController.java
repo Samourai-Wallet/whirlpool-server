@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class HistoryWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status/history";
-  private static final String URL_EXPLORER_TESTNET = "https://testnet.smartbit.com.au/tx/";
-  private static final String URL_EXPLORER_MAINNET = "https://www.smartbit.com.au/tx/";
+  private static final String URL_EXPLORER_TESTNET = "https://blockstream.info/testnet/tx/";
+  private static final String URL_EXPLORER_MAINNET = "https://blockstream.info/tx/";
 
   private DbService dbService;
   private WhirlpoolServerConfig whirlpoolServerConfig;
