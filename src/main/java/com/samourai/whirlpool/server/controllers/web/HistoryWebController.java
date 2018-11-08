@@ -35,6 +35,7 @@ public class HistoryWebController {
     Iterable<MixTO> mixs = Lists.newArrayList(dbService.findMixs());
     model.addAttribute("mixs", mixs);
     model.addAttribute("urlExplorer", computeUrlExplorer());
+    model.addAttribute("mixStats", dbService.getMixStats());
 
     // getters used in template
     if (false) {

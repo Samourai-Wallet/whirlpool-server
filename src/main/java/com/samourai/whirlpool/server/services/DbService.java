@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.persistence.repositories.MixRepository;
 import com.samourai.whirlpool.server.persistence.repositories.RevocationRepository;
@@ -16,6 +17,7 @@ public class DbService {
   private List<BlameTO> blames;
   private MixRepository mixRepository;
   private RevocationRepository revokedBordereauRepository;
+  private MixStats mixStats; // cached value
 
   public DbService(MixRepository mixRepository, RevocationRepository revokedBordereauRepository) {
     this.mixRepository = mixRepository;
@@ -31,6 +33,7 @@ public class DbService {
   public void saveMix(Mix mix) {
     MixTO mixTO = mix.computeMixTO();
     mixRepository.save(mixTO);
+    mixStats = null; // clear cache
   }
 
   // receiveAddress
@@ -48,6 +51,15 @@ public class DbService {
 
   public Iterable<MixTO> findMixs() {
     return mixRepository.findAll(new Sort(Sort.Direction.DESC, "created"));
+  }
+
+  public MixStats getMixStats() {
+    if (mixStats == null) {
+      long nbMixs = mixRepository.countByMixStatus(MixStatus.SUCCESS);
+      long sumAmountOut = mixRepository.sumAmountOutByMixStatus(MixStatus.SUCCESS);
+      mixStats = new MixStats(nbMixs, sumAmountOut);
+    }
+    return mixStats;
   }
 
   public void __reset() {
