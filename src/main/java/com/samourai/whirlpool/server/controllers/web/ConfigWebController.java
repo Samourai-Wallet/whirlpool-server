@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class ConfigWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String ENDPOINT = "/config";
+  public static final String ENDPOINT = "/status/config";
 
   private WhirlpoolServerConfig whirlpoolServerConfig;
 

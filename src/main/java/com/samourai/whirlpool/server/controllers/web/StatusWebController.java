@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class StatusWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String ENDPOINT = "/status";
+  public static final String ENDPOINT = "/status/status";
 
   private PoolService poolService;
   private MixService mixService;

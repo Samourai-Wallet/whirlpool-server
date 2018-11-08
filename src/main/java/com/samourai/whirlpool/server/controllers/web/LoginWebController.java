@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class LoginWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String ENDPOINT = "/login-form";
-  public static final String PROCESS_ENDPOINT = "/doLogin";
+  public static final String ENDPOINT = "/status/login-form";
+  public static final String PROCESS_ENDPOINT = "/status/doLogin";
 
   @Autowired
   public LoginWebController() {}
