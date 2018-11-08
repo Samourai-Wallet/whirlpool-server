@@ -31,7 +31,7 @@ public class HistoryWebController {
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
-  public String history(Model model, WhirlpoolServerConfig whirlpoolServerConfig) throws Exception {
+  public String history(Model model) throws Exception {
     Iterable<MixTO> mixs = Lists.newArrayList(dbService.findMixs());
     model.addAttribute("mixs", mixs);
     model.addAttribute("urlExplorer", computeUrlExplorer());
@@ -43,6 +43,8 @@ public class HistoryWebController {
         mixTO.getAnonymitySet();
         mixTO.getNbMustMix();
         mixTO.getNbLiquidities();
+        mixTO.getFeesAmount();
+        mixTO.getFeesPrice();
         mixTO.getMixStatus();
         mixTO.getFailReason();
         MixLogTO mixLogTO = mixTO.getMixLog();

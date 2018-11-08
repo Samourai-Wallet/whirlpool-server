@@ -6,7 +6,6 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.PoolService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -48,9 +47,7 @@ public class StatusWebController {
               Mix mix = pool.getCurrentMix();
               Map<String, Object> poolAttributes = new HashMap<>();
               poolAttributes.put("poolId", pool.getPoolId());
-              poolAttributes.put(
-                  "denomination",
-                  Utils.satoshisToBtc(pool.getDenomination()).setScale(2).doubleValue());
+              poolAttributes.put("denomination", pool.getDenomination());
               poolAttributes.put("mixStatus", mix.getMixStatus());
               poolAttributes.put("targetAnonymitySet", mix.getTargetAnonymitySet());
               poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());

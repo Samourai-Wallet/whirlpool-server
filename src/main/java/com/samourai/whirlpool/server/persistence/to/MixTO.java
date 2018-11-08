@@ -17,6 +17,10 @@ public class MixTO extends EntityTO {
   private int anonymitySet;
   private int nbMustMix;
   private int nbLiquidities;
+  private long amountIn;
+  private long amountOut;
+  private Long feesAmount;
+  private Long feesPrice;
 
   @Enumerated(EnumType.STRING)
   private MixStatus mixStatus;
@@ -29,13 +33,17 @@ public class MixTO extends EntityTO {
 
   public MixTO() {}
 
-  public void update(Mix mix) {
+  public void setFrom(Mix mix, Long feesAmount, Long feesPrice) {
     this.poolId = mix.getPool().getPoolId();
     this.mixId = mix.getMixId();
     this.denomination = mix.getPool().getDenomination();
     this.anonymitySet = mix.getNbInputs();
     this.nbMustMix = mix.getNbInputsMustMix();
     this.nbLiquidities = mix.getNbInputsLiquidities();
+    this.amountIn = mix.computeAmountIn();
+    this.amountOut = mix.computeAmountOut();
+    this.feesAmount = feesAmount;
+    this.feesPrice = feesPrice;
     this.mixStatus = mix.getMixStatus();
     this.failReason = mix.getFailReason();
 
@@ -67,6 +75,22 @@ public class MixTO extends EntityTO {
 
   public int getNbLiquidities() {
     return nbLiquidities;
+  }
+
+  public long getAmountIn() {
+    return amountIn;
+  }
+
+  public long getAmountOut() {
+    return amountOut;
+  }
+
+  public Long getFeesAmount() {
+    return feesAmount;
+  }
+
+  public Long getFeesPrice() {
+    return feesPrice;
   }
 
   public MixStatus getMixStatus() {

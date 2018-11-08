@@ -21,6 +21,10 @@ public class MixCsv {
         "anonymitySet",
         "nbMustMix",
         "nbLiquidities",
+        "amountIn",
+        "amountOut",
+        "feesAmount",
+        "feesPrice",
         "mixStatus",
         "failReason",
         "txid",
@@ -57,19 +61,31 @@ public class MixCsv {
   private int nbLiquidities;
 
   @CsvBindByPosition(position = 9)
+  private long amountIn;
+
+  @CsvBindByPosition(position = 10)
+  private long amountOut;
+
+  @CsvBindByPosition(position = 11)
+  private Long feesAmount;
+
+  @CsvBindByPosition(position = 12)
+  private Long feesPrice;
+
+  @CsvBindByPosition(position = 13)
   @Enumerated(EnumType.STRING)
   private MixStatus mixStatus;
 
-  @CsvBindByPosition(position = 10)
+  @CsvBindByPosition(position = 14)
   @Enumerated(EnumType.STRING)
   private FailReason failReason;
 
   //
 
-  @CsvBindByPosition(position = 11)
+  @CsvBindByPosition(position = 15)
   private String txid;
 
-  @CsvBindByPosition(position = 12)
+  @CsvBindByPosition(position = 16)
   private String rawTx;
 
   public MixCsv(MixTO to) {
@@ -83,6 +99,10 @@ public class MixCsv {
     this.anonymitySet = to.getAnonymitySet();
     this.nbMustMix = to.getNbMustMix();
     this.nbLiquidities = to.getNbLiquidities();
+    this.amountIn = to.getAmountIn();
+    this.amountOut = to.getAmountOut();
+    this.feesAmount = to.getFeesAmount();
+    this.feesPrice = to.getFeesPrice();
     this.mixStatus = to.getMixStatus();
     this.failReason = to.getFailReason();
 
@@ -126,6 +146,22 @@ public class MixCsv {
 
   public int getNbLiquidities() {
     return nbLiquidities;
+  }
+
+  public long getAmountIn() {
+    return amountIn;
+  }
+
+  public long getAmountOut() {
+    return amountOut;
+  }
+
+  public Long getFeesAmount() {
+    return feesAmount;
+  }
+
+  public Long getFeesPrice() {
+    return feesPrice;
   }
 
   public MixStatus getMixStatus() {

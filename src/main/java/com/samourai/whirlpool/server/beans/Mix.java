@@ -8,7 +8,12 @@ import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import org.bitcoinj.core.Transaction;
@@ -72,7 +77,13 @@ public class Mix {
     if (mixTO == null) {
       mixTO = new MixTO();
     }
-    mixTO.update(this);
+    Long feesAmount = null;
+    Long feesPrice = null;
+    if (tx != null) {
+      feesAmount = tx.getFee().getValue();
+      feesPrice = feesAmount / tx.getVirtualTransactionSize();
+    }
+    mixTO.setFrom(this, feesAmount, feesPrice);
     return mixTO;
   }
 
@@ -290,5 +301,17 @@ public class Mix {
 
   public boolean isInvitationOpen(boolean liquidity) {
     return MixStatus.CONFIRM_INPUT.equals(mixStatus) && (!liquidity || acceptLiquidities);
+  }
+
+  public long computeAmountIn() {
+    return inputsById
+        .values()
+        .stream()
+        .mapToLong(input -> input.getRegisteredInput().getInput().getValue())
+        .sum();
+  }
+
+  public long computeAmountOut() {
+    return getNbInputs() * getPool().getDenomination();
   }
 }

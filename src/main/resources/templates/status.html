@@ -35,7 +35,7 @@
             <div th:each="pool,poolIter : *{pools}">
                 <tr th:onclick="${'$(''#'+poolIter.index+'_details'').toggle()'}">
                 <th class="align-middle" rowspan="2"><span th:text="${pool.poolId}"/></th>
-                <td><span th:text="${pool.denomination}"/></td>
+                <td><span th:text="${@templateUtil.satoshisToBtc(pool.denomination)}"/></td>
                 <td>
                     <span th:text="${pool.mixStatus}"/><br/>
                     <div th:if="${pool.currentStepProgress != null}" class="progress" style="height:10px">
