@@ -7,8 +7,16 @@ import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.MixException;
-import com.samourai.whirlpool.server.services.*;
+import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.services.BlockchainDataService;
+import com.samourai.whirlpool.server.services.BlockchainService;
+import com.samourai.whirlpool.server.services.CacheService;
+import com.samourai.whirlpool.server.services.CryptoService;
+import com.samourai.whirlpool.server.services.DbService;
+import com.samourai.whirlpool.server.services.MixLimitsService;
+import com.samourai.whirlpool.server.services.MixService;
+import com.samourai.whirlpool.server.services.PoolService;
+import com.samourai.whirlpool.server.services.Tx0Service;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import com.samourai.whirlpool.server.utils.MessageSignUtil;
@@ -100,7 +108,8 @@ public abstract class AbstractIntegrationTest {
     mixService.__reset();
   }
 
-  protected Mix __nextMix(WhirlpoolServerConfig.PoolConfig poolConfig) throws MixException {
+  protected Mix __nextMix(WhirlpoolServerConfig.PoolConfig poolConfig)
+      throws IllegalInputException {
     configurePools(poolConfig);
     Pool pool = poolService.getPool(poolConfig.getId());
     return mixService.__nextMix(pool);
@@ -116,7 +125,7 @@ public abstract class AbstractIntegrationTest {
       int anonymitySetMax,
       long anonymitySetAdjustTimeout,
       long liquidityTimeout)
-      throws MixException {
+      throws IllegalInputException {
     // create new pool
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
     poolConfig.setId(Utils.generateUniqueString());
@@ -158,6 +167,7 @@ public abstract class AbstractIntegrationTest {
             bip47Util,
             port);
     multiClientManager.setTestMode(serverConfig.isTestMode());
+    multiClientManager.setSsl(false);
     return multiClientManager;
   }
 }
