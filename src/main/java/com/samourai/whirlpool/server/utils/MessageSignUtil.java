@@ -1,60 +1,61 @@
 package com.samourai.whirlpool.server.utils;
 
+import java.security.SignatureException;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 
-import java.security.SignatureException;
-
 public class MessageSignUtil {
 
-    private static NetworkParameters netParams = null;
+  private static NetworkParameters netParams = null;
 
-    private static MessageSignUtil instance = null;
+  private static MessageSignUtil instance = null;
 
-    private MessageSignUtil() { ; }
+  private MessageSignUtil() {
+    ;
+  }
 
-    public static MessageSignUtil getInstance(NetworkParameters params) {
+  public static MessageSignUtil getInstance(NetworkParameters params) {
 
-        netParams = params;
+    netParams = params;
 
-        if(instance == null) {
-            instance = new MessageSignUtil();
-        }
-
-        return instance;
+    if (instance == null) {
+      instance = new MessageSignUtil();
     }
 
-    public boolean verifySignedMessage(String address, String strMessage, String strSignature) throws SignatureException {
+    return instance;
+  }
 
-        if(address == null || strMessage == null || strSignature == null)    {
-            return false;
-        }
+  public boolean verifySignedMessage(String address, String strMessage, String strSignature)
+      throws SignatureException {
 
-        ECKey ecKey = signedMessageToKey(strMessage, strSignature);
-        if(ecKey != null)   {
-            return ecKey.toAddress(netParams).toString().equals(address);
-        }
-        else    {
-            return false;
-        }
+    if (address == null || strMessage == null || strSignature == null) {
+      return false;
     }
 
-    public String signMessage(ECKey key, String strMessage) {
+    ECKey ecKey = signedMessageToKey(strMessage, strSignature);
+    if (ecKey != null) {
+      return ecKey.toAddress(netParams).toString().equals(address);
+    } else {
+      return false;
+    }
+  }
 
-        if(key == null || strMessage == null || !key.hasPrivKey())    {
-            return null;
-        }
+  public String signMessage(ECKey key, String strMessage) {
 
-        return key.signMessage(strMessage);
+    if (key == null || strMessage == null || !key.hasPrivKey()) {
+      return null;
     }
 
-    public ECKey signedMessageToKey(String strMessage, String strSignature) throws SignatureException {
+    return key.signMessage(strMessage);
+  }
 
-        if(strMessage == null || strSignature == null)    {
-            return null;
-        }
+  public ECKey signedMessageToKey(String strMessage, String strSignature)
+      throws SignatureException {
 
-        return ECKey.signedMessageToKey(strMessage, strSignature);
+    if (strMessage == null || strSignature == null) {
+      return null;
     }
 
+    return ECKey.signedMessageToKey(strMessage, strSignature);
+  }
 }

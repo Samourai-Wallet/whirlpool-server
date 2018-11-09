@@ -1,23 +1,21 @@
 package com.samourai.whirlpool.server.beans.rpc;
 
 public class RpcIn {
-    private String originHash;
-    private long originIndex;
+  private String originHash;
+  private long originIndex;
 
-    public RpcIn() {
+  public RpcIn() {}
 
-    }
+  public RpcIn(String originHash, long originIndex) {
+    this.originHash = originHash;
+    this.originIndex = originIndex;
+  }
 
-    public RpcIn(String originHash, long originIndex) {
-        this.originHash = originHash;
-        this.originIndex = originIndex;
-    }
+  public String getOriginHash() {
+    return originHash;
+  }
 
-    public String getOriginHash() {
-        return originHash;
-    }
-
-    public long getOriginIndex() {
-        return originIndex;
-    }
+  public long getOriginIndex() {
+    return originIndex;
+  }
 }

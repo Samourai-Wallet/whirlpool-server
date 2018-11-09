@@ -1,9 +1,9 @@
 package com.samourai.whirlpool.server.beans;
 
 public class Signature {
-    public byte[][] witness;
+  public byte[][] witness;
 
-    public Signature(byte[][] witness) {
-        this.witness = witness;
-    }
+  public Signature(byte[][] witness) {
+    this.witness = witness;
+  }
 }

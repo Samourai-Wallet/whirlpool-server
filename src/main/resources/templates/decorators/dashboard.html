@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <link rel="icon" href="https://samouraiwallet.com/static/favicon.ico" />
 
-    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Samourai Whirlpool</title>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Whirlpool - Samourai Wallet</title>
 
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.1.1/css/bootstrap.min.css}"/>
     <link rel="stylesheet" href="/css/samourai.css" />
@@ -17,7 +17,7 @@
 
 <body>
     <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/status" title="Samourai Whirlpool"><img src="https://samouraiwallet.com/static/public/images/logo2.png"/> Whirlpool</a>
+        <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/status/status" title="Samourai Whirlpool"><img src="https://samouraiwallet.com/static/public/images/logo2.png"/> Whirlpool</a>
     </nav>
 
     <div class="container-fluid">
@@ -26,19 +26,19 @@
                 <div class="sidebar-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a th:class="${currentPage == 'status'} ? 'nav-link active' : 'nav-link'" href="/status">
+                            <a th:class="${currentPage == 'status'} ? 'nav-link active' : 'nav-link'" href="/status/status">
                                 <span data-feather="play"></span>
                                 Status
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a th:class="${currentPage == 'history'} ? 'nav-link active' : 'nav-link'" href="/history">
+                            <a th:class="${currentPage == 'history'} ? 'nav-link active' : 'nav-link'" href="/status/history">
                                 <span data-feather="list"></span>
                                 History
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a th:class="${currentPage == 'config'} ? 'nav-link active' : 'nav-link'" href="/config">
+                            <a th:class="${currentPage == 'config'} ? 'nav-link active' : 'nav-link'" href="/status/config">
                                 <span data-feather="list"></span>
                                 Configuration
                             </a>

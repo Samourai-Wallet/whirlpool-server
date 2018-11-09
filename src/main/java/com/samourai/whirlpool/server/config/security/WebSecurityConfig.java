@@ -20,54 +20,67 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    private static final String[] REST_MIX_ENDPOINTS = new String[]{WhirlpoolProtocol.ENDPOINT_POOLS, WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT};
-    private static final String[] STATICS = new String[]{"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
+  private static final String[] REST_MIX_ENDPOINTS =
+      new String[] {WhirlpoolProtocol.ENDPOINT_POOLS, WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT};
+  private static final String[] STATICS =
+      new String[] {"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
 
-        // disable csrf for mixing
-        http.csrf().ignoringAntMatchers(REST_MIX_ENDPOINTS)
-
-        .and().authorizeRequests()
+    // disable csrf for mixing
+    http.csrf()
+        .ignoringAntMatchers(REST_MIX_ENDPOINTS)
+        .and()
+        .authorizeRequests()
 
         // public statics
-        .antMatchers(STATICS).permitAll()
+        .antMatchers(STATICS)
+        .permitAll()
 
         // public login form
-        .antMatchers(LoginWebController.ENDPOINT).permitAll()
-        .antMatchers(LoginWebController.PROCESS_ENDPOINT).permitAll()
+        .antMatchers(LoginWebController.ENDPOINT)
+        .permitAll()
+        .antMatchers(LoginWebController.PROCESS_ENDPOINT)
+        .permitAll()
 
         // public mixing websocket
-        .antMatchers(WebSocketConfig.WEBSOCKET_ENDPOINTS).permitAll()
-        .antMatchers(REST_MIX_ENDPOINTS).permitAll()
+        .antMatchers(WebSocketConfig.WEBSOCKET_ENDPOINTS)
+        .permitAll()
+        .antMatchers(REST_MIX_ENDPOINTS)
+        .permitAll()
 
         // restrict admin
-        .antMatchers(StatusWebController.ENDPOINT).hasAnyAuthority(WhirlpoolPrivilege.STATUS.toString(), WhirlpoolPrivilege.ALL.toString())
-        .antMatchers(HistoryWebController.ENDPOINT).hasAnyAuthority(WhirlpoolPrivilege.HISTORY.toString(), WhirlpoolPrivilege.ALL.toString())
-        .antMatchers(ConfigWebController.ENDPOINT).hasAnyAuthority(WhirlpoolPrivilege.CONFIG.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(StatusWebController.ENDPOINT)
+        .hasAnyAuthority(WhirlpoolPrivilege.STATUS.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(HistoryWebController.ENDPOINT)
+        .hasAnyAuthority(WhirlpoolPrivilege.HISTORY.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(ConfigWebController.ENDPOINT)
+        .hasAnyAuthority(WhirlpoolPrivilege.CONFIG.toString(), WhirlpoolPrivilege.ALL.toString())
 
         // reject others
-        .anyRequest().denyAll()
+        .anyRequest()
+        .denyAll()
         .and()
 
         // custom login form
         .formLogin()
         .loginProcessingUrl(LoginWebController.PROCESS_ENDPOINT)
         .loginPage(LoginWebController.ENDPOINT)
-        .defaultSuccessUrl(StatusWebController.ENDPOINT,true);
-    }
+        .defaultSuccessUrl(StatusWebController.ENDPOINT, true);
+  }
 
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider(WhirlpoolUserDetailsService whirlpoolUserDetailsService) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(whirlpoolUserDetailsService);
-        authProvider.setPasswordEncoder(encoder());
-        return authProvider;
-    }
+  @Bean
+  public DaoAuthenticationProvider authenticationProvider(
+      WhirlpoolUserDetailsService whirlpoolUserDetailsService) {
+    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    authProvider.setUserDetailsService(whirlpoolUserDetailsService);
+    authProvider.setPasswordEncoder(encoder());
+    return authProvider;
+  }
 
-    @Bean
-    public PasswordEncoder encoder() {
-        return new BCryptPasswordEncoder(11);
-    }
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder(11);
+  }
 }

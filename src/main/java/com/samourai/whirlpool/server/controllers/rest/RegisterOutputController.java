@@ -7,13 +7,12 @@ import com.samourai.whirlpool.server.services.BlameService;
 import com.samourai.whirlpool.server.services.DbService;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
 import com.samourai.whirlpool.server.utils.Utils;
+import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.lang.invoke.MethodHandles;
 
 @RestController
 public class RegisterOutputController extends AbstractRestController {
@@ -24,7 +23,8 @@ public class RegisterOutputController extends AbstractRestController {
   private DbService dbService;
 
   @Autowired
-  public RegisterOutputController(RegisterOutputService registerOutputService, DbService dbService) {
+  public RegisterOutputController(
+      RegisterOutputService registerOutputService, DbService dbService) {
     this.registerOutputService = registerOutputService;
     this.dbService = dbService;
   }
@@ -32,12 +32,18 @@ public class RegisterOutputController extends AbstractRestController {
   @RequestMapping(value = WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
     if (log.isDebugEnabled()) {
-      log.debug("[controller] " + WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT + ": payload=" + Utils.toJsonString(payload));
+      log.debug(
+          "[controller] "
+              + WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT
+              + ": payload="
+              + Utils.toJsonString(payload));
     }
 
     // register output
-    byte[] unblindedSignedBordereau = Utils.decodeBase64(payload.unblindedSignedBordereau64);
-    registerOutputService.registerOutput(payload.inputsHash, unblindedSignedBordereau, payload.receiveAddress);
+    byte[] unblindedSignedBordereau =
+        WhirlpoolProtocol.decodeBytes(payload.unblindedSignedBordereau64);
+    registerOutputService.registerOutput(
+        payload.inputsHash, unblindedSignedBordereau, payload.receiveAddress);
   }
 
   @ExceptionHandler

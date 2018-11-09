@@ -12,6 +12,8 @@
     <div layout:fragment="main">
         <h1 class="h2">History</h1>
 
+        Mixs SUCCESS: <strong th:text="${mixStats.nbMixs}"/><br/>
+        Total mixed: <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumAmountOut)+'btc'}"/>
         <div class="table-responsive">
         <table class="table table-sm history">
             <thead>
@@ -22,6 +24,9 @@
                 <th scope="col">Denomination</th>
                 <th scope="col">AnonymitySet</th>
                 <th scope="col">Status</th>
+                <th scope="col">Fees</th>
+                <th scope="col">Duration</th>
+                <th scope="col">Mixed</th>
                 <th scope="col">Txid</th>
                 <th scope="col">Raw</th>
             </tr>
@@ -31,9 +36,15 @@
                     <td class="created"><span th:text="${#dates.format(mix.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
                     <td class="poolId"><pre><code th:text="${mix.poolId}"/></pre></td>
                     <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
-                    <td class="denomination"><pre><code th:text="${mix.denomination}"/></pre></td>
+                    <td class="denomination"><pre><code th:text="${@templateUtil.satoshisToBtc(mix.denomination)}"/></pre></td>
                     <td class="anonymitySet"><span th:text="${mix.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${mix.nbMustMix}" title="mustMix"/> + <span th:text="${mix.nbLiquidities}" title="liquidities"/>)</td>
                     <td class="status"><span th:text="${mix.mixStatus}"/> <span th:text="${mix.failReason != null} ? ${'(' + mix.failReason + ')'} : ''"/></td>
+                    <td class="fees">
+                        <span th:text="${mix.feesAmount != null ? @templateUtil.satoshisToBtc(mix.feesAmount) : ''}"/><br/>
+                        <span th:text="${mix.feesPrice != null ? '('+mix.feesPrice+'sat/B)' : ''}"/>
+                    </td>
+                    <td class="duration"><span th:text="${mix.mixDuration}"/>s</td>
+                    <td class="mixed"><span th:text="${@templateUtil.satoshisToBtc(mix.amountOut)}"/>btc</td>
                     <td class="txid">
                         <a th:if="${mix.mixLog != null && mix.mixLog.txid != null}" th:href="${urlExplorer + mix.mixLog.txid}" target="_blank"><pre><code th:text="${mix.mixLog.txid}"/></pre></a>
                         <span th:if="${mix.mixLog == null || mix.mixLog.txid == null}">...</span>

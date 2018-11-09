@@ -5,6 +5,8 @@ import com.samourai.whirlpool.protocol.websocket.messages.SigningRequest;
 import com.samourai.whirlpool.server.services.SigningService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;
+import java.lang.invoke.MethodHandles;
+import java.security.Principal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +15,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
-
-import java.lang.invoke.MethodHandles;
-import java.security.Principal;
 
 @Controller
 public class SigningController extends AbstractWebSocketController {
@@ -30,12 +29,20 @@ public class SigningController extends AbstractWebSocketController {
   }
 
   @MessageMapping(WhirlpoolProtocol.ENDPOINT_SIGNING)
-  public void signing(@Payload SigningRequest payload, Principal principal, StompHeaderAccessor headers) throws Exception {
+  public void signing(
+      @Payload SigningRequest payload, Principal principal, StompHeaderAccessor headers)
+      throws Exception {
     validateHeaders(headers);
 
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug("[controller] " + headers.getDestination() + ": username=" + username + ", payload=" + Utils.toJsonString(payload));
+      log.debug(
+          "[controller] "
+              + headers.getDestination()
+              + ": username="
+              + username
+              + ", payload="
+              + Utils.toJsonString(payload));
     }
 
     // signing
@@ -45,9 +52,9 @@ public class SigningController extends AbstractWebSocketController {
 
   private byte[][] computeWitness(String[] witnesses64) {
     byte[][] witnesses = new byte[witnesses64.length][];
-    for (int i=0; i<witnesses64.length; i++) {
+    for (int i = 0; i < witnesses64.length; i++) {
       String witness64 = witnesses64[i];
-      witnesses[i] = Utils.decodeBase64(witness64);
+      witnesses[i] = WhirlpoolProtocol.decodeBytes(witness64);
     }
     return witnesses;
   }
@@ -56,5 +63,4 @@ public class SigningController extends AbstractWebSocketController {
   public void handleException(Exception exception, Principal principal) {
     super.handleException(exception, principal);
   }
-
 }
