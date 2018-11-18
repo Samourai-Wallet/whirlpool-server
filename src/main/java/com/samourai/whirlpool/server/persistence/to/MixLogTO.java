@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.persistence.to;
 
 import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.persistence.to.shared.EntityTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import javax.persistence.*;
 

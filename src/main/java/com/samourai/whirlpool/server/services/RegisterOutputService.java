@@ -39,8 +39,8 @@ public class RegisterOutputService {
     // register
     mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
 
-    // revoke receiveAddress
-    dbService.revokeReceiveAddress(receiveAddress);
+    // revoke output
+    dbService.revokeOutput(receiveAddress);
   }
 
   private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
@@ -58,8 +58,8 @@ public class RegisterOutputService {
       throw new IllegalInputException("Invalid receiveAddress");
     }
 
-    // verify receiveAddress not revoked
-    if (dbService.isRevokedReceiveAddress(receiveAddress)) {
+    // verify output not revoked
+    if (dbService.isRevokedOutput(receiveAddress)) {
       throw new IllegalInputException("receiveAddress already registered: " + receiveAddress);
     }
   }

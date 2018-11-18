@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.controllers.web;
 
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.persistence.to.EntityTO;
+import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedUpdatedTO;
 import com.samourai.whirlpool.server.persistence.to.MixLogTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.services.DbService;
@@ -36,7 +36,7 @@ public class HistoryWebController {
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
-  public String history(Model model, @PageableDefault (size=PAGE_SIZE, sort = EntityTO.CREATED, direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
+  public String history(Model model, @PageableDefault (size=PAGE_SIZE, sort = EntityCreatedUpdatedTO.CREATED, direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
     Page<MixTO> page = dbService.findMixs(pageable);
     model.addAttribute("page", page);
     model.addAttribute("urlExplorer", computeUrlExplorer());
