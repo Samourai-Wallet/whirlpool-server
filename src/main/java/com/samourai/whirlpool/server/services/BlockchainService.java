@@ -55,11 +55,11 @@ public class BlockchainService {
       boolean isLiquidity = tx0Service.checkInput(rpcOutWithTx);
       if (!isLiquidity && liquidity) {
         throw new IllegalInputException(
-            "Input rejected: not recognized as a liquidity (but as a mustMix)");
+            "Input rejected: joined as liquidity but is a mustMix");
       }
       if (isLiquidity && !liquidity) {
         throw new IllegalInputException(
-            "Input rejected: not recognized as a mustMix (but as a liquidity)");
+            "Input rejected: joined as mustMix but is as a liquidity");
       }
     } else {
       log.warn("tx0 checks disabled by testMode");

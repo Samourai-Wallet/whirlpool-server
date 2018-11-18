@@ -40,7 +40,7 @@ public class RegisterOutputService {
     mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
 
     // revoke output
-    dbService.revokeOutput(receiveAddress);
+    dbService.saveMixOutput(receiveAddress);
   }
 
   private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
@@ -59,7 +59,7 @@ public class RegisterOutputService {
     }
 
     // verify output not revoked
-    if (dbService.isRevokedOutput(receiveAddress)) {
+    if (dbService.hasMixOutput(receiveAddress)) {
       throw new IllegalInputException("receiveAddress already registered: " + receiveAddress);
     }
   }

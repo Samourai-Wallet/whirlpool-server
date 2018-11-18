@@ -34,7 +34,9 @@ public class MockRpcApplication extends AbstractJsonRpcClientTest {
       "781bc448f381e160d014f5515daf8a175bb689112c7755c70c6bbdbb32af56cc",
       "c1da465e30f3a7d19d3f3d254f387782247ea48cf22b832c474c37d17394cae6",
       "1d8a370ded61c81c925151ba7112d61d1535f7035756c43d2d5a77903afddd40",
-      "8d0bf279b4a7fe4ad27c49a7546cab1c10201ee3a1105e502afb5c31908f4771"
+      "8d0bf279b4a7fe4ad27c49a7546cab1c10201ee3a1105e502afb5c31908f4771",
+      "ae97a4d646cf96f01f16d845f1b2be7ff1eaa013b8c957caa8514bba28336f13",
+      "7d14d7d85eeda1efe7593d89cc8b61940c4a17b9390ae471577bbdc489c542eb"
     };
     for (String txid : txids) {
       mockRpcTx(txid);

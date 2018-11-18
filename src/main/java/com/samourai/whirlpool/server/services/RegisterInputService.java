@@ -61,13 +61,18 @@ public class RegisterInputService {
     // verify signature
     checkInputSignature(poolId, pubkey, signature);
 
-    // verify input is a valid mustMix or liquidity
-    TxOutPoint txOutPoint =
-        blockchainService.validateAndGetPremixInput(
-            utxoHash, utxoIndex, pubkey, liquidity, testMode);
+    try {
+      // verify input is a valid mustMix or liquidity
+      TxOutPoint txOutPoint =
+          blockchainService.validateAndGetPremixInput(
+              utxoHash, utxoIndex, pubkey, liquidity, testMode);
 
-    // register input to pool
-    poolService.registerInput(poolId, username, pubkey, liquidity, txOutPoint, true);
+      // register input to pool
+      poolService.registerInput(poolId, username, pubkey, liquidity, txOutPoint, true);
+    } catch(IllegalInputException e) {
+      log.warn("Input rejected ("+utxoHash+":"+utxoIndex+"): "+e.getMessage());
+      throw e;
+    }
   }
 
   private void checkInputSignature(String message, byte[] pubkeyHex, String signature)

@@ -441,6 +441,13 @@ public class MixService {
 
       // start next mix (after notifying clients for success)
       if (mixStatus == MixStatus.SUCCESS) {
+        // save mix txid
+        try {
+          dbService.saveMixTxid(mix.getTx().getHashAsString(), mix.getPool().getDenomination());
+        } catch (Exception e) {
+          log.error("", e);
+        }
+
         __nextMix(mix.getPool());
       } else if (mixStatus == MixStatus.FAIL) {
         __nextMix(mix.getPool());
