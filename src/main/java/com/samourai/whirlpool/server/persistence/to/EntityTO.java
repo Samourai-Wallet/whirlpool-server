@@ -10,6 +10,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @MappedSuperclass
 public abstract class EntityTO {
+  public static final String CREATED = "created";
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

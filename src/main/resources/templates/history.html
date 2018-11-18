@@ -32,7 +32,7 @@
             </tr>
             </thead>
             <tbody>
-                <tr th:each="mix : *{mixs}">
+                <tr th:each="mix : ${page.content}">
                     <td class="created"><span th:text="${#dates.format(mix.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
                     <td class="poolId"><pre><code th:text="${mix.poolId}"/></pre></td>
                     <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
@@ -57,6 +57,25 @@
             </tbody>
         </table>
         </div>
+        <nav>
+            <ul class="pagination">
+                <li class="page-item" th:if="${page.hasPrevious()}">
+                    <a class="page-link" th:href="@{${ENDPOINT}(page=${page.number-1},size=${page.size})}">
+                        <span>&laquo;</span>
+                    </a>
+                </li>
+                <th:block th:each="i: ${#numbers.sequence(0, page.totalPages - 1)}">
+                    <li th:class="${'page-item' + (page.number == i?' active':'')}">
+                        <a class="page-link" th:href="@{${ENDPOINT}(page=${i},size=${page.size})}">[[${i}+1]]</a>
+                    </li>
+                </th:block>
+                <li class="page-item" th:if="${page.hasNext()}">
+                    <a class="page-link" th:href="@{${ENDPOINT}(page=${page.number+1},size=${page.size})}">
+                        <span>&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </body>
 

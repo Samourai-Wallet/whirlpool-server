@@ -1,7 +1,11 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
-import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.BlameReason;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.MixStats;
+import com.samourai.whirlpool.server.beans.RevocationType;
 import com.samourai.whirlpool.server.persistence.repositories.MixRepository;
 import com.samourai.whirlpool.server.persistence.repositories.RevocationRepository;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
@@ -9,7 +13,8 @@ import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.persistence.to.RevocationTO;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -49,8 +54,8 @@ public class DbService {
         .isPresent();
   }
 
-  public Iterable<MixTO> findMixs() {
-    return mixRepository.findAll(new Sort(Sort.Direction.DESC, "created"));
+  public Page<MixTO> findMixs(Pageable pageable) {
+    return mixRepository.findAll(pageable);
   }
 
   public MixStats getMixStats() {
