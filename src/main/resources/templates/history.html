@@ -50,7 +50,7 @@
                         <span th:if="${mix.mixLog == null || mix.mixLog.txid == null}">...</span>
                     </td>
                     <td class="rawTx">
-                        <pre><code th:if="${mix.mixLog != null && mix.mixLog.rawTx != null}" th:text="${mix.mixLog.rawTx}"/></pre>
+                        <a th:if="${mix.mixLog != null && mix.mixLog.rawTx != null}" href="#" data-toggle="popover" title="Raw" th:data-content="${mix.mixLog.rawTx}"><span data-feather="code" /></a>
                         <span th:if="${mix.mixLog == null || mix.mixLog.rawTx == null}">...</span>
                     </td>
                 </tr>
