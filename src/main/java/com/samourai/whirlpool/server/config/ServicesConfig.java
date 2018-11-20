@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.config;
 
+import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
@@ -32,7 +33,7 @@ public class ServicesConfig {
   }
 
   @Bean
-  CryptoService cryptoService() throws Exception {
+  CryptoService cryptoService() {
     return new CryptoService(whirlpoolServerConfig.getNetworkParameters());
   }
 
@@ -54,5 +55,10 @@ public class ServicesConfig {
   @Bean
   Bech32UtilGeneric bech32UtilGeneric() {
     return Bech32UtilGeneric.getInstance();
+  }
+
+  @Bean
+  HD_WalletFactoryJava hdWalletFactory() {
+    return HD_WalletFactoryJava.getInstance();
   }
 }
