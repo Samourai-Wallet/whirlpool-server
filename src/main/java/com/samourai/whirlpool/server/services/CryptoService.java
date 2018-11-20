@@ -5,10 +5,8 @@ import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.SignatureException;
 import java.security.spec.RSAPublicKeySpec;
 import org.bitcoinj.core.Context;
-import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -56,23 +54,6 @@ public class CryptoService {
         new RSAPublicKeySpec(pubKey.getModulus(), pubKey.getExponent());
     KeyFactory kf = KeyFactory.getInstance("RSA");
     return kf.generatePublic(rsaPublicKeySpec);
-  }
-
-  public boolean verifyMessageSignature(byte[] pubkey, String message, String signature64) {
-    ECKey ecKeyFromPubkey;
-    try {
-      ecKeyFromPubkey = ECKey.fromPublicOnly(pubkey);
-    } catch (Exception e) {
-      log.error("verifyMessageSignature: couldn't extract eckey", e);
-      return false;
-    }
-    try {
-      ecKeyFromPubkey.verifyMessage(message, signature64);
-    } catch (SignatureException e) {
-      log.error("verifyMessageSignature: invalid signature", e);
-      return false;
-    }
-    return true;
   }
 
   public byte[] signBlindedOutput(byte[] blindedOutput, AsymmetricCipherKeyPair keyPair) {

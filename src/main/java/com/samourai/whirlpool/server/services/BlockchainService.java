@@ -1,10 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
-import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;
@@ -34,18 +31,14 @@ public class BlockchainService {
     this.bech32Util = bech32Util;
   }
 
-  public TxOutPoint validateAndGetPremixInput(
-      String utxoHash, long utxoIndex, byte[] pubkeyHex, boolean liquidity, boolean testMode)
+  public RpcOutWithTx validateAndGetPremixInput(
+      String utxoHash, long utxoIndex, boolean liquidity, boolean testMode)
       throws IllegalInputException {
     RpcOutWithTx rpcOutWithTx =
         blockchainDataService
             .getRpcOutWithTx(utxoHash, utxoIndex)
             .orElseThrow(
                 () -> new IllegalInputException("UTXO not found: " + utxoHash + "-" + utxoIndex));
-    RpcOut rpcOut = rpcOutWithTx.getRpcOut();
-
-    // verify pubkey: pubkey should control this utxo
-    checkPubkey(rpcOut, pubkeyHex);
 
     // tx0 verification can be disabled in testMode
     boolean skipTx0Checks = whirlpoolServerConfig.isTestMode() && testMode;
@@ -62,20 +55,6 @@ public class BlockchainService {
     } else {
       log.warn("tx0 checks disabled by testMode");
     }
-
-    RpcTransaction tx = rpcOutWithTx.getTx();
-    TxOutPoint txOutPoint =
-        new TxOutPoint(utxoHash, utxoIndex, rpcOut.getValue(), tx.getConfirmations());
-
-    return txOutPoint;
-  }
-
-  protected void checkPubkey(RpcOut rpcOut, byte[] pubkeyHex) throws IllegalInputException {
-    String toAddressFromPubkey =
-        bech32Util.toBech32(pubkeyHex, cryptoService.getNetworkParameters());
-    String toAddressFromUtxo = rpcOut.getToAddress();
-    if (toAddressFromUtxo == null || !toAddressFromPubkey.equals(toAddressFromUtxo)) {
-      throw new IllegalInputException("Invalid pubkey for UTXO");
-    }
+    return rpcOutWithTx;
   }
 }

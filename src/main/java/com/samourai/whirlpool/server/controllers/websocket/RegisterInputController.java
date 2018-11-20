@@ -47,11 +47,9 @@ public class RegisterInputController extends AbstractWebSocketController {
     }
 
     // register input in pool
-    byte[] pubKey = WhirlpoolProtocol.decodeBytes(payload.pubkey64);
     registerInputService.registerInput(
         payload.poolId,
         username,
-        pubKey,
         payload.signature,
         payload.utxoHash,
         payload.utxoIndex,

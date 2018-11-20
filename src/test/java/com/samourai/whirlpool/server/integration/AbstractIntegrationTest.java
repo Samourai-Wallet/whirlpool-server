@@ -1,9 +1,10 @@
 package com.samourai.whirlpool.server.integration;
 
-import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
-import com.samourai.wallet.hd.HD_WalletFactoryJava;
+import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
+import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
@@ -20,7 +21,6 @@ import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.services.Tx0Service;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
-import com.samourai.whirlpool.server.utils.MessageSignUtil;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
@@ -70,7 +70,7 @@ public abstract class AbstractIntegrationTest {
 
   @Autowired protected HD_WalletFactoryJava walletFactory;
 
-  protected Bip47Util bip47Util = Bip47Util.getInstance();
+  protected Bip47UtilJava bip47Util = Bip47UtilJava.getInstance();
 
   @Autowired protected FormatsUtilGeneric formatsUtil;
 
@@ -80,7 +80,7 @@ public abstract class AbstractIntegrationTest {
 
   @Autowired protected CacheService cacheService;
 
-  protected MessageSignUtil messageSignUtil;
+  protected MessageSignUtilGeneric messageSignUtil = MessageSignUtilGeneric.getInstance();
 
   protected MixLimitsService mixLimitsService;
 
@@ -96,7 +96,7 @@ public abstract class AbstractIntegrationTest {
     Assert.assertTrue(MockRpcClientServiceImpl.class.isAssignableFrom(rpcClientService.getClass()));
     this.params = cryptoService.getNetworkParameters();
 
-    messageSignUtil = MessageSignUtil.getInstance(params);
+    messageSignUtil = MessageSignUtilGeneric.getInstance();
 
     dbService.__reset();
     mixLimitsService = mixService.__getMixLimitsService();

@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.config;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.services.CryptoService;
 import java.lang.invoke.MethodHandles;
@@ -60,5 +61,10 @@ public class ServicesConfig {
   @Bean
   HD_WalletFactoryJava hdWalletFactory() {
     return HD_WalletFactoryJava.getInstance();
+  }
+
+  @Bean
+  MessageSignUtilGeneric messageSignUtil() {
+    return MessageSignUtilGeneric.getInstance();
   }
 }

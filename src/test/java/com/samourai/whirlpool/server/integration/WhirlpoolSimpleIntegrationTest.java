@@ -50,7 +50,8 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         messageSignUtil.verifySignedMessage(
             inputPCode.notificationAddress(params).getAddressString(),
             inputPCodeMessage,
-            inputPCodeSig));
+            inputPCodeSig,
+            params));
 
     PaymentCode outputPCode = new PaymentCode(bip47OutputWallet.getAccount(0).getPaymentCode());
     // receiver signs message with payment code notification address
@@ -64,7 +65,8 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
         messageSignUtil.verifySignedMessage(
             outputPCode.notificationAddress(params).getAddressString(),
             outputPCodeMessage,
-            outputPCodeSig));
+            outputPCodeSig,
+            params));
 
     ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
     SegwitAddress inputP2SH_P2WPKH =
