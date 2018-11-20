@@ -69,8 +69,8 @@ public class RegisterInputService {
 
       // register input to pool
       poolService.registerInput(poolId, username, pubkey, liquidity, txOutPoint, true);
-    } catch(IllegalInputException e) {
-      log.warn("Input rejected ("+utxoHash+":"+utxoIndex+"): "+e.getMessage());
+    } catch (IllegalInputException e) {
+      log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;
     }
   }

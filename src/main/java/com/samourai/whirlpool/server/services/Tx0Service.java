@@ -63,7 +63,8 @@ public class Tx0Service {
 
       // check fees paid
       if (!isTx0FeesPaid(tx, x)) {
-        throw new IllegalInputException("Input rejected (invalid fee for tx0=" + tx.getTxid()+ ", x="+ x+ ")");
+        throw new IllegalInputException(
+            "Input rejected (invalid fee for tx0=" + tx.getTxid() + ", x=" + x + ")");
       }
       return false; // mustMix
     } else {

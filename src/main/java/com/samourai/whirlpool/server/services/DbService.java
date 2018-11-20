@@ -26,7 +26,10 @@ public class DbService {
   private MixTxidRepository mixTxidRepository;
   private MixStats mixStats; // cached value
 
-  public DbService(MixRepository mixRepository, MixOutputRepository mixOutputRepository, MixTxidRepository mixTxidRepository) {
+  public DbService(
+      MixRepository mixRepository,
+      MixOutputRepository mixOutputRepository,
+      MixTxidRepository mixTxidRepository) {
     this.mixRepository = mixRepository;
     this.mixOutputRepository = mixOutputRepository;
     this.mixTxidRepository = mixTxidRepository;
@@ -63,9 +66,7 @@ public class DbService {
   }
 
   public boolean hasMixOutput(String receiveAddress) {
-    return mixOutputRepository
-        .findByAddress(receiveAddress)
-        .isPresent();
+    return mixOutputRepository.findByAddress(receiveAddress).isPresent();
   }
 
   // txid
@@ -76,9 +77,7 @@ public class DbService {
   }
 
   public boolean hasMixTxid(String txid, long denomination) {
-    return mixTxidRepository
-        .findByTxidAndDenomination(txid, denomination)
-        .isPresent();
+    return mixTxidRepository.findByTxidAndDenomination(txid, denomination).isPresent();
   }
 
   public Page<MixTO> findMixs(Pageable pageable) {

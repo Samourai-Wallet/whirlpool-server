@@ -7,13 +7,11 @@ import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -112,8 +110,9 @@ public class Tx0ServiceTest extends AbstractIntegrationTest {
     String txid = "ae97a4d646cf96f01f16d845f1b2be7ff1eaa013b8c957caa8514bba28336f13";
     long denomination = 1000000;
     try {
-      dbService.saveMixTxid(txid, denomination+1);
-    } catch(Exception e) {} // ignore duplicate
+      dbService.saveMixTxid(txid, denomination + 1);
+    } catch (Exception e) {
+    } // ignore duplicate
 
     // reject when invalid denomination
     Assert.assertFalse(doCheckWhirlpoolTx(txid, denomination)); // invalid
@@ -129,14 +128,16 @@ public class Tx0ServiceTest extends AbstractIntegrationTest {
     long denomination = 1000000;
     try {
       dbService.saveMixTxid(txid, denomination);
-    } catch(Exception e) {} // ignore duplicate
+    } catch (Exception e) {
+    } // ignore duplicate
 
     // accept when valid
     Assert.assertTrue(doCheckWhirlpoolTx(txid, denomination)); // valid
     Assert.assertTrue(doCheckInput(txid, 0)); // liquidity
   }
 
-  private boolean doCheckWhirlpoolTx(String utxoHash, long denomination) throws IllegalInputException {
+  private boolean doCheckWhirlpoolTx(String utxoHash, long denomination)
+      throws IllegalInputException {
     RpcTransaction rpcTransaction =
         blockchainDataService
             .getRpcTransaction(utxoHash)
@@ -157,26 +158,22 @@ public class Tx0ServiceTest extends AbstractIntegrationTest {
     cacheService._reset(); // fees configuration changed
 
     // accept when valid mustMix, paid more than fee
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID-1);
+    serverConfig.getSamouraiFees().setAmount(FEES_VALID - 1);
     for (int i = 0; i < 8; i++) {
       Assert.assertFalse(doCheckInput(txid, i));
     }
     cacheService._reset(); // fees configuration changed
 
     // reject when paid less than fee
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID+1);
+    serverConfig.getSamouraiFees().setAmount(FEES_VALID + 1);
     for (int i = 0; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
-      thrown.expectMessage(
-          "Input rejected (invalid fee for tx0="
-              + txid
-              + ", x=1)");
+      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
       doCheckInput(txid, i);
     }
   }
 
-  private boolean doCheckInput(String utxoHash, long utxoIndex)
-      throws IllegalInputException {
+  private boolean doCheckInput(String utxoHash, long utxoIndex) throws IllegalInputException {
     RpcOutWithTx rpcOutWithTx =
         blockchainDataService
             .getRpcOutWithTx(utxoHash, utxoIndex)

@@ -44,11 +44,7 @@ public class TestUtils {
     this.bech32Util = bech32Util;
   }
 
-  public SegwitAddress createSegwitAddress() throws Exception {
-    // BIP47WalletAndHDWallet inputWallets = generateWallet(44);
-    // HD_Wallet inputWallet = inputWallets.getHdWallet();
-    // ECKey utxoKey = inputWallet.getAccount(0).getReceive().getAddressAt(0).getECKey();
-
+  public SegwitAddress createSegwitAddress() {
     KeyChainGroup kcg = new KeyChainGroup(cryptoService.getNetworkParameters());
     DeterministicKey utxoKey = kcg.freshKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
     SegwitAddress p2shp2wpkh = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
