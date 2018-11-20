@@ -3,19 +3,28 @@ package com.samourai.whirlpool.server.integration.manual;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.hd.HD_Wallet;
+import com.samourai.wallet.hd.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bitcoinj.core.*;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.crypto.ChildNumber;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.crypto.HDKeyDerivation;
-import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptOpCodes;
@@ -24,7 +33,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class ManualPremixer {
-  protected Bech32UtilGeneric bech32Util = Bech32UtilGeneric.getInstance();
+  private Bech32UtilGeneric bech32Util = Bech32UtilGeneric.getInstance();
+  private HD_WalletFactoryJava hdWalletFactory = HD_WalletFactoryJava.getInstance();
 
   // parameters
   private final NetworkParameters params;
@@ -49,52 +59,42 @@ public class ManualPremixer {
   }
 
   public void initWallets() throws Exception {
-    final String BIP39_ENGLISH_SHA256 =
-        "ad90bf3beb7b0eb7e5acd74727dc0da96e0a280a258354e7293fb7e211ac03db";
     wallets = new HashMap<String, HD_Wallet>();
     bip47Wallets = new HashMap<String, BIP47Wallet>();
     payloads = new HashMap<String, JSONObject>();
-    InputStream wis = HD_Wallet.class.getResourceAsStream("/en_US.txt");
-    if (wis != null) {
-      MnemonicCode mc = new MnemonicCode(wis, BIP39_ENGLISH_SHA256);
 
-      List<String> words =
-          Arrays.asList("all all all all all all all all all all all all".split("\\s+"));
-      byte[] seed = mc.toEntropy(words);
+    String words = "all all all all all all all all all all all all";
+
+    //
+    // create 5 wallets
+    //
+    for (int i = 0; i < nbMixes; i++) {
+      // init BIP44 wallet
+      HD_Wallet hdw =
+          hdWalletFactory.restoreWallet(words, "all" + Integer.toString(10 + i), 1, params);
+      // init BIP84 wallet for input
+      HD_Wallet hdw84 = hdWalletFactory.getHD(84, hdw.getSeedHex(), hdw.getPassphrase(), params);
+      // init BIP47 wallet for input
+      BIP47Wallet bip47w = hdWalletFactory.getBIP47(hdw.getSeedHex(), hdw.getPassphrase(), params);
 
       //
-      // create 5 wallets
+      // collect addresses for tx0 utxos
       //
-      for (int i = 0; i < nbMixes; i++) {
-        // init BIP44 wallet
-        HD_Wallet hdw = new HD_Wallet(44, mc, params, seed, "all" + Integer.toString(10 + i), 1);
-        // init BIP84 wallet for input
-        HD_Wallet hdw84 =
-            new HD_Wallet(84, mc, params, Hex.decode(hdw.getSeedHex()), hdw.getPassphrase(), 1);
-        // init BIP47 wallet for input
-        BIP47Wallet bip47w =
-            new BIP47Wallet(47, mc, params, Hex.decode(hdw.getSeedHex()), hdw.getPassphrase(), 1);
+      String tx0spendFrom =
+          bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
+      System.out.println("tx0 spend address:" + tx0spendFrom);
 
-        //
-        // collect addresses for tx0 utxos
-        //
-        String tx0spendFrom =
-            bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
-        System.out.println("tx0 spend address:" + tx0spendFrom);
+      //
+      // collect wallet payment codes
+      //
+      String pcode = bip47w.getAccount(0).getPaymentCode();
+      wallets.put(pcode, hdw84);
+      bip47Wallets.put(pcode, bip47w);
 
-        //
-        // collect wallet payment codes
-        //
-        String pcode = bip47w.getAccount(0).getPaymentCode();
-        wallets.put(pcode, hdw84);
-        bip47Wallets.put(pcode, bip47w);
-
-        JSONObject payloadObj = new JSONObject();
-        payloadObj.put("pcode", pcode);
-        payloads.put(pcode, payloadObj);
-      }
+      JSONObject payloadObj = new JSONObject();
+      payloadObj.put("pcode", pcode);
+      payloads.put(pcode, payloadObj);
     }
-    wis.close();
   }
 
   public void premix(

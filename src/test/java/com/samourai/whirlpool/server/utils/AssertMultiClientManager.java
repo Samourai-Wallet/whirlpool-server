@@ -89,7 +89,7 @@ public class AssertMultiClientManager extends MultiClientManager {
 
   private int prepareClientWithMock(long inputBalance) throws Exception {
     SegwitAddress inputAddress = testUtils.createSegwitAddress();
-    BIP47Wallet bip47Wallet = testUtils.generateWallet(49).getBip47Wallet();
+    BIP47Wallet bip47Wallet = testUtils.generateWallet().getBip47Wallet();
     int paymentCodeIndex = 0;
     return prepareClientWithMock(
         inputAddress, bip47Wallet, paymentCodeIndex, null, null, null, inputBalance);

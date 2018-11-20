@@ -32,12 +32,12 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
     NetworkParameters params = cryptoService.getNetworkParameters();
 
     // init BIP47 wallet for input
-    BIP47WalletAndHDWallet inputWallets = testUtils.generateWallet(44);
+    BIP47WalletAndHDWallet inputWallets = testUtils.generateWallet();
     BIP47Wallet bip47InputWallet = inputWallets.getBip47Wallet();
     HD_Wallet inputWallet = inputWallets.getHdWallet();
 
     // init BIP47 wallet for output
-    BIP47Wallet bip47OutputWallet = testUtils.generateWallet(44).getBip47Wallet();
+    BIP47Wallet bip47OutputWallet = testUtils.generateWallet().getBip47Wallet();
 
     PaymentCode inputPCode = new PaymentCode(bip47InputWallet.getAccount(0).getPaymentCode());
     // sender signs message with payment code notification address privkey
