@@ -68,12 +68,11 @@ public class RegisterInputService {
       RpcTransaction rpcTx = rpcOutWithTx.getTx();
 
       // verify signature
-      ECKey pubkey = checkInputSignature(poolId, rpcOut.getToAddress(), signature);
-
-      TxOutPoint txOutPoint =
-          new TxOutPoint(utxoHash, utxoIndex, rpcOut.getValue(), rpcTx.getConfirmations());
+      ECKey pubkey = checkInputSignature(rpcOut.getToAddress(), poolId, signature);
 
       // register input to pool
+      TxOutPoint txOutPoint =
+          new TxOutPoint(utxoHash, utxoIndex, rpcOut.getValue(), rpcTx.getConfirmations());
       poolService.registerInput(poolId, username, pubkey.getPubKey(), liquidity, txOutPoint, true);
     } catch (IllegalInputException e) {
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());

@@ -5,6 +5,7 @@ import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
+import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
@@ -73,6 +74,8 @@ public abstract class AbstractIntegrationTest {
   protected Bip47UtilJava bip47Util = Bip47UtilJava.getInstance();
 
   @Autowired protected FormatsUtilGeneric formatsUtil;
+
+  @Autowired protected TxUtil txUtil;
 
   @Autowired protected TaskExecutor taskExecutor;
 

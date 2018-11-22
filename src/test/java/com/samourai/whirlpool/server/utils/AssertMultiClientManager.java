@@ -3,11 +3,15 @@ package com.samourai.whirlpool.server.utils;
 import com.samourai.http.client.JavaHttpClient;
 import com.samourai.stomp.client.JavaStompClient;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
-import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
+import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.mix.MixParams;
-import com.samourai.whirlpool.client.mix.handler.*;
+import com.samourai.whirlpool.client.mix.handler.IPostmixHandler;
+import com.samourai.whirlpool.client.mix.handler.IPremixHandler;
+import com.samourai.whirlpool.client.mix.handler.PostmixHandler;
+import com.samourai.whirlpool.client.mix.handler.PremixHandler;
+import com.samourai.whirlpool.client.mix.handler.UtxoWithBalance;
 import com.samourai.whirlpool.client.utils.MultiClientListener;
 import com.samourai.whirlpool.client.utils.MultiClientManager;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientConfig;
@@ -36,7 +40,7 @@ public class AssertMultiClientManager extends MultiClientManager {
   private CryptoService cryptoService;
   private MockRpcClientServiceImpl rpcClientService;
   private MixLimitsService mixLimitsService;
-  private Bip47Util bip47Util;
+  private Bip47UtilJava bip47Util;
   private int port;
   private boolean ssl;
   private boolean testMode;
@@ -56,7 +60,7 @@ public class AssertMultiClientManager extends MultiClientManager {
       CryptoService cryptoService,
       MockRpcClientServiceImpl rpcClientService,
       MixLimitsService mixLimitsService,
-      Bip47Util bip47Util,
+      Bip47UtilJava bip47Util,
       int port) {
     this.mix = mix;
     this.testUtils = testUtils;
@@ -88,7 +92,7 @@ public class AssertMultiClientManager extends MultiClientManager {
   }
 
   private int prepareClientWithMock(long inputBalance) throws Exception {
-    SegwitAddress inputAddress = testUtils.createSegwitAddress();
+    SegwitAddress inputAddress = testUtils.generateSegwitAddress();
     BIP47Wallet bip47Wallet = testUtils.generateWallet().getBip47Wallet();
     int paymentCodeIndex = 0;
     return prepareClientWithMock(

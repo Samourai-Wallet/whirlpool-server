@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.utils;
 
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
-import com.samourai.wallet.hd.HD_WalletFactoryJava;
+import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -20,6 +20,7 @@ import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
 import java.util.Optional;
 import org.aspectj.util.FileUtil;
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;
@@ -53,7 +54,7 @@ public class TestUtils {
     this.hdWalletFactory = hdWalletFactory;
   }
 
-  public SegwitAddress createSegwitAddress() {
+  public SegwitAddress generateSegwitAddress() {
     KeyChainGroup kcg = new KeyChainGroup(cryptoService.getNetworkParameters());
     DeterministicKey utxoKey = kcg.freshKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
     SegwitAddress p2shp2wpkh = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());

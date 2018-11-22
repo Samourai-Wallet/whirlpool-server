@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 public class WhirlpoolServerConfig {
 
   private SamouraiFeeConfig samouraiFees;
+  private SecretWalletConfig secretWallet;
   private boolean testMode;
   private int port;
   private boolean testnet;
@@ -33,6 +34,14 @@ public class WhirlpoolServerConfig {
 
   public void setSamouraiFees(SamouraiFeeConfig samouraiFees) {
     this.samouraiFees = samouraiFees;
+  }
+
+  public SecretWalletConfig getSecretWallet() {
+    return secretWallet;
+  }
+
+  public void setSecretWallet(SecretWalletConfig secretWallet) {
+    this.secretWallet = secretWallet;
   }
 
   public boolean isTestMode() {
@@ -409,6 +418,27 @@ public class WhirlpoolServerConfig {
     }
   }
 
+  public static class SecretWalletConfig {
+    @NotEmpty private String words;
+    @NotEmpty private String passphrase;
+
+    public String getWords() {
+      return words;
+    }
+
+    public void setWords(String words) {
+      this.words = words;
+    }
+
+    public String getPassphrase() {
+      return passphrase;
+    }
+
+    public void setPassphrase(String passphrase) {
+      this.passphrase = passphrase;
+    }
+  }
+
   public Map<String, String> getConfigInfo() {
     Map<String, String> configInfo = new LinkedHashMap<>();
     configInfo.put("port", String.valueOf(getPort()));
@@ -426,6 +456,9 @@ public class WhirlpoolServerConfig {
             + "..."
             + samouraiFees.xpub.substring(
                 samouraiFees.xpub.length() - 3, samouraiFees.xpub.length()));
+
+    int nbSeedWords = secretWallet.getWords().split(" ").length;
+    configInfo.put("secretWallet", "words=***("+nbSeedWords+" words), passphrase=***");
 
     configInfo.put(
         "registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));

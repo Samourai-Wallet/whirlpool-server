@@ -3,7 +3,7 @@ package com.samourai.whirlpool.server.integration.manual;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip47.rpc.PaymentAddress;
 import com.samourai.wallet.bip47.rpc.PaymentCode;
-import com.samourai.wallet.bip47.rpc.impl.Bip47Util;
+import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.SegwitAddress;
@@ -11,16 +11,30 @@ import com.samourai.wallet.segwit.bech32.Bech32Segwit;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bitcoinj.core.*;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionInput;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.TransactionWitness;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.script.Script;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 
 public class ManualMixer {
-  protected Bech32UtilGeneric bech32Util = Bech32UtilGeneric.getInstance();
+  private Bech32UtilGeneric bech32Util = Bech32UtilGeneric.getInstance();
+  private Bip47UtilJava bip47Util = Bip47UtilJava.getInstance();
 
   // parameters
   private final int nbMixes;
@@ -118,12 +132,12 @@ public class ManualMixer {
 
       // sender calculates address with receiver's payment code
       PaymentAddress sendAddress =
-          Bip47Util.getInstance()
-              .getSendAddress(bip47Wallets.get(fromPCode), new PaymentCode(toPCode), 0, params);
+          bip47Util.getSendAddress(
+              bip47Wallets.get(fromPCode), new PaymentCode(toPCode), 0, params);
       // receiver calculates address with sender's payment code
       PaymentAddress receiveAddress =
-          Bip47Util.getInstance()
-              .getReceiveAddress(bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
+          bip47Util.getReceiveAddress(
+              bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
 
       // sender calculates from pubkey
       String addressFromSender =

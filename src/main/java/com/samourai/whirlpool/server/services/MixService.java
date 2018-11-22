@@ -66,6 +66,7 @@ public class MixService {
   private PoolService poolService;
   private ExportService exportService;
   private TaskService taskService;
+  private TxUtil txUtil;
 
   private Map<String, Mix> currentMixs;
 
@@ -83,7 +84,8 @@ public class MixService {
       MixLimitsService mixLimitsService,
       PoolService poolService,
       ExportService exportService,
-      TaskService taskService) {
+      TaskService taskService,
+      TxUtil txUtil) {
     this.cryptoService = cryptoService;
     this.blameService = blameService;
     this.dbService = dbService;
@@ -96,6 +98,7 @@ public class MixService {
     this.poolService = poolService;
     this.exportService = exportService;
     this.taskService = taskService;
+    this.txUtil = txUtil;
 
     this.currentMixs = new HashMap<>();
 
@@ -595,8 +598,7 @@ public class MixService {
 
       TxOutPoint registeredOutPoint = registeredInput.getInput();
       Integer inputIndex =
-          TxUtil.getInstance()
-              .findInputIndex(tx, registeredOutPoint.getHash(), registeredOutPoint.getIndex());
+          txUtil.findInputIndex(tx, registeredOutPoint.getHash(), registeredOutPoint.getIndex());
       if (inputIndex == null) {
         throw new ScriptException("Transaction input not found");
       }

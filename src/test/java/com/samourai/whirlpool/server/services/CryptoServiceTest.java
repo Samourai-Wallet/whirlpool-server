@@ -5,9 +5,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
-import java.math.BigInteger;
 import java.security.PublicKey;
-import org.bitcoinj.core.ECKey;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSABlindingParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -84,37 +82,8 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void verifyMessageSignature() throws Exception {
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    String message = "hello foo";
-    String signature = ecKey.signMessage(message);
-
-    // TEST
-    // valid
-    Assert.assertTrue(cryptoService.verifyMessageSignature(pubkey, message, signature));
-
-    // wrong signature
-    Assert.assertFalse(cryptoService.verifyMessageSignature(pubkey, message, signature + "foo"));
-
-    // wrong message
-    Assert.assertFalse(cryptoService.verifyMessageSignature(pubkey, message + "foo", signature));
-
-    // wrong pubkey
-    ECKey ecKey2 =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "24069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey2 = ecKey2.getPubKey();
-    Assert.assertFalse(cryptoService.verifyMessageSignature(pubkey2, message, signature));
-  }
-
-  @Test
   public void verifyUnblindedSignedBordereau_shouldSuccessWhenValid() throws Exception {
-    String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
+    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
     RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
 
@@ -138,7 +107,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
 
   @Test
   public void verifyUnblindedSignedBordereau_shouldFailWhenInvalidUnblindedData() throws Exception {
-    String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
+    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
     RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
 
@@ -164,7 +133,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
   @Test
   public void verifyUnblindedSignedBordereau_shouldFailWhenUnblindInvalidBlindingParams()
       throws Exception {
-    String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
+    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
     RSAKeyParameters serverPubKey = (RSAKeyParameters) serverKeyPair.getPublic();
 
@@ -192,7 +161,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
   @Test
   public void verifyUnblindedSignedBordereau_shouldFailWhenBlindFromInvalidPubkey()
       throws Exception {
-    String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
+    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     AsymmetricCipherKeyPair serverKeyPair = cryptoService.generateKeyPair();
 
     // blind

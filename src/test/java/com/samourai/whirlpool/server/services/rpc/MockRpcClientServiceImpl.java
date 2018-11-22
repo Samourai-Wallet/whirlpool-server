@@ -109,7 +109,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
 
     if (utxoIndex != null) {
       for (int i = 0; i < utxoIndex; i++) {
-        transaction.addOutput(Coin.valueOf(amount), testUtils.createSegwitAddress().getAddress());
+        transaction.addOutput(Coin.valueOf(amount), testUtils.generateSegwitAddress().getAddress());
       }
     }
     String addressBech32 = address.getBech32AsString();

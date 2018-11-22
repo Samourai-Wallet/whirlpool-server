@@ -40,7 +40,7 @@ public class Tx0ServiceTest extends AbstractIntegrationTest {
               blockchainDataService
                   .getRpcTransaction(txid)
                   .orElseThrow(() -> new NoSuchElementException());
-          Integer x = tx0Service.findSamouraiFeesXpubIndiceFromTx0(rpcTransaction);
+          Integer x = tx0Service.findSamouraiFeesIndice(rpcTransaction);
           Assert.assertEquals(xpubIndiceExpected, x);
           return null;
         };

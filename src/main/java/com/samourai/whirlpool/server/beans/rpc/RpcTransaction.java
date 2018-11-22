@@ -11,6 +11,7 @@ public class RpcTransaction {
   private int confirmations;
   private List<RpcIn> ins;
   private List<RpcOut> outs;
+  private Transaction tx;
 
   public RpcTransaction(
       RpcRawTransactionResponse rpcRawTransaction,
@@ -18,7 +19,7 @@ public class RpcTransaction {
       Bech32UtilGeneric bech32Util)
       throws Exception {
     // parse tx with bitcoinj
-    Transaction tx = new Transaction(params, Utils.HEX.decode(rpcRawTransaction.getHex()));
+    this.tx = new Transaction(params, Utils.HEX.decode(rpcRawTransaction.getHex()));
 
     this.txid = tx.getHashAsString();
     this.confirmations = rpcRawTransaction.getConfirmations();
@@ -48,7 +49,8 @@ public class RpcTransaction {
 
   private RpcIn newRpcIn(TransactionInput in) {
     TransactionOutPoint outOrigin = in.getOutpoint();
-    RpcIn rpcIn = new RpcIn(outOrigin.getHash().toString(), outOrigin.getIndex());
+    RpcIn rpcIn =
+        new RpcIn(outOrigin.getHash().toString(), outOrigin.getIndex());
     return rpcIn;
   }
 
@@ -66,5 +68,9 @@ public class RpcTransaction {
 
   public List<RpcOut> getOuts() {
     return outs;
+  }
+
+  public Transaction getTx() {
+    return tx;
   }
 }

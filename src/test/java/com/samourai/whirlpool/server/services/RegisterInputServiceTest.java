@@ -54,14 +54,13 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
               ECKey.fromPrivate(
                   new BigInteger(
                       "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-          byte[] pubkey = ecKey.getPubKey();
           String signature = ecKey.signMessage(poolId);
 
           long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
           int confirmations = liquidity ? MIN_CONFIRMATIONS_LIQUIDITY : MIN_CONFIRMATIONS_MUSTMIX;
           txOutPoint =
               rpcClientService.createAndMockTxOutPoint(
-                  new SegwitAddress(pubkey, cryptoService.getNetworkParameters()),
+                  new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
                   inputBalance,
                   confirmations);
 
@@ -69,7 +68,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
           registerInputService.registerInput(
               poolId,
               username,
-              pubkey,
               signature,
               txOutPoint.getHash(),
               txOutPoint.getIndex(),
@@ -156,12 +154,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = "INVALID"; // INVALID
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);
@@ -171,14 +166,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(MixException.class);
     thrown.expectMessage("Pool not found");
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -189,12 +177,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
   public void registerInput_shouldQueueInputWhenMixStatusAlreadyStarted() throws Exception {
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
 
     // all mixStatus != CONFIRM_INPUT
     for (MixStatus mixStatus : MixStatus.values()) {
@@ -218,14 +203,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint =
             rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
         registerInputService.registerInput(
-            poolId,
-            username,
-            pubkey,
-            signature,
-            txOutPoint.getHash(),
-            txOutPoint.getIndex(),
-            false,
-            true);
+            poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
         testUtils.assertPool(1, 0, 0, mix.getPool()); // mustMix queued
@@ -240,12 +218,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = "INVALID";
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);
@@ -255,14 +230,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid signature");
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -275,12 +243,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = testUtils.createSegwitAddress(); // INVALID: not related to pubkey
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress = testUtils.generateSegwitAddress(); // INVALID: not related to pubkey
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);
@@ -290,14 +254,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid pubkey for UTXO");
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -311,12 +268,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);
@@ -324,26 +278,12 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // TEST
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // confirming
 
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // not confirming twice
   }
@@ -354,12 +294,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
@@ -369,14 +306,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid input balance");
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -389,12 +319,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMax(false) + 1; // BALANCE TOO HIGH
@@ -404,14 +331,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid input balance");
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -423,12 +343,9 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
-    SegwitAddress inputAddress = new SegwitAddress(pubkey, cryptoService.getNetworkParameters());
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);
@@ -437,14 +354,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);
 
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        liquidity,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
   }
 
   @Test

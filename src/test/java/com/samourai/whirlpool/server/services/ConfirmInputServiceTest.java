@@ -8,7 +8,6 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
-import java.math.BigInteger;
 import org.bitcoinj.core.ECKey;
 import org.bouncycastle.crypto.params.RSABlindingParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -41,27 +40,18 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
   private void registerInput(Mix mix, String username) throws Exception {
     String poolId = mix.getPool().getPoolId();
 
-    ECKey ecKey =
-        ECKey.fromPrivate(
-            new BigInteger(
-                "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-    byte[] pubkey = ecKey.getPubKey();
+    ECKey ecKey = new ECKey();
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(pubkey, cryptoService.getNetworkParameters()), inputBalance, 999);
+            new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
+            inputBalance,
+            999);
 
     registerInputService.registerInput(
-        poolId,
-        username,
-        pubkey,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
   }
 
   @Test
@@ -69,7 +59,7 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
     Mix mix = __getCurrentMix();
     String mixId = mix.getMixId();
     String username = "testusername";
-    String receiveAddress = testUtils.createSegwitAddress().getBech32AsString();
+    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
 
     // REGISTER_INPUT
     registerInput(mix, username);
