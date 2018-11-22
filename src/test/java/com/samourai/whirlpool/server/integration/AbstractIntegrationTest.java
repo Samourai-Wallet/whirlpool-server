@@ -12,10 +12,10 @@ import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.services.BlockchainDataService;
-import com.samourai.whirlpool.server.services.BlockchainService;
 import com.samourai.whirlpool.server.services.CacheService;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.DbService;
+import com.samourai.whirlpool.server.services.InputValidationService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.PoolService;
@@ -59,7 +59,7 @@ public abstract class AbstractIntegrationTest {
 
   @Autowired protected MixService mixService;
 
-  @Autowired protected BlockchainService blockchainService;
+  @Autowired protected InputValidationService inputValidationService;
 
   @Autowired protected BlockchainDataService blockchainDataService;
 

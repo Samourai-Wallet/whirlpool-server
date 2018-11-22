@@ -20,7 +20,7 @@ public class RegisterInputService {
 
   private PoolService poolService;
   private CryptoService cryptoService;
-  private BlockchainService blockchainService;
+  private InputValidationService inputValidationService;
   private BlameService blameService;
   private MessageSignUtilGeneric messageSignUtil;
 
@@ -28,12 +28,12 @@ public class RegisterInputService {
   public RegisterInputService(
       PoolService poolService,
       CryptoService cryptoService,
-      BlockchainService blockchainService,
+      InputValidationService inputValidationService,
       BlameService blameService,
       MessageSignUtilGeneric messageSignUtil) {
     this.poolService = poolService;
     this.cryptoService = cryptoService;
-    this.blockchainService = blockchainService;
+    this.inputValidationService = inputValidationService;
     this.blameService = blameService;
     this.messageSignUtil = messageSignUtil;
   }
@@ -63,7 +63,7 @@ public class RegisterInputService {
     try {
       // verify input is a valid mustMix or liquidity
       RpcOutWithTx rpcOutWithTx =
-          blockchainService.validateAndGetPremixInput(utxoHash, utxoIndex, liquidity, testMode);
+          inputValidationService.validate(utxoHash, utxoIndex, liquidity, testMode);
       RpcOut rpcOut = rpcOutWithTx.getRpcOut();
       RpcTransaction rpcTx = rpcOutWithTx.getTx();
 

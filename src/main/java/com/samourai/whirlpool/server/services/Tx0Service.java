@@ -12,7 +12,6 @@ import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig.SecretWalletConfig;
-import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;
 import java.nio.ByteBuffer;
 import java.util.Optional;
@@ -36,7 +35,6 @@ public class Tx0Service {
   private CryptoService cryptoService;
   private FormatsUtilGeneric formatsUtil;
   private WhirlpoolServerConfig whirlpoolServerConfig;
-  private DbService dbService;
   private Bech32UtilGeneric bech32Util;
   private HD_WalletFactoryJava hdWalletFactory;
   private BIP47Wallet secretWalletBip47;
@@ -47,19 +45,19 @@ public class Tx0Service {
       CryptoService cryptoService,
       FormatsUtilGeneric formatsUtil,
       WhirlpoolServerConfig whirlpoolServerConfig,
-      DbService dbService,
       Bech32UtilGeneric bech32UtilGeneric,
       HD_WalletFactoryJava hdWalletFactory,
-      TxUtil txUtil)
+      TxUtil txUtil,
+      BlockchainDataService blockchainDataService)
       throws Exception {
     this.cryptoService = cryptoService;
     this.formatsUtil = formatsUtil;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
-    this.dbService = dbService;
     this.bech32Util = bech32UtilGeneric;
     this.hdWalletFactory = hdWalletFactory;
     this.secretWalletBip47 = computeSecretWallet();
     this.txUtil = txUtil;
+    this.blockchainDataService = blockchainDataService;
   }
 
   private BIP47Wallet computeSecretWallet() throws Exception {
@@ -72,45 +70,6 @@ public class Tx0Service {
             cryptoService.getNetworkParameters());
     return hdWalletFactory.getBIP47(
         hdw.getSeedHex(), hdw.getPassphrase(), cryptoService.getNetworkParameters());
-  }
-
-  protected boolean checkInput(RpcOutWithTx rpcOutWithTx) throws IllegalInputException {
-    RpcOut rpcOut = rpcOutWithTx.getRpcOut();
-    RpcTransaction tx = rpcOutWithTx.getTx();
-    if (!rpcOut.getHash().equals(tx.getTxid())) {
-      throw new IllegalInputException("Unexpected usage of checkInput: rpcOut.hash != tx.hash");
-    }
-
-    long inputValue = rpcOutWithTx.getRpcOut().getValue();
-    boolean liquidity = doCheckInput(tx, inputValue);
-    return liquidity;
-  }
-
-  protected boolean doCheckInput(RpcTransaction tx, long inputValue) throws IllegalInputException {
-    // is it a tx0?
-    Integer x = findSamouraiFeesIndice(tx);
-    if (x != null) {
-      // this is a tx0 => mustMix
-
-      // check fees paid
-      if (!isTx0FeesPaid(tx, x)) {
-        throw new IllegalInputException(
-            "Input rejected (invalid fee for tx0=" + tx.getTxid() + ", x=" + x + ")");
-      }
-      return false; // mustMix
-    } else {
-      // this is not a valid tx0 => liquidity coming from a previous whirlpool tx
-
-      boolean isWhirlpoolTx = isWhirlpoolTx(tx, inputValue);
-      if (!isWhirlpoolTx) {
-        throw new IllegalInputException("Input rejected (not a premix or whirlpool input)");
-      }
-      return true; // liquidity
-    }
-  }
-
-  protected boolean isWhirlpoolTx(RpcTransaction tx, long denomination) {
-    return dbService.hasMixTxid(tx.getTxid(), denomination);
   }
 
   protected boolean isTx0FeesPaid(RpcTransaction tx0, int x) {
