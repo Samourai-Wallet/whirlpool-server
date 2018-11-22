@@ -20,7 +20,6 @@ import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
 import java.util.Optional;
 import org.aspectj.util.FileUtil;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.crypto.DeterministicKey;
 import org.bitcoinj.wallet.KeyChain;
 import org.bitcoinj.wallet.KeyChainGroup;

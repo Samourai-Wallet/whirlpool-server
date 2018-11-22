@@ -93,13 +93,16 @@ public class CryptoService {
     return networkParameters;
   }
 
-  public byte[] xorUnmask(byte[] dataMasked, BIP47Wallet secretWalletBip47, TransactionOutPoint input0OutPoint, byte[] input0Pubkey) {
+  public byte[] xorUnmask(
+      byte[] dataMasked,
+      BIP47Wallet secretWalletBip47,
+      TransactionOutPoint input0OutPoint,
+      byte[] input0Pubkey) {
     HD_Address notifAddressServer = secretWalletBip47.getAccount(0).getNotificationAddress();
     try {
       ISecretPoint secretPointUnmask =
           new SecretPointJava(notifAddressServer.getECKey().getPrivKeyBytes(), input0Pubkey);
-      byte[] dataUnmasked =
-          PaymentCode.xorMask(dataMasked, secretPointUnmask, input0OutPoint);
+      byte[] dataUnmasked = PaymentCode.xorMask(dataMasked, secretPointUnmask, input0OutPoint);
       return dataUnmasked;
     } catch (Exception e) {
       log.error("", e);
@@ -107,8 +110,13 @@ public class CryptoService {
     }
   }
 
-  public Integer xorUnmaskInteger(byte[] dataMasked, BIP47Wallet secretWalletBip47, TransactionOutPoint input0OutPoint, byte[] input0Pubkey) {
-    byte[] dataUnmaskedBytes = xorUnmask(dataMasked, secretWalletBip47, input0OutPoint, input0Pubkey);
+  public Integer xorUnmaskInteger(
+      byte[] dataMasked,
+      BIP47Wallet secretWalletBip47,
+      TransactionOutPoint input0OutPoint,
+      byte[] input0Pubkey) {
+    byte[] dataUnmaskedBytes =
+        xorUnmask(dataMasked, secretWalletBip47, input0OutPoint, input0Pubkey);
     if (dataUnmaskedBytes == null) {
       return null;
     }

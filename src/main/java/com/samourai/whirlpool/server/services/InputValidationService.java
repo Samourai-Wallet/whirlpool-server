@@ -29,8 +29,7 @@ public class InputValidationService {
     this.dbService = dbService;
   }
 
-  public RpcOutWithTx validate(
-      String utxoHash, long utxoIndex, boolean liquidity, boolean testMode)
+  public RpcOutWithTx validate(String utxoHash, long utxoIndex, boolean liquidity, boolean testMode)
       throws IllegalInputException {
     RpcOutWithTx rpcOutWithTx =
         blockchainDataService
@@ -94,6 +93,4 @@ public class InputValidationService {
   protected boolean isWhirlpoolTx(RpcTransaction tx, long denomination) {
     return dbService.hasMixTxid(tx.getTxid(), denomination);
   }
-
-
 }

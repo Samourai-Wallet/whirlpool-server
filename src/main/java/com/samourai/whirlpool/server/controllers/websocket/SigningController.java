@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SigningRequest;
 import com.samourai.whirlpool.server.services.SigningService;
@@ -28,7 +29,7 @@ public class SigningController extends AbstractWebSocketController {
     this.signingService = signingService;
   }
 
-  @MessageMapping(WhirlpoolProtocol.ENDPOINT_SIGNING)
+  @MessageMapping(WhirlpoolEndpoint.WS_SIGNING)
   public void signing(
       @Payload SigningRequest payload, Principal principal, StompHeaderAccessor headers)
       throws Exception {

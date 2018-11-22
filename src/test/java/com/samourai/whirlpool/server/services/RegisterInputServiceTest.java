@@ -244,7 +244,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String username = "user1";
 
     ECKey ecKey = new ECKey();
-    SegwitAddress inputAddress = testUtils.generateSegwitAddress(); // INVALID: not related to pubkey
+    SegwitAddress inputAddress =
+        testUtils.generateSegwitAddress(); // INVALID: not related to pubkey
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computeInputBalanceMin(false);

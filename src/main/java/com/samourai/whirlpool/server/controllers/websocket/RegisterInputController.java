@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputRequest;
 import com.samourai.whirlpool.server.services.RegisterInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
@@ -29,7 +29,7 @@ public class RegisterInputController extends AbstractWebSocketController {
     this.registerInputService = registerInputService;
   }
 
-  @MessageMapping(WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT)
+  @MessageMapping(WhirlpoolEndpoint.WS_REGISTER_INPUT)
   public void registerInput(
       @Payload RegisterInputRequest payload, Principal principal, StompHeaderAccessor headers)
       throws Exception {

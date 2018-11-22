@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.websocket.messages.RevealOutputRequest;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.WebSocketService;
@@ -28,7 +28,7 @@ public class RevealOutputController extends AbstractWebSocketController {
     this.mixService = mixService;
   }
 
-  @MessageMapping(WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT)
+  @MessageMapping(WhirlpoolEndpoint.WS_REVEAL_OUTPUT)
   public void revealOutput(
       @Payload RevealOutputRequest payload, Principal principal, StompHeaderAccessor headers)
       throws Exception {

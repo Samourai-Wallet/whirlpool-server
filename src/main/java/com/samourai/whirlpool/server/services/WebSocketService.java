@@ -51,7 +51,7 @@ public class WebSocketService {
               () ->
                   messagingTemplate.convertAndSendToUser(
                       username,
-                      whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY,
+                      whirlpoolProtocol.WS_PREFIX_USER_REPLY,
                       payload,
                       computeHeaders(payload)));
         });

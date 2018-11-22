@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.config.security;
 
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
 import com.samourai.whirlpool.server.controllers.web.ConfigWebController;
 import com.samourai.whirlpool.server.controllers.web.HistoryWebController;
@@ -21,7 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private static final String[] REST_MIX_ENDPOINTS =
-      new String[] {WhirlpoolProtocol.ENDPOINT_POOLS, WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT};
+      new String[] {WhirlpoolEndpoint.REST_POOLS, WhirlpoolEndpoint.REST_REGISTER_OUTPUT};
   private static final String[] STATICS =
       new String[] {"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
 

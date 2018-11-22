@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
 import com.samourai.whirlpool.protocol.rest.RestErrorResponse;
@@ -12,7 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class RegisterOutputController extends AbstractRestController {
@@ -29,12 +34,12 @@ public class RegisterOutputController extends AbstractRestController {
     this.dbService = dbService;
   }
 
-  @RequestMapping(value = WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT, method = RequestMethod.POST)
+  @RequestMapping(value = WhirlpoolEndpoint.REST_REGISTER_OUTPUT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
     if (log.isDebugEnabled()) {
       log.debug(
           "[controller] "
-              + WhirlpoolProtocol.ENDPOINT_REGISTER_OUTPUT
+              + WhirlpoolEndpoint.REST_REGISTER_OUTPUT
               + ": payload="
               + Utils.toJsonString(payload));
     }

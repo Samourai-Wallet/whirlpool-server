@@ -49,8 +49,7 @@ public class RpcTransaction {
 
   private RpcIn newRpcIn(TransactionInput in) {
     TransactionOutPoint outOrigin = in.getOutpoint();
-    RpcIn rpcIn =
-        new RpcIn(outOrigin.getHash().toString(), outOrigin.getIndex());
+    RpcIn rpcIn = new RpcIn(outOrigin.getHash().toString(), outOrigin.getIndex());
     return rpcIn;
   }
 

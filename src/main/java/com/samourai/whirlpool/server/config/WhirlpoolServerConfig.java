@@ -458,7 +458,7 @@ public class WhirlpoolServerConfig {
                 samouraiFees.xpub.length() - 3, samouraiFees.xpub.length()));
 
     int nbSeedWords = secretWallet.getWords().split(" ").length;
-    configInfo.put("secretWallet", "words=***("+nbSeedWords+" words), passphrase=***");
+    configInfo.put("secretWallet", "words=***(" + nbSeedWords + " words), passphrase=***");
 
     configInfo.put(
         "registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));

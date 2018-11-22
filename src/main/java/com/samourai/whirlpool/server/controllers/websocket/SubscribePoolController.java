@@ -32,8 +32,7 @@ public class SubscribePoolController extends AbstractWebSocketController {
   }
 
   @SubscribeMapping(
-      WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE
-          + WhirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY)
+      WhirlpoolProtocol.WS_PREFIX_USER_PRIVATE + WhirlpoolProtocol.WS_PREFIX_USER_REPLY)
   public void subscribePool(Principal principal, StompHeaderAccessor headers) throws Exception {
     // don't validate headers here, so user is able to receive protocol version mismatch errors
 

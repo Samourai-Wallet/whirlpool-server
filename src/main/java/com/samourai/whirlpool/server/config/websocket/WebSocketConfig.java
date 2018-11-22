@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.config.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.services.WebSocketSessionService;
 import java.lang.invoke.MethodHandles;
@@ -19,7 +20,11 @@ import org.springframework.messaging.handler.invocation.HandlerMethodReturnValue
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurationSupport;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
@@ -33,11 +38,11 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   public static String[] WEBSOCKET_ENDPOINTS =
       new String[] {
-        WhirlpoolProtocol.ENDPOINT_CONNECT,
-        WhirlpoolProtocol.ENDPOINT_REGISTER_INPUT,
-        WhirlpoolProtocol.ENDPOINT_CONFIRM_INPUT,
-        WhirlpoolProtocol.ENDPOINT_REVEAL_OUTPUT,
-        WhirlpoolProtocol.ENDPOINT_SIGNING
+        WhirlpoolEndpoint.WS_CONNECT,
+        WhirlpoolEndpoint.WS_REGISTER_INPUT,
+        WhirlpoolEndpoint.WS_CONFIRM_INPUT,
+        WhirlpoolEndpoint.WS_REVEAL_OUTPUT,
+        WhirlpoolEndpoint.WS_SIGNING
       };
 
   @Autowired private ObjectMapper objectMapper;
@@ -83,8 +88,8 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker(whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_REPLY);
-    registry.setUserDestinationPrefix(whirlpoolProtocol.SOCKET_SUBSCRIBE_USER_PRIVATE);
+    registry.enableSimpleBroker(whirlpoolProtocol.WS_PREFIX_USER_REPLY);
+    registry.setUserDestinationPrefix(whirlpoolProtocol.WS_PREFIX_USER_PRIVATE);
   }
 
   @Override

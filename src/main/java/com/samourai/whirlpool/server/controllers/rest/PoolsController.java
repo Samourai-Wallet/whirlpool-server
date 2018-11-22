@@ -1,6 +1,6 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.rest.PoolInfo;
 import com.samourai.whirlpool.protocol.rest.PoolsResponse;
 import com.samourai.whirlpool.protocol.rest.RestErrorResponse;
@@ -28,7 +28,7 @@ public class PoolsController extends AbstractRestController {
     this.poolService = poolService;
   }
 
-  @RequestMapping(value = WhirlpoolProtocol.ENDPOINT_POOLS, method = RequestMethod.GET)
+  @RequestMapping(value = WhirlpoolEndpoint.REST_POOLS, method = RequestMethod.GET)
   public PoolsResponse pools() {
     PoolInfo[] pools =
         poolService

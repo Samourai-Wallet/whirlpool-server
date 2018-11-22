@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.ConfirmInputRequest;
 import com.samourai.whirlpool.server.services.ConfirmInputService;
@@ -29,7 +30,7 @@ public class ConfirmInputController extends AbstractWebSocketController {
     this.confirmInputService = confirmInputService;
   }
 
-  @MessageMapping(WhirlpoolProtocol.ENDPOINT_CONFIRM_INPUT)
+  @MessageMapping(WhirlpoolEndpoint.WS_CONFIRM_INPUT)
   public void confirmInput(
       @Payload ConfirmInputRequest payload, Principal principal, StompHeaderAccessor headers)
       throws Exception {

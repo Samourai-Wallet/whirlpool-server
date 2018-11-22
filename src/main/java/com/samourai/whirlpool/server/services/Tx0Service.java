@@ -117,23 +117,25 @@ public class Tx0Service {
     Callback<byte[]> fetchInputOutpointScriptBytes =
         computeCallbackFetchOutpointScriptBytes(input0OutPoint); // needed for P2PK
     byte[] input0Pubkey = txUtil.findInputPubkey(tx, 0, fetchInputOutpointScriptBytes);
-    Integer dataUnmasked = cryptoService.xorUnmaskInteger(opReturnMaskedValue.array(), secretWalletBip47, input0OutPoint, input0Pubkey);
+    Integer dataUnmasked =
+        cryptoService.xorUnmaskInteger(
+            opReturnMaskedValue.array(), secretWalletBip47, input0OutPoint, input0Pubkey);
     return dataUnmasked;
   }
 
-  private Callback<byte[]> computeCallbackFetchOutpointScriptBytes(
-      TransactionOutPoint outPoint) {
-    Callback<byte[]> fetchInputOutpointScriptBytes = () -> {
-      // fetch output script bytes for outpoint
-      String outpointHash = outPoint.getHash().toString();
-      Optional<RpcOutWithTx> outpointRpcOut =
-          blockchainDataService.getRpcOutWithTx(outpointHash, outPoint.getIndex());
-      if (!outpointRpcOut.isPresent()) {
-        log.error("Tx not found for outpoint: " + outpointHash);
-        return null;
-      }
-      return outpointRpcOut.get().getRpcOut().getScriptPubKey();
-    };
+  private Callback<byte[]> computeCallbackFetchOutpointScriptBytes(TransactionOutPoint outPoint) {
+    Callback<byte[]> fetchInputOutpointScriptBytes =
+        () -> {
+          // fetch output script bytes for outpoint
+          String outpointHash = outPoint.getHash().toString();
+          Optional<RpcOutWithTx> outpointRpcOut =
+              blockchainDataService.getRpcOutWithTx(outpointHash, outPoint.getIndex());
+          if (!outpointRpcOut.isPresent()) {
+            log.error("Tx not found for outpoint: " + outpointHash);
+            return null;
+          }
+          return outpointRpcOut.get().getRpcOut().getScriptPubKey();
+        };
     return fetchInputOutpointScriptBytes;
   }
 
