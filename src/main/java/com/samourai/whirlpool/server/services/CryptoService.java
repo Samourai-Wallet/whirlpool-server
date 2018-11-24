@@ -5,9 +5,9 @@ import com.samourai.wallet.bip47.rpc.PaymentCode;
 import com.samourai.wallet.bip47.rpc.java.SecretPointJava;
 import com.samourai.wallet.bip47.rpc.secretPoint.ISecretPoint;
 import com.samourai.wallet.hd.HD_Address;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -120,7 +120,7 @@ public class CryptoService {
     if (dataUnmaskedBytes == null) {
       return null;
     }
-    int dataUnmasked = ByteBuffer.wrap(dataUnmaskedBytes).getInt();
+    Integer dataUnmasked = WhirlpoolProtocol.getWhirlpoolFee().decode(dataUnmaskedBytes);
     return dataUnmasked;
   }
 }
