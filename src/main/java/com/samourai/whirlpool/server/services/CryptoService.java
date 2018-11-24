@@ -1,11 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.wallet.bip47.rpc.BIP47Wallet;
-import com.samourai.wallet.bip47.rpc.PaymentCode;
-import com.samourai.wallet.bip47.rpc.java.SecretPointJava;
-import com.samourai.wallet.bip47.rpc.secretPoint.ISecretPoint;
-import com.samourai.wallet.hd.HD_Address;
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyFactory;
@@ -15,7 +9,6 @@ import java.security.spec.RSAPublicKeySpec;
 import org.bitcoinj.core.Context;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.TransactionOutPoint;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.engines.RSAEngine;
@@ -91,36 +84,5 @@ public class CryptoService {
 
   public NetworkParameters getNetworkParameters() {
     return networkParameters;
-  }
-
-  public byte[] xorUnmask(
-      byte[] dataMasked,
-      BIP47Wallet secretWalletBip47,
-      TransactionOutPoint input0OutPoint,
-      byte[] input0Pubkey) {
-    HD_Address notifAddressServer = secretWalletBip47.getAccount(0).getNotificationAddress();
-    try {
-      ISecretPoint secretPointUnmask =
-          new SecretPointJava(notifAddressServer.getECKey().getPrivKeyBytes(), input0Pubkey);
-      byte[] dataUnmasked = PaymentCode.xorMask(dataMasked, secretPointUnmask, input0OutPoint);
-      return dataUnmasked;
-    } catch (Exception e) {
-      log.error("", e);
-      return null;
-    }
-  }
-
-  public Integer xorUnmaskInteger(
-      byte[] dataMasked,
-      BIP47Wallet secretWalletBip47,
-      TransactionOutPoint input0OutPoint,
-      byte[] input0Pubkey) {
-    byte[] dataUnmaskedBytes =
-        xorUnmask(dataMasked, secretWalletBip47, input0OutPoint, input0Pubkey);
-    if (dataUnmaskedBytes == null) {
-      return null;
-    }
-    Integer dataUnmasked = WhirlpoolProtocol.getWhirlpoolFee().decode(dataUnmaskedBytes);
-    return dataUnmasked;
   }
 }

@@ -81,7 +81,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
             .getRpcTransaction(utxoHash)
             .orElseThrow(() -> new NoSuchElementException());
 
-    return inputValidationService.isWhirlpoolTx(rpcTransaction, denomination);
+    return inputValidationService.isWhirlpoolTx(rpcTransaction.getTx(), denomination);
   }
 
   @Test

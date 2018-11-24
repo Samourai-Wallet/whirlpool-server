@@ -5,6 +5,7 @@ import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.wallet.util.CryptoTestUtil;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.services.CryptoService;
@@ -17,12 +18,8 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.security.SecureRandom;
 import java.util.Optional;
 import org.aspectj.util.FileUtil;
-import org.bitcoinj.crypto.DeterministicKey;
-import org.bitcoinj.wallet.KeyChain;
-import org.bitcoinj.wallet.KeyChainGroup;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
@@ -43,21 +40,21 @@ public class TestUtils {
   private CryptoService cryptoService;
   protected Bech32UtilGeneric bech32Util;
   protected HD_WalletFactoryJava hdWalletFactory;
+  private CryptoTestUtil cryptoTestUtil;
 
   public TestUtils(
       CryptoService cryptoService,
       Bech32UtilGeneric bech32Util,
-      HD_WalletFactoryJava hdWalletFactory) {
+      HD_WalletFactoryJava hdWalletFactory,
+      CryptoTestUtil cryptoTestUtil) {
     this.cryptoService = cryptoService;
     this.bech32Util = bech32Util;
     this.hdWalletFactory = hdWalletFactory;
+    this.cryptoTestUtil = cryptoTestUtil;
   }
 
   public SegwitAddress generateSegwitAddress() {
-    KeyChainGroup kcg = new KeyChainGroup(cryptoService.getNetworkParameters());
-    DeterministicKey utxoKey = kcg.freshKey(KeyChain.KeyPurpose.RECEIVE_FUNDS);
-    SegwitAddress p2shp2wpkh = new SegwitAddress(utxoKey, cryptoService.getNetworkParameters());
-    return p2shp2wpkh;
+    return cryptoTestUtil.generateSegwitAddress(cryptoService.getNetworkParameters());
   }
 
   public BIP47WalletAndHDWallet generateWallet(byte[] seed, String passphrase) throws Exception {
@@ -72,14 +69,7 @@ public class TestUtils {
   }
 
   public BIP47WalletAndHDWallet generateWallet() throws Exception {
-    int nbWords = 12;
-    // len == 16 (12 words), len == 24 (18 words), len == 32 (24 words)
-    int len = (nbWords / 3) * 4;
-
-    SecureRandom random = new SecureRandom();
-    byte seed[] = new byte[len];
-    random.nextBytes(seed);
-
+    byte seed[] = cryptoTestUtil.generateSeed();
     return generateWallet(seed, "test");
   }
 

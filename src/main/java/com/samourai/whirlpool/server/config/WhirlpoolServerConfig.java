@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 public class WhirlpoolServerConfig {
 
   private SamouraiFeeConfig samouraiFees;
-  private SecretWalletConfig secretWallet;
   private boolean testMode;
   private int port;
   private boolean testnet;
@@ -34,14 +33,6 @@ public class WhirlpoolServerConfig {
 
   public void setSamouraiFees(SamouraiFeeConfig samouraiFees) {
     this.samouraiFees = samouraiFees;
-  }
-
-  public SecretWalletConfig getSecretWallet() {
-    return secretWallet;
-  }
-
-  public void setSecretWallet(SecretWalletConfig secretWallet) {
-    this.secretWallet = secretWallet;
   }
 
   public boolean isTestMode() {
@@ -400,6 +391,7 @@ public class WhirlpoolServerConfig {
   public static class SamouraiFeeConfig {
     @NotEmpty private String xpub;
     private long amount;
+    private SecretWalletConfig secretWallet;
 
     public String getXpub() {
       return xpub;
@@ -415,6 +407,14 @@ public class WhirlpoolServerConfig {
 
     public void setAmount(long amount) {
       this.amount = amount;
+    }
+
+    public SecretWalletConfig getSecretWallet() {
+      return secretWallet;
+    }
+
+    public void setSecretWallet(SecretWalletConfig secretWallet) {
+      this.secretWallet = secretWallet;
     }
   }
 
@@ -448,17 +448,20 @@ public class WhirlpoolServerConfig {
         rpcClient.getHost() + ":" + rpcClient.getPort() + "," + (testnet ? "testnet" : "mainnet"));
     configInfo.put("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
 
+    String feesXpub =
+        samouraiFees.xpub.substring(0, 3)
+            + "..."
+            + samouraiFees.xpub.substring(
+                samouraiFees.xpub.length() - 3, samouraiFees.xpub.length());
+    int nbSeedWords = samouraiFees.getSecretWallet().getWords().split(" ").length;
     configInfo.put(
         "samouraiFees",
         String.valueOf(samouraiFees.amount)
             + ", xpub="
-            + samouraiFees.xpub.substring(0, 3)
-            + "..."
-            + samouraiFees.xpub.substring(
-                samouraiFees.xpub.length() - 3, samouraiFees.xpub.length()));
-
-    int nbSeedWords = secretWallet.getWords().split(" ").length;
-    configInfo.put("secretWallet", "words=***(" + nbSeedWords + " words), passphrase=***");
+            + feesXpub
+            + ", secretWallet=("
+            + nbSeedWords
+            + " seed words)");
 
     configInfo.put(
         "registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));

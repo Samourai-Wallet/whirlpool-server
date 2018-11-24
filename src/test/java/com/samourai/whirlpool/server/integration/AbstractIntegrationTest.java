@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.integration;
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.wallet.util.CryptoTestUtil;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
@@ -15,11 +16,11 @@ import com.samourai.whirlpool.server.services.BlockchainDataService;
 import com.samourai.whirlpool.server.services.CacheService;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.DbService;
+import com.samourai.whirlpool.server.services.FeeValidationService;
 import com.samourai.whirlpool.server.services.InputValidationService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.PoolService;
-import com.samourai.whirlpool.server.services.Tx0Service;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import com.samourai.whirlpool.server.utils.TestUtils;
@@ -79,9 +80,13 @@ public abstract class AbstractIntegrationTest {
 
   @Autowired protected TaskExecutor taskExecutor;
 
-  @Autowired protected Tx0Service tx0Service;
+  @Autowired protected FeeValidationService feeValidationService;
 
   @Autowired protected CacheService cacheService;
+
+  @Autowired protected CryptoTestUtil cryptoTestUtil;
+
+  @Autowired protected HD_WalletFactoryJava hdWalletFactory;
 
   protected MessageSignUtilGeneric messageSignUtil = MessageSignUtilGeneric.getInstance();
 

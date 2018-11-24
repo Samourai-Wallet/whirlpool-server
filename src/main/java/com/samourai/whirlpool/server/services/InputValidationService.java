@@ -6,6 +6,7 @@ import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;
+import org.bitcoinj.core.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,17 +15,17 @@ import org.springframework.stereotype.Service;
 public class InputValidationService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private BlockchainDataService blockchainDataService;
-  private Tx0Service tx0Service;
+  private FeeValidationService feeValidationService;
   private WhirlpoolServerConfig whirlpoolServerConfig;
   private DbService dbService;
 
   public InputValidationService(
       BlockchainDataService blockchainDataService,
-      Tx0Service tx0Service,
+      FeeValidationService feeValidationService,
       WhirlpoolServerConfig whirlpoolServerConfig,
       DbService dbService) {
     this.blockchainDataService = blockchainDataService;
-    this.tx0Service = tx0Service;
+    this.feeValidationService = feeValidationService;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.dbService = dbService;
   }
@@ -63,20 +64,20 @@ public class InputValidationService {
     }
 
     long inputValue = rpcOutWithTx.getRpcOut().getValue();
-    boolean liquidity = doCheckInput(tx, inputValue);
+    boolean liquidity = doCheckInput(tx.getTx(), inputValue);
     return liquidity;
   }
 
-  protected boolean doCheckInput(RpcTransaction tx, long inputValue) throws IllegalInputException {
+  protected boolean doCheckInput(Transaction tx, long inputValue) throws IllegalInputException {
     // is it a tx0?
-    Integer x = tx0Service.findSamouraiFeesIndice(tx);
+    Integer x = feeValidationService.findFeeIndice(tx);
     if (x != null) {
       // this is a tx0 => mustMix
 
       // check fees paid
-      if (!tx0Service.isTx0FeesPaid(tx, x)) {
+      if (!feeValidationService.isTx0FeePaid(tx, x)) {
         throw new IllegalInputException(
-            "Input rejected (invalid fee for tx0=" + tx.getTxid() + ", x=" + x + ")");
+            "Input rejected (invalid fee for tx0=" + tx.getHashAsString() + ", x=" + x + ")");
       }
       return false; // mustMix
     } else {
@@ -90,7 +91,7 @@ public class InputValidationService {
     }
   }
 
-  protected boolean isWhirlpoolTx(RpcTransaction tx, long denomination) {
-    return dbService.hasMixTxid(tx.getTxid(), denomination);
+  protected boolean isWhirlpoolTx(Transaction tx, long denomination) {
+    return dbService.hasMixTxid(tx.getHashAsString(), denomination);
   }
 }

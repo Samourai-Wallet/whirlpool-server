@@ -30,7 +30,7 @@ public class MockRpcApplication extends AbstractJsonRpcClientTest {
       "5369dfb71b36ed2b91ca43f388b869e617558165e4f8306b80857d88bdd624f2",
       "3bb546df988d8a577c2b2f216a18b7e337ebaf759187ae88e0eee01829f04eb1",
       "96cebec97115f59339a9053b6084aab5869adeefdbdbe974b74bfdbf3b8eaac3",
-      // Tx0ServiceTest
+      // FeeValidationServiceTest
       "781bc448f381e160d014f5515daf8a175bb689112c7755c70c6bbdbb32af56cc",
       "c1da465e30f3a7d19d3f3d254f387782247ea48cf22b832c474c37d17394cae6",
       "1d8a370ded61c81c925151ba7112d61d1535f7035756c43d2d5a77903afddd40",
