@@ -2,8 +2,6 @@ package com.samourai.whirlpool.server.beans;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-import com.samourai.whirlpool.server.beans.rpc.RpcIn;
-import com.samourai.whirlpool.server.beans.rpc.RpcOut;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.services.rpc.RpcRawTransactionResponse;
@@ -11,8 +9,6 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.Utils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,13 +40,13 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
 
     expectedJson.put(
         "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187",
-        "{\"txid\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"confirmations\":1234,\"ins\":[{\"originHash\":\"0bcde72d31c8bf0fb7752fafb22462d94bbc5d6f86e174f0a05005258518a6d9\",\"originIndex\":0}],\"outs\":[{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":0,\"value\":0,\"scriptPubKey\":\"agQAAAAB\",\"toAddress\":null},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":1,\"value\":975000,\"scriptPubKey\":\"ABQR677HxIt9QsGk9tgI8qyBvoUDtw==\",\"toAddress\":\"tb1qz84ma37y3d759sdy7mvq3u4vsxlg2qahw3lm23\"},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":2,\"value\":10001000,\"scriptPubKey\":\"ABQqZPjqF+v2xVAb0PlvfPQxFOJoAQ==\",\"toAddress\":\"tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0\"},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":3,\"value\":10001000,\"scriptPubKey\":\"ABSXR9erx2DgM6GdR30gkVgvdrQwiw==\",\"toAddress\":\"tb1qjara0278vrsr8gvaga7jpy2c9amtgvytr44xym\"},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":4,\"value\":10001000,\"scriptPubKey\":\"ABScH/1ympXuA06O/FXhAibsF66HqA==\",\"toAddress\":\"tb1qns0l6u56jhhqxn5wl327zq3xast6apagm6xudc\"},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":5,\"value\":10001000,\"scriptPubKey\":\"ABTqbU6CRB0+mbIRl5ZLXoFK0uZDDA==\",\"toAddress\":\"tb1qafk5aqjyr5lfnvs3j7tykh5pftfwvscvar3307\"},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":6,\"value\":10001000,\"scriptPubKey\":\"ABT520jaTeo9UwToxlFs0inyCgGImQ==\",\"toAddress\":\"tb1ql8d53kjdag74xp8gcegke53f7g9qrzyem8ca62\"},{\"hash\":\"cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187\",\"index\":7,\"value\":24019100,\"scriptPubKey\":\"ABTQinxwdXKs6PzsvGIQ4xwXe9+APg==\",\"toAddress\":\"tb1q6z98cur4w2kw3l8vh33ppccuzaaalqp7s4plwy\"}]}");
+        "{\"confirmations\":1234}");
     expectedJson.put(
         "7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16",
-        "{\"txid\":\"7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16\",\"confirmations\":1234,\"ins\":[{\"originHash\":\"419b92f7de21733f531f0623c0f9b7ceaab396f894881bf4b6d193b27ffefc3d\",\"originIndex\":2},{\"originHash\":\"7c73ef7e21cd4c8d87c944f2d49f9110105d7bf1bd391b3ec2e345d290dc402b\",\"originIndex\":0},{\"originHash\":\"84da039c7509689e84c9b06033427d71936275729424f759d6da0a7ae63254c4\",\"originIndex\":2}],\"outs\":[{\"hash\":\"7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16\",\"index\":0,\"value\":48318441,\"scriptPubKey\":\"qRSCSUCKYp5w5CNJrd0+NoiKDqFXgoc=\",\"toAddress\":\"2N587asHhA9WSE8L7aQXAnYkkdc1cDQdGHk\"},{\"hash\":\"7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16\",\"index\":1,\"value\":99994570,\"scriptPubKey\":\"dqkUPP9divJk3LvIS66HognT784xc0OIrA==\",\"toAddress\":\"mm5UkfQZgCmfZznNQ3HEnLdyDZ3xZRFCp6\"},{\"hash\":\"7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16\",\"index\":2,\"value\":100010000,\"scriptPubKey\":\"ABSTBFSVvGnA1qPJ5ShciWnyPHnPlQ==\",\"toAddress\":\"tb1qjvz9f9dud8qddg7fu559eztf7g78nnu4c3yclu\"},{\"hash\":\"7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16\",\"index\":3,\"value\":100010000,\"scriptPubKey\":\"ABTXmMqcfnZPUYaIfws4GlC3Eixmiw==\",\"toAddress\":\"tb1q67vv48r7we84rp5g0u9nsxjskufzce5t2955cp\"}]}");
+        "{\"confirmations\":1234}");
     expectedJson.put(
         "96cebec97115f59339a9053b6084aab5869adeefdbdbe974b74bfdbf3b8eaac3",
-        "{\"txid\":\"96cebec97115f59339a9053b6084aab5869adeefdbdbe974b74bfdbf3b8eaac3\",\"confirmations\":1234,\"ins\":[{\"originHash\":\"acbd0c2b7ee85c128e1e56755de34ea1c822d16badc2d740b7824e8845a2c475\",\"originIndex\":1}],\"outs\":[{\"hash\":\"96cebec97115f59339a9053b6084aab5869adeefdbdbe974b74bfdbf3b8eaac3\",\"index\":0,\"value\":119471485,\"scriptPubKey\":\"dqkU+Q/bC2B6RXFe2DJqIYD00ziyQtWIrA==\",\"toAddress\":\"n4DsYVKicuP2GrqWetrdFmYKe1gYTN8jwW\"},{\"hash\":\"96cebec97115f59339a9053b6084aab5869adeefdbdbe974b74bfdbf3b8eaac3\",\"index\":1,\"value\":634252905,\"scriptPubKey\":\"dqkUhowRr6Do2+FZs+rMCP8Bf7qdORmIrA==\",\"toAddress\":\"msnNdvtqKLaYVxNyYjNQxVDqE9QVZCsbfm\"}]}");
+        "{\"confirmations\":1234}");
   }
 
   @Test
@@ -64,10 +60,10 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
 
       // TEST
       RpcTransaction rpcTransaction =
-          new RpcTransaction(rawTxResponse, cryptoService.getNetworkParameters(), bech32Util);
+          new RpcTransaction(rawTxResponse, cryptoService.getNetworkParameters());
 
       // VERIFY
-      Assert.assertEquals(txid, rpcTransaction.getTxid());
+      Assert.assertEquals(txid, rpcTransaction.getTx().getHashAsString());
       Assert.assertEquals(CONFIRMATIONS, rpcTransaction.getConfirmations());
 
       // verify RpcTransaction structure
@@ -98,33 +94,9 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
       // verify structure
       RpcRawTransactionResponse rawTxResponse = new RpcRawTransactionResponse(txhex, CONFIRMATIONS);
       RpcTransaction rpcTransaction =
-          new RpcTransaction(rawTxResponse, cryptoService.getNetworkParameters(), bech32Util);
+          new RpcTransaction(rawTxResponse, cryptoService.getNetworkParameters());
 
-      Assert.assertEquals(tx.getHashAsString(), rpcTransaction.getTxid());
-
-      Assert.assertEquals(tx.getInputs().size(), rpcTransaction.getIns().size());
-      int inputIndex = 0;
-      for (RpcIn rpcIn : rpcTransaction.getIns()) {
-        TransactionInput txIn = tx.getInput(inputIndex);
-        Assert.assertEquals(rpcIn.getOriginIndex(), txIn.getOutpoint().getIndex());
-        Assert.assertEquals(rpcIn.getOriginHash(), txIn.getOutpoint().getHash().toString());
-        inputIndex++;
-      }
-
-      Assert.assertEquals(tx.getOutputs().size(), rpcTransaction.getOuts().size());
-      for (RpcOut rpcOut : rpcTransaction.getOuts()) {
-        TransactionOutput txOut = tx.getOutput(rpcOut.getIndex());
-        Assert.assertEquals(rpcOut.getIndex(), txOut.getIndex());
-        Assert.assertEquals(rpcOut.getHash(), txid);
-        Assert.assertEquals(rpcOut.getValue(), txOut.getValue().getValue());
-
-        String toAddress =
-            com.samourai.whirlpool.server.utils.Utils.getToAddressBech32(txOut, bech32Util, params);
-        Assert.assertEquals(rpcOut.getToAddress(), toAddress);
-
-        Assert.assertArrayEquals(rpcOut.getScriptPubKey(), txOut.getScriptPubKey().getProgram());
-      }
-
+      Assert.assertEquals(tx.getHashAsString(), rpcTransaction.getTx().getHashAsString());
       Assert.assertEquals(rawTxResponse.getConfirmations(), rpcTransaction.getConfirmations());
     }
   }

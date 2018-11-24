@@ -8,7 +8,7 @@ import com.samourai.wallet.util.Callback;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig.SecretWalletConfig;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -87,7 +87,8 @@ public class FeeValidationService {
     for (TransactionOutput txOutput : tx0.getOutputs()) {
       if (txOutput.getValue().getValue() >= samouraiFeesMin) {
         // is this the fees payment output?
-        String toAddress = Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());
+        String toAddress =
+            Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());
         if (toAddress != null && feesAddressBech32.equals(toAddress)) {
           // ok, this is the fees payment output
           return true;
@@ -132,13 +133,13 @@ public class FeeValidationService {
         () -> {
           // fetch output script bytes for outpoint
           String outpointHash = outPoint.getHash().toString();
-          Optional<RpcOutWithTx> outpointRpcOut =
-              blockchainDataService.getRpcOutWithTx(outpointHash, outPoint.getIndex());
+          Optional<RpcTransaction> outpointRpcOut =
+              blockchainDataService.getRpcTransaction(outpointHash);
           if (!outpointRpcOut.isPresent()) {
             log.error("Tx not found for outpoint: " + outpointHash);
             return null;
           }
-          return outpointRpcOut.get().getRpcOut().getScriptPubKey();
+          return outpointRpcOut.get().getTx().getOutput(outPoint.getIndex()).getScriptBytes();
         };
     return fetchInputOutpointScriptBytes;
   }

@@ -3,8 +3,6 @@ package com.samourai.whirlpool.server.services.rpc;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.beans.rpc.RpcOut;
-import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.TestUtils;
@@ -12,10 +10,13 @@ import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import org.bitcoinj.core.*;
-import org.bitcoinj.script.Script;
+import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionInput;
+import org.bitcoinj.core.TransactionOutput;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -139,19 +140,14 @@ public class MockRpcClientServiceImpl implements RpcClientService {
 
     // verify mock
     RpcRawTransactionResponse rawTxResponse = getRawTransaction(txid).get();
-    RpcTransaction rpcTransaction = new RpcTransaction(rawTxResponse, params, bech32Util);
+    RpcTransaction rpcTransaction = new RpcTransaction(rawTxResponse, params);
 
-    RpcOutWithTx rpcOutWithTx =
-        Utils.getRpcOutWithTx(rpcTransaction, utxoIndex)
-            .orElseThrow(() -> new NoSuchElementException());
-    RpcOut rpcOut = rpcOutWithTx.getRpcOut();
-    RpcTransaction tx = rpcOutWithTx.getTx();
+    TransactionOutput txOutput = rpcTransaction.getTx().getOutput(utxoIndex);
     Assert.assertEquals(
-        addressBech32,
-        bech32Util.getAddressFromScript(new Script(rpcOut.getScriptPubKey()), params));
+        addressBech32, bech32Util.getAddressFromScript(txOutput.getScriptPubKey(), params));
 
     TxOutPoint txOutPoint =
-        new TxOutPoint(rpcOut.getHash(), rpcOut.getIndex(), amount, tx.getConfirmations());
+        new TxOutPoint(txid, utxoIndex, amount, rpcTransaction.getConfirmations());
     return txOutPoint;
   }
 

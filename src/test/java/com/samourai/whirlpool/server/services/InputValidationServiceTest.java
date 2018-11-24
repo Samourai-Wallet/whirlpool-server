@@ -2,7 +2,6 @@ package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
@@ -76,12 +75,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   }
 
   private boolean isWhirlpoolTx(String utxoHash, long denomination) {
-    RpcTransaction rpcTransaction =
-        blockchainDataService
-            .getRpcTransaction(utxoHash)
-            .orElseThrow(() -> new NoSuchElementException());
-
-    return inputValidationService.isWhirlpoolTx(rpcTransaction.getTx(), denomination);
+    return inputValidationService.isWhirlpoolTx(utxoHash, denomination);
   }
 
   @Test
@@ -110,11 +104,12 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   }
 
   private boolean doCheckInput(String utxoHash, long utxoIndex) throws IllegalInputException {
-    RpcOutWithTx rpcOutWithTx =
+    RpcTransaction rpcTransaction =
         blockchainDataService
-            .getRpcOutWithTx(utxoHash, utxoIndex)
+            .getRpcTransaction(utxoHash)
             .orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
-    boolean isLiquidity = inputValidationService.checkInput(rpcOutWithTx);
+    long inputValue = rpcTransaction.getTx().getOutput(utxoIndex).getValue().getValue();
+    boolean isLiquidity = inputValidationService.checkInput(rpcTransaction.getTx(), inputValue);
     return isLiquidity;
   }
 }

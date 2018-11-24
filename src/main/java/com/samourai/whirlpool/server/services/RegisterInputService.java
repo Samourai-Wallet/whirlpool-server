@@ -2,9 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.beans.rpc.RpcOut;
-import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
-import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.ValidatedInput;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import java.lang.invoke.MethodHandles;
@@ -62,17 +60,16 @@ public class RegisterInputService {
 
     try {
       // verify input is a valid mustMix or liquidity
-      RpcOutWithTx rpcOutWithTx =
+      ValidatedInput validatedInput =
           inputValidationService.validate(utxoHash, utxoIndex, liquidity, testMode);
-      RpcOut rpcOut = rpcOutWithTx.getRpcOut();
-      RpcTransaction rpcTx = rpcOutWithTx.getTx();
 
       // verify signature
-      ECKey pubkey = checkInputSignature(rpcOut.getToAddress(), poolId, signature);
+      ECKey pubkey = checkInputSignature(validatedInput.getToAddress(), poolId, signature);
 
       // register input to pool
       TxOutPoint txOutPoint =
-          new TxOutPoint(utxoHash, utxoIndex, rpcOut.getValue(), rpcTx.getConfirmations());
+          new TxOutPoint(
+              utxoHash, utxoIndex, validatedInput.getValue(), validatedInput.getConfirmations());
       poolService.registerInput(poolId, username, pubkey.getPubKey(), liquidity, txOutPoint, true);
     } catch (IllegalInputException e) {
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());

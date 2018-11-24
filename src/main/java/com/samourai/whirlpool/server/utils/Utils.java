@@ -3,9 +3,6 @@ package com.samourai.whirlpool.server.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.beans.rpc.RpcOut;
-import com.samourai.whirlpool.server.beans.rpc.RpcOutWithTx;
-import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import java.lang.invoke.MethodHandles;
@@ -13,9 +10,7 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.text.CharacterPredicates;
@@ -48,21 +43,6 @@ public class Utils {
 
   public static String generateUniqueString() {
     return UUID.randomUUID().toString().replace("-", "");
-  }
-
-  public static boolean listEqualsIgnoreOrder(List first, List second) {
-    return (first.size() == second.size()
-        && first.containsAll(second)
-        && second.containsAll(first));
-  }
-
-  public static Optional<RpcOut> findTxOutput(RpcTransaction rpcTransaction, long utxoIndex) {
-    for (RpcOut rpcOut : rpcTransaction.getOuts()) {
-      if (rpcOut.getIndex() == utxoIndex) {
-        return Optional.of(rpcOut);
-      }
-    }
-    return Optional.empty();
   }
 
   public static String getRawTx(Transaction tx) {
@@ -107,35 +87,12 @@ public class Utils {
     return null;
   }
 
-  public static <T> T fromJsonString(String json, Class<T> type) {
-    try {
-      return objectMapper.readValue(json, type);
-    } catch (Exception e) {
-      log.error("", e);
-    }
-    return null;
-  }
-
   public static void setLoggerDebug(String logger) {
     LogbackUtils.setLogLevel(logger, Level.DEBUG.toString());
   }
 
-  public static long btcToSatoshis(BigDecimal valueBtc) {
-    return valueBtc.multiply(new BigDecimal(BTC_TO_SATOSHIS)).setScale(0).longValueExact();
-  }
-
   public static BigDecimal satoshisToBtc(long satoshis) {
     return new BigDecimal(satoshis).divide(new BigDecimal(BTC_TO_SATOSHIS));
-  }
-
-  public static Optional<RpcOutWithTx> getRpcOutWithTx(RpcTransaction tx, long index) {
-    Optional<RpcOut> rpcOutResponse = Utils.findTxOutput(tx, index);
-    if (!rpcOutResponse.isPresent()) {
-      log.error("UTXO not found: " + tx.getTxid() + "-" + index);
-      return Optional.empty();
-    }
-    RpcOutWithTx rpcOutWithTx = new RpcOutWithTx(rpcOutResponse.get(), tx);
-    return Optional.of(rpcOutWithTx);
   }
 
   public static void testJsonRpcClientConnectivity(RpcClientService rpcClientService)

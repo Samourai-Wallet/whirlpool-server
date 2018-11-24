@@ -102,13 +102,28 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
     TransactionOutPoint input0OutPoint =
         cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, 99000000, params);
-    HD_Wallet bip84w = hdWalletFactory.restoreWallet("all all all all all all all all all all all all", "test", 1, params);
-    Bip84Wallet depositAndPremixWallet = new Bip84Wallet(bip84w, Integer.MAX_VALUE, new MemoryIndexHandler());
+    HD_Wallet bip84w =
+        hdWalletFactory.restoreWallet(
+            "all all all all all all all all all all all all", "test", 1, params);
+    Bip84Wallet depositAndPremixWallet =
+        new Bip84Wallet(bip84w, Integer.MAX_VALUE, new MemoryIndexHandler());
 
     String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     int feeIndice = 123456;
-    Tx0 tx0 = new Tx0Service(params).tx0(input0Key.getPrivKeyBytes(), input0OutPoint, 4, depositAndPremixWallet, 1000000, 300, xpubSamouraiFee, FEES_VALID, feePaymentCode, feeIndice);
+    Tx0 tx0 =
+        new Tx0Service(params)
+            .tx0(
+                input0Key.getPrivKeyBytes(),
+                input0OutPoint,
+                4,
+                depositAndPremixWallet,
+                1000000,
+                300,
+                xpubSamouraiFee,
+                FEES_VALID,
+                feePaymentCode,
+                feeIndice);
 
     int xpubIndice = feeValidationService.findFeeIndice(tx0.getTx());
     Assert.assertEquals(feeIndice, xpubIndice);

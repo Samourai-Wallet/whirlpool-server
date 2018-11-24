@@ -9,7 +9,6 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
@@ -163,7 +162,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
-    thrown.expect(MixException.class);
+    thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Pool not found");
     registerInputService.registerInput(
         poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
@@ -253,7 +252,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // TEST
     thrown.expect(IllegalInputException.class);
-    thrown.expectMessage("Invalid pubkey for UTXO");
+    thrown.expectMessage("Invalid signature");
     registerInputService.registerInput(
         poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 

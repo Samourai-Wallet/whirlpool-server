@@ -77,7 +77,7 @@ public class CryptoServiceTest extends AbstractIntegrationTest {
 
     // VERIFY
     Assert.assertEquals(
-        "MIICITANBgkqhkiG9w0BAQEFAAOCAg4AMIICCQKCAQEAuq0pPhbpWxnCk3j0OR9MPldBoA59gohQ4+vPPNeoQXZT8UBcYRz9Ki0XUSJIF+Z54sffAUjWxHUW9+ZoJMuEupIzbOKNKCKyo29PstRp/zB+URtXhFQqI0UMyEA18YQVHP5InRNGt+sGUM7LbcPqW3C7dzMV726hy+9FsM+OZs5LM4ARvWYPQRU1xe6gz0FAiJnXFJGDK2gxw8zuT6LTd6BWCdcce/k9CAEd8sNE6kqc+LyuCKPP9ojt7ahB4Fn0A+ISnDEke+6DCAUkfmNmbLya/xQFJAtO/w2xu9/Z5HKXpV7BCUB1QSYWYYLThVcsaWMgwIunb2s8YF+BKbU1iwKCAQAe+paMtxOnFSQiV2ERdl1aPnO7DTyMjspRu0krG897Ju5blmaI4ofW2cseoUBH4G0bZ+IyXd/vk/jUTzhlhsqyMDSi3gk2fw+Yf2PsAEPONWzOUT8ZoY1T82UMJFpvXTp9vcCCJKKd6ehPPQorCedYoQwohgyerS7iNNp4CEcQTeRYX7K1EgLDA36nPzkAU39H+eH8PTbMN5LVLonCJvTiPkd9PxUfyuL0jIVcVmlDPDMf2X5Dtvd82rRA9crmeSP2ANHa0z9SmjHIxPWmQPiGYEvsNnf8LyUqfpc6GBlzZ1ZJ+xkXfDiUGoDlwlifLU2VFumbu3PDm643E48laVRR",
+        "fOfuHfBXi)dUZGG{ydc70r&D9F=VzZfOfuj0!HBN0j]oYj@ix!8n.OZ]F[0!k374y4T&}+p#*(/jLcI$C2N]@tWXSJdLhDlb1JKjDe=)40z7!WBR:-lxE7=OX@[<=&/bugVzhtlVEAQ*fN=>rsa<K5bsJ3ZkSe7+6=^izOFaG4(JQhh+wCeZtx4h#gzPv@Q08)[U*ntw=pY%z5XR=!k[#n@)X4((k.$&W6P[1#xFEAG)OxOaCC4$y/bPekjQq6e]20(Xn$tW?T{y/G{k5b6S6PuA]Aj7=Og#po)T>=GbZ%lny}Mkp6A]-&px7^dYwIr5A*JRe.3JwHk{^vQG42APennPpZ(baeyDM0iFHN#:IVOFh03q05JjfE#6^K#8vg^V*t0v2t4lPPf+2b=xd&V/YcHL97w@bD4/4Fj/P*hcaz5WcEgf@/aLLAT6iaW&!Vm[bf?u=8&514&R(&oz#heHMnkn*eOq$BMebWba(i^[YSF*v7Y(f7]a3m=CCsFlcKH76VQf5!.wCNc!Jp2]z-VB7qD.VLv=kreZxE[fs[@5(%Zh<hYzInyRi&YY>Xknto.&}eg-tVLMajtO8jENyNrEa>})]#=AxbLzb+*s5n:NLz[4]}>1HHg0WvhH26Lb}swgiV5-Qxi4R385EVWLP28l.DrAZo{DHUO4A:VO31W-K0OHtq2",
         WhirlpoolProtocol.encodeBytes(pubKey.getEncoded()));
   }
 
