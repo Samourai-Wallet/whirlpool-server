@@ -460,7 +460,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     for (ConfirmedInput confirmedInput : mix.getInputs()) {
       RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
       String txOutPointStr =
-          registeredInput.getInput().getHash() + "-" + registeredInput.getInput().getIndex();
+          registeredInput.getOutPoint().getHash() + "-" + registeredInput.getOutPoint().getIndex();
       Assert.assertTrue(premixer.toUTXO.values().contains(txOutPointStr));
     }
 

@@ -7,7 +7,7 @@ import com.samourai.wallet.bip47.rpc.PaymentCode;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import com.samourai.whirlpool.server.utils.BIP47WalletAndHDWallet;
 import java.lang.invoke.MethodHandles;

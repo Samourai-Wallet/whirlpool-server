@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.beans;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.beans.Utxo;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.services.CryptoService;
@@ -215,7 +216,7 @@ public class Mix {
 
   public synchronized void registerInput(ConfirmedInput confirmedInput)
       throws IllegalInputException {
-    String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getInput());
+    String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getOutPoint());
     if (inputsById.containsKey(inputId)) {
       throw new IllegalInputException("input already registered");
     }
@@ -223,7 +224,7 @@ public class Mix {
   }
 
   public synchronized void unregisterInput(ConfirmedInput confirmedInput) {
-    String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getInput());
+    String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getOutPoint());
     inputsById.remove(inputId);
   }
 
@@ -235,7 +236,7 @@ public class Mix {
     Collection<Utxo> inputs =
         getInputs()
             .parallelStream()
-            .map(confirmedInput -> confirmedInput.getRegisteredInput().getInput())
+            .map(confirmedInput -> confirmedInput.getRegisteredInput().getOutPoint())
             .map(input -> new Utxo(input.getHash(), input.getIndex()))
             .collect(Collectors.toList());
     return WhirlpoolProtocol.computeInputsHash(inputs);
@@ -309,7 +310,7 @@ public class Mix {
     return inputsById
         .values()
         .stream()
-        .mapToLong(input -> input.getRegisteredInput().getInput().getValue())
+        .mapToLong(input -> input.getRegisteredInput().getOutPoint().getValue())
         .sum();
   }
 

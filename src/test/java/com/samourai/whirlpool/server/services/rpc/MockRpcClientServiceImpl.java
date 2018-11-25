@@ -2,8 +2,8 @@ package com.samourai.whirlpool.server.services.rpc;
 
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -147,7 +147,13 @@ public class MockRpcClientServiceImpl implements RpcClientService {
         addressBech32, bech32Util.getAddressFromScript(txOutput.getScriptPubKey(), params));
 
     TxOutPoint txOutPoint =
-        new TxOutPoint(txid, utxoIndex, amount, rpcTransaction.getConfirmations());
+        new TxOutPoint(
+            txid,
+            utxoIndex,
+            amount,
+            rpcTransaction.getConfirmations(),
+            transactionOutput.getScriptBytes(),
+            addressBech32);
     return txOutPoint;
   }
 

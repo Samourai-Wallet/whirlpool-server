@@ -1,12 +1,10 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.MessageSignUtilGeneric;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
-import com.samourai.whirlpool.server.beans.rpc.ValidatedInput;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.MixException;
 import java.lang.invoke.MethodHandles;
-import org.bitcoinj.core.ECKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,22 +16,22 @@ public class RegisterInputService {
 
   private PoolService poolService;
   private CryptoService cryptoService;
+  private BlockchainDataService blockchainDataService;
   private InputValidationService inputValidationService;
   private BlameService blameService;
-  private MessageSignUtilGeneric messageSignUtil;
 
   @Autowired
   public RegisterInputService(
       PoolService poolService,
       CryptoService cryptoService,
+      BlockchainDataService blockchainDataService,
       InputValidationService inputValidationService,
-      BlameService blameService,
-      MessageSignUtilGeneric messageSignUtil) {
+      BlameService blameService) {
     this.poolService = poolService;
     this.cryptoService = cryptoService;
+    this.blockchainDataService = blockchainDataService;
     this.inputValidationService = inputValidationService;
     this.blameService = blameService;
-    this.messageSignUtil = messageSignUtil;
   }
 
   public synchronized void registerInput(
@@ -44,7 +42,7 @@ public class RegisterInputService {
       long utxoIndex,
       boolean liquidity,
       boolean testMode)
-      throws IllegalInputException, MixException {
+      throws IllegalInputException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
       throw new IllegalInputException("Invalid utxoHash");
     }
@@ -59,46 +57,24 @@ public class RegisterInputService {
     }
 
     try {
-      // verify input is a valid mustMix or liquidity
-      ValidatedInput validatedInput =
-          inputValidationService.validate(utxoHash, utxoIndex, liquidity, testMode);
+      // fetch outPoint
+      IllegalInputException notFoundException =
+          new IllegalInputException("UTXO not found: " + utxoHash + "-" + utxoIndex);
+      RpcTransaction rpcTransaction =
+          blockchainDataService.getRpcTransaction(utxoHash).orElseThrow(() -> notFoundException);
+      TxOutPoint txOutPoint = blockchainDataService.getOutPoint(rpcTransaction, utxoIndex);
 
       // verify signature
-      ECKey pubkey = checkInputSignature(validatedInput.getToAddress(), poolId, signature);
+      inputValidationService.validateSignature(txOutPoint, poolId, signature);
+
+      // verify input is a valid mustMix or liquidity
+      inputValidationService.validateProvenance(txOutPoint, rpcTransaction.getTx(), liquidity, testMode);
 
       // register input to pool
-      TxOutPoint txOutPoint =
-          new TxOutPoint(
-              utxoHash, utxoIndex, validatedInput.getValue(), validatedInput.getConfirmations());
-      poolService.registerInput(poolId, username, pubkey.getPubKey(), liquidity, txOutPoint, true);
+      poolService.registerInput(poolId, username, liquidity, txOutPoint, true);
     } catch (IllegalInputException e) {
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;
     }
-  }
-
-  private ECKey checkInputSignature(String toAddress, String message, String signature)
-      throws IllegalInputException {
-    if (log.isDebugEnabled()) {
-      log.debug(
-          "Verifying signature: "
-              + signature
-              + "\n  for address: "
-              + toAddress
-              + "\n  for message: "
-              + message);
-    }
-
-    // verify signature of message for address
-    if (!messageSignUtil.verifySignedMessage(
-        toAddress, message, signature, cryptoService.getNetworkParameters())) {
-      throw new IllegalInputException("Invalid signature");
-    }
-
-    ECKey pubkey = messageSignUtil.signedMessageToKey(message, signature);
-    if (pubkey == null) {
-      throw new IllegalInputException("Invalid signature");
-    }
-    return pubkey;
   }
 }

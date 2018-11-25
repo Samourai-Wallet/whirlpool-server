@@ -38,16 +38,15 @@ public class ConfirmInputService {
             "Input queued: poolId="
                 + poolId
                 + ", input="
-                + registeredInput.getInput()
+                + registeredInput.getOutPoint()
                 + ", reason="
                 + e.getMessage());
       }
       poolService.registerInput(
           poolId,
           registeredInput.getUsername(),
-          registeredInput.getPubkey(),
           registeredInput.isLiquidity(),
-          registeredInput.getInput(),
+          registeredInput.getOutPoint(),
           false);
     }
   }

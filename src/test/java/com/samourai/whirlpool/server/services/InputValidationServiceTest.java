@@ -109,7 +109,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
             .getRpcTransaction(utxoHash)
             .orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
     long inputValue = rpcTransaction.getTx().getOutput(utxoIndex).getValue().getValue();
-    boolean isLiquidity = inputValidationService.checkInput(rpcTransaction.getTx(), inputValue);
+    boolean isLiquidity = inputValidationService.checkInputProvenance(rpcTransaction.getTx(), inputValue);
     return isLiquidity;
   }
 }

@@ -1,31 +1,27 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
+
 public class RegisteredInput {
   private String username;
-  private TxOutPoint input;
-  private byte[] pubkey;
+  private TxOutPoint outPoint;
   private boolean liquidity;
 
-  public RegisteredInput(String username, byte[] pubkey, boolean liquidity, TxOutPoint input) {
+  public RegisteredInput(String username, boolean liquidity, TxOutPoint outPoint) {
     this.username = username;
-    this.pubkey = pubkey;
     this.liquidity = liquidity;
-    this.input = input;
+    this.outPoint = outPoint;
   }
 
   public String getUsername() {
     return username;
   }
 
-  public byte[] getPubkey() {
-    return pubkey;
-  }
-
   public boolean isLiquidity() {
     return liquidity;
   }
 
-  public TxOutPoint getInput() {
-    return input;
+  public TxOutPoint getOutPoint() {
+    return outPoint;
   }
 }

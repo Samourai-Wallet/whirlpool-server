@@ -20,7 +20,7 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.Signature;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
@@ -46,7 +46,6 @@ import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.TransactionWitness;
-import org.bitcoinj.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +116,7 @@ public class MixService {
     }
 
     // verify not already registered
-    if (mix.hasInput(registeredInput.getInput())) {
+    if (mix.hasInput(registeredInput.getOutPoint())) {
       throw new IllegalInputException("Input already registered for this mix");
     }
 
@@ -128,12 +127,12 @@ public class MixService {
     }
 
     // verify max-inputs-same-hash
-    String inputHash = registeredInput.getInput().getHash();
+    String inputHash = registeredInput.getOutPoint().getHash();
     int maxInputsSameHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameHash();
     long countInputsSameHash =
         mix.getInputs()
             .parallelStream()
-            .filter(input -> input.getRegisteredInput().getInput().getHash().equals(inputHash))
+            .filter(input -> input.getRegisteredInput().getOutPoint().getHash().equals(inputHash))
             .count();
     if ((countInputsSameHash + 1) > maxInputsSameHash) {
       if (log.isDebugEnabled()) {
@@ -178,7 +177,7 @@ public class MixService {
         " • registered "
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + ": "
-            + registeredInput.getInput());
+            + registeredInput.getOutPoint());
     logMixStatus(mix);
 
     // reply confirmInputResponse with signedBordereau
@@ -568,8 +567,8 @@ public class MixService {
     for (ConfirmedInput confirmedInput : mix.getInputs()) {
       RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
       // send from bech32 input
-      long spendAmount = registeredInput.getInput().getValue();
-      TxOutPoint registeredOutPoint = registeredInput.getInput();
+      long spendAmount = registeredInput.getOutPoint().getValue();
+      TxOutPoint registeredOutPoint = registeredInput.getOutPoint();
       TransactionOutPoint outPoint =
           new TransactionOutPoint(
               params,
@@ -591,20 +590,31 @@ public class MixService {
     return tx;
   }
 
-  private Transaction signTransaction(Transaction tx, Mix mix) {
+  private Transaction signTransaction(Transaction tx, Mix mix) throws IllegalInputException {
     for (ConfirmedInput confirmedInput : mix.getInputs()) {
       RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
       Signature signature = mix.getSignatureByUsername(registeredInput.getUsername());
 
-      TxOutPoint registeredOutPoint = registeredInput.getInput();
-      Integer inputIndex =
-          txUtil.findInputIndex(tx, registeredOutPoint.getHash(), registeredOutPoint.getIndex());
-      if (inputIndex == null) {
-        throw new ScriptException("Transaction input not found");
-      }
+      TxOutPoint txOutPoint = registeredInput.getOutPoint();
+      Integer inputIndex = txUtil.findInputIndex(tx, txOutPoint.getHash(), txOutPoint.getIndex());
 
       TransactionWitness witness = Utils.witnessUnserialize(signature.witness);
       tx.setWitness(inputIndex, witness);
+
+      // verify
+      try {
+        txUtil.verifySignInput(tx, inputIndex, txOutPoint.getValue(), txOutPoint.getScriptBytes());
+      } catch (Exception e) {
+        String error =
+            "Invalid signature for input #"
+                + inputIndex
+                + ": "
+                + txOutPoint.getHash()
+                + ":"
+                + txOutPoint.getIndex();
+        log.error(error, e);
+        throw new IllegalInputException(error);
+      }
     }
 
     // check final transaction

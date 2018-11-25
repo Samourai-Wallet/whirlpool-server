@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
@@ -17,10 +18,10 @@ public class InputPool {
   }
 
   public synchronized void register(RegisteredInput registeredInput) {
-    if (!hasInput(registeredInput.getInput())) {
+    if (!hasInput(registeredInput.getOutPoint())) {
       String username = registeredInput.getUsername();
       if (!findByUsername(username).isPresent()) {
-        String inputId = Utils.computeInputId(registeredInput.getInput());
+        String inputId = Utils.computeInputId(registeredInput.getOutPoint());
         inputsById.put(inputId, registeredInput);
       } else {
         log.error(
@@ -28,11 +29,11 @@ public class InputPool {
                 + username); // shouldn't happen...
       }
     } else {
-      log.warn("not queueing input, it was already queued: " + registeredInput.getInput());
+      log.warn("not queueing input, it was already queued: " + registeredInput.getOutPoint());
       if (log.isDebugEnabled()) { // TODO
         inputsById
             .values()
-            .forEach(i -> log.debug("input: " + i.getInput() + ", username=" + i.getUsername()));
+            .forEach(i -> log.debug("input: " + i.getOutPoint() + ", username=" + i.getUsername()));
       }
     }
   }
@@ -58,7 +59,7 @@ public class InputPool {
   public synchronized Optional<RegisteredInput> removeByUsername(String username) {
     Optional<RegisteredInput> inputByUsername = findByUsername(username);
     if (inputByUsername.isPresent()) {
-      String inputId = Utils.computeInputId(inputByUsername.get().getInput());
+      String inputId = Utils.computeInputId(inputByUsername.get().getOutPoint());
       inputsById.remove(inputId);
     }
     return inputByUsername;

@@ -7,10 +7,9 @@ import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.TxOutPoint;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.MixException;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.HashMap;
@@ -105,15 +104,14 @@ public class PoolService {
   public synchronized void registerInput(
       String poolId,
       String username,
-      byte[] pubkey,
       boolean liquidity,
-      TxOutPoint input,
+      TxOutPoint txOutPoint,
       boolean inviteIfPossible)
-      throws IllegalInputException, MixException {
+      throws IllegalInputException {
     Pool pool = getPool(poolId);
 
     // verify balance
-    long inputBalance = input.getValue();
+    long inputBalance = txOutPoint.getValue();
     if (!pool.checkInputBalance(inputBalance, liquidity)) {
       long balanceMin = pool.computeInputBalanceMin(liquidity);
       long balanceMax = pool.computeInputBalanceMax(liquidity);
@@ -123,21 +121,21 @@ public class PoolService {
               + "-"
               + balanceMax
               + ", actual:"
-              + input.getValue()
+              + txOutPoint.getValue()
               + ")");
     }
 
-    RegisteredInput registeredInput = new RegisteredInput(username, pubkey, liquidity, input);
+    RegisteredInput registeredInput = new RegisteredInput(username, liquidity, txOutPoint);
 
     // verify confirmations
-    if (!isUtxoConfirmed(input, liquidity)) {
+    if (!isUtxoConfirmed(txOutPoint, liquidity)) {
       log.info(
           " • ["
               + poolId
               + "] queued UNCONFIRMED UTXO "
               + (liquidity ? "liquidity" : "mustMix")
               + ": "
-              + input);
+              + txOutPoint);
       pool.getUnconfirmedQueue().register(registeredInput);
       return;
     }
@@ -171,7 +169,7 @@ public class PoolService {
             + "] queued "
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + ": "
-            + registeredInput.getInput());
+            + registeredInput.getOutPoint());
   }
 
   private void inviteToMix(Mix mix, RegisteredInput registeredInput) {
@@ -187,7 +185,7 @@ public class PoolService {
             + "] inviting "
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + " to mix: "
-            + registeredInput.getInput());
+            + registeredInput.getOutPoint());
 
     // send invite to mix
     webSocketService.sendPrivate(registeredInput.getUsername(), confirmInputMixStatusNotification);
