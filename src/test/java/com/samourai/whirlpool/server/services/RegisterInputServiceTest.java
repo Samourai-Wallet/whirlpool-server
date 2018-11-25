@@ -369,7 +369,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     testUtils.assertMixEmpty(mix);
 
     // liquidity
-    mix.getPool().getUnconfirmedQueue().peekRandom(); // reset
+    mix.getPool().getUnconfirmedQueue().removeRandom(); // reset
     testUtils.assertPool(0, 0, 0, pool);
     doRegisterInput(0, true);
     testUtils.assertPool(0, 0, 1, pool);
@@ -389,7 +389,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     testUtils.assertMixEmpty(mix);
 
     // liquidity
-    mix.getPool().getUnconfirmedQueue().peekRandom(); // reset
+    mix.getPool().getUnconfirmedQueue().removeRandom(); // reset
     testUtils.assertPool(0, 0, 0, pool);
     doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY - 1, true);
     testUtils.assertPool(0, 0, 1, pool);

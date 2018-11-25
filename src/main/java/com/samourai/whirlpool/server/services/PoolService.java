@@ -196,7 +196,7 @@ public class PoolService {
         (liquidity ? mix.getPool().getLiquidityQueue() : mix.getPool().getMustMixQueue());
     Optional<RegisteredInput> registeredInput;
     int nbInvited = 0;
-    while ((registeredInput = queue.peekRandom()).isPresent()) {
+    while ((registeredInput = queue.removeRandom()).isPresent()) {
       inviteToMix(mix, registeredInput.get());
       nbInvited++;
     }

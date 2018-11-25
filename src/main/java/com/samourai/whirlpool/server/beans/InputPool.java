@@ -46,7 +46,7 @@ public class InputPool {
         .findFirst();
   }
 
-  public synchronized Optional<RegisteredInput> peekRandom() {
+  public synchronized Optional<RegisteredInput> removeRandom() {
     if (!inputsById.isEmpty()) {
       Map.Entry<String, RegisteredInput> entry = Utils.getRandomEntry(inputsById);
       RegisteredInput registeredInput = entry.getValue();

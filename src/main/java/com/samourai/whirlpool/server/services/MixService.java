@@ -151,7 +151,7 @@ public class MixService {
 
     // find confirming input
     RegisteredInput registeredInput =
-        mix.peekConfirmingInputByUsername(username)
+        mix.removeConfirmingInputByUsername(username)
             .orElseThrow(
                 () ->
                     new IllegalInputException("Confirming input not found: username=" + username));
@@ -676,6 +676,14 @@ public class MixService {
   public synchronized void onClientDisconnect(String username) {
     for (Mix mix : getCurrentMixs()) {
       String mixId = mix.getMixId();
+
+      // remove from confirming inputs
+      mix.removeConfirmingInputByUsername(username).ifPresent(confirmInput ->
+        log.info(" • ["
+            + mixId
+            + "] unregistered from confirming inputs, username="
+            + username)
+      );
 
       // mark registeredInput offline
       List<ConfirmedInput> confirmedInputs =

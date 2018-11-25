@@ -178,7 +178,7 @@ public class Mix {
     }
   }
 
-  public synchronized Optional<RegisteredInput> peekConfirmingInputByUsername(String username) {
+  public synchronized Optional<RegisteredInput> removeConfirmingInputByUsername(String username) {
     return confirmingInputs.removeByUsername(username);
   }
 
