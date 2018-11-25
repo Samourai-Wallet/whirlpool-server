@@ -22,7 +22,10 @@ public class BlockchainDataService {
   private RpcClientService rpcClientService;
   private Bech32UtilGeneric bech32Util;
 
-  public BlockchainDataService(CryptoService cryptoService, RpcClientService rpcClientService, Bech32UtilGeneric bech32Util) {
+  public BlockchainDataService(
+      CryptoService cryptoService,
+      RpcClientService rpcClientService,
+      Bech32UtilGeneric bech32Util) {
     this.cryptoService = cryptoService;
     this.rpcClientService = rpcClientService;
     this.bech32Util = bech32Util;
@@ -47,7 +50,8 @@ public class BlockchainDataService {
     }
   }
 
-  public TxOutPoint getOutPoint(RpcTransaction rpcTransaction, long utxoIndex) throws IllegalInputException {
+  public TxOutPoint getOutPoint(RpcTransaction rpcTransaction, long utxoIndex)
+      throws IllegalInputException {
     String utxoHash = rpcTransaction.getTx().getHashAsString();
     IllegalInputException notFoundException =
         new IllegalInputException("UTXO not found: " + utxoHash + "-" + utxoIndex);

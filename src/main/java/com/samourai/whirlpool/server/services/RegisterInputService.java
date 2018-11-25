@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -68,7 +67,8 @@ public class RegisterInputService {
       inputValidationService.validateSignature(txOutPoint, poolId, signature);
 
       // verify input is a valid mustMix or liquidity
-      inputValidationService.validateProvenance(txOutPoint, rpcTransaction.getTx(), liquidity, testMode);
+      inputValidationService.validateProvenance(
+          txOutPoint, rpcTransaction.getTx(), liquidity, testMode);
 
       // register input to pool
       poolService.registerInput(poolId, username, liquidity, txOutPoint, true);

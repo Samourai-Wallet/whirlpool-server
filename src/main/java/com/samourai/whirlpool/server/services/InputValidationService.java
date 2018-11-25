@@ -33,7 +33,8 @@ public class InputValidationService {
     this.messageSignUtil = messageSignUtil;
   }
 
-  public TxOutPoint validateProvenance(TxOutPoint txOutPoint, Transaction tx, boolean liquidity, boolean testMode)
+  public TxOutPoint validateProvenance(
+      TxOutPoint txOutPoint, Transaction tx, boolean liquidity, boolean testMode)
       throws IllegalInputException {
 
     // provenance verification can be disabled with testMode
@@ -54,7 +55,8 @@ public class InputValidationService {
     return txOutPoint;
   }
 
-  protected boolean checkInputProvenance(Transaction tx, long inputValue) throws IllegalInputException {
+  protected boolean checkInputProvenance(Transaction tx, long inputValue)
+      throws IllegalInputException {
     // is it a tx0?
     Integer x = feeValidationService.findFeeIndice(tx);
     if (x != null) {

@@ -152,7 +152,9 @@ public class MixService {
     // find confirming input
     RegisteredInput registeredInput =
         mix.peekConfirmingInputByUsername(username)
-            .orElseThrow(() -> new IllegalInputException("Confirming input not found"));
+            .orElseThrow(
+                () ->
+                    new IllegalInputException("Confirming input not found: username=" + username));
 
     // check mix didn't start yet
     if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {

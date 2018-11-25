@@ -37,11 +37,11 @@ public class RevealOutputController extends AbstractWebSocketController {
     String username = principal.getName();
     if (log.isDebugEnabled()) {
       log.debug(
-          "[controller] "
-              + headers.getDestination()
-              + ": username="
+          "["
               + username
-              + ", payload="
+              + "] "
+              + headers.getDestination()
+              + " payload="
               + Utils.toJsonString(payload));
     }
 

@@ -132,7 +132,7 @@ public class PoolService {
       log.info(
           " • ["
               + poolId
-              + "] queued UNCONFIRMED UTXO "
+              + "] queueing to UNCONFIRMED "
               + (liquidity ? "liquidity" : "mustMix")
               + ": "
               + txOutPoint);
@@ -160,25 +160,19 @@ public class PoolService {
       queue = pool.getMustMixQueue();
     }
 
-    // queue input
-    queue.register(registeredInput);
-
     log.info(
         " • ["
             + pool.getPoolId()
-            + "] queued "
+            + "] queueing to pool "
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + ": "
             + registeredInput.getOutPoint());
+
+    // queue input
+    queue.register(registeredInput);
   }
 
   private void inviteToMix(Mix mix, RegisteredInput registeredInput) {
-    // register confirming input
-    String publicKey64 = WhirlpoolProtocol.encodeBytes(mix.getPublicKey());
-    ConfirmInputMixStatusNotification confirmInputMixStatusNotification =
-        new ConfirmInputMixStatusNotification(mix.getMixId(), publicKey64);
-    mix.registerConfirmingInput(registeredInput);
-
     log.info(
         " • ["
             + mix.getMixId()
@@ -186,6 +180,12 @@ public class PoolService {
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + " to mix: "
             + registeredInput.getOutPoint());
+
+    // register confirming input
+    String publicKey64 = WhirlpoolProtocol.encodeBytes(mix.getPublicKey());
+    ConfirmInputMixStatusNotification confirmInputMixStatusNotification =
+        new ConfirmInputMixStatusNotification(mix.getMixId(), publicKey64);
+    mix.registerConfirmingInput(registeredInput);
 
     // send invite to mix
     webSocketService.sendPrivate(registeredInput.getUsername(), confirmInputMixStatusNotification);
