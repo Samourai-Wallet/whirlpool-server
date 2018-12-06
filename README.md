@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Samourai-Wallet/whirlpool-server.svg?branch=develop)](https://travis-ci.org/Samourai-Wallet/whirlpool-server)
+[![](https://jitpack.io/v/Samourai-Wallet/whirlpool-server.svg)](https://jitpack.io/#Samourai-Wallet/whirlpool-server)
+
 # whirlpool-server
 
 Server for [Whirlpool](https://github.com/Samourai-Wallet/Whirlpool) by Samourai-Wallet.
