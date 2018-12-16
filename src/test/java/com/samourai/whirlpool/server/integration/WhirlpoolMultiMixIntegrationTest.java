@@ -17,6 +17,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    serverConfig.setTestMode(true);
+  }
+
   @Test
   public void whirlpool_2clients_2mixs() throws Exception {
     final int NB_CLIENTS = 3;

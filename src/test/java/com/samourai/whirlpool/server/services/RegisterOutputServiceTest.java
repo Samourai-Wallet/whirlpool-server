@@ -35,6 +35,7 @@ public class RegisterOutputServiceTest extends AbstractIntegrationTest {
   @Before
   public void setUp() throws Exception {
     super.setUp();
+    serverConfig.setTestMode(true);
   }
 
   private void registerInput(Mix mix, String username) throws Exception {

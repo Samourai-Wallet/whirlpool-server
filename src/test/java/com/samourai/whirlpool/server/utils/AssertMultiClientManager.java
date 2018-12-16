@@ -26,6 +26,7 @@ import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import java.lang.invoke.MethodHandles;
+import java.util.Optional;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
@@ -82,8 +83,8 @@ public class AssertMultiClientManager extends MultiClientManager {
     String server = "127.0.0.1:" + port;
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
-            new JavaHttpClient(),
-            new JavaStompClient(),
+            new JavaHttpClient(Optional.empty()),
+            new JavaStompClient(Optional.empty()),
             server,
             cryptoService.getNetworkParameters());
     config.setTestMode(testMode);

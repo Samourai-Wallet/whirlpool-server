@@ -27,6 +27,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    serverConfig.setTestMode(true);
+  }
+
   @Test
   public void whirlpool_manual_bip47() throws Exception {
     NetworkParameters params = cryptoService.getNetworkParameters();

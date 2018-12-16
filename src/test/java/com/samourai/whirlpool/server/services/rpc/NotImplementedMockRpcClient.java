@@ -370,16 +370,6 @@ public class NotImplementedMockRpcClient implements BitcoindRpcClient {
   }
 
   @Override
-  public BigDecimal getEstimateFee(int i) throws GenericRpcException {
-    throw new RuntimeException("mock not implemented");
-  }
-
-  @Override
-  public BigDecimal getEstimatePriority(int i) throws GenericRpcException {
-    throw new RuntimeException("mock not implemented");
-  }
-
-  @Override
   public void invalidateBlock(String s) throws GenericRpcException {
     throw new RuntimeException("mock not implemented");
   }
@@ -535,17 +525,27 @@ public class NotImplementedMockRpcClient implements BitcoindRpcClient {
   }
 
   @Override
-  public SmartFeeResult getEstimateSmartFee(int i) {
-    throw new RuntimeException("mock not implemented");
-  }
-
-  @Override
   public AddressBalance getAddressBalance(String s) {
     throw new RuntimeException("mock not implemented");
   }
 
   @Override
   public List<AddressUtxo> getAddressUtxo(String s) {
+    throw new RuntimeException("mock not implemented");
+  }
+
+  @Override
+  public SmartFeeResult estimateSmartFee(int i) {
+    throw new RuntimeException("mock not implemented");
+  }
+
+  @Override
+  public BigDecimal estimatePriority(int i) throws GenericRpcException {
+    throw new RuntimeException("mock not implemented");
+  }
+
+  @Override
+  public BigDecimal estimateFee(int i) throws GenericRpcException {
     throw new RuntimeException("mock not implemented");
   }
 }

@@ -7,6 +7,7 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import java.lang.invoke.MethodHandles;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -18,6 +19,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = DEFINED_PORT)
 public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
+  @Before
+  public void setUp() {
+    serverConfig.setTestMode(true);
+  }
 
   private AssertMultiClientManager runMustmixWithLiquidities(
       int mustMixMin,
