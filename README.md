@@ -41,6 +41,16 @@ server.register-input.min-confirmations-liquidity: minimum confirmations for liq
 server.register-input.max-inputs-same-hash: max inputs with same hash (same origin tx) allowed to register to a mix
 ```
 
+### SCodes
+```
+server.samourai-fees.feePayloadByScode[foo] = 12345
+server.samourai-fees.feePayloadByScode[bar] = 23456
+```
+Scodes are special codes usable to enable special rules for tx0.
+Each scode is mapped in configuration to a short value (-32,768 to 32,767) which will be embedded into tx0's OP_RETURN as WhirlpoolFeeData.feePayload.
+Multiple scode can be mapped to same short value.
+Forbidden short value is '0', which is mapped to WhirlpoolFeeData.feePayload=NULL.
+
 ### Mix limits
 ```
 server.mix.anonymity-set-target = 10

@@ -7,12 +7,14 @@ import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.Callback;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
+import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig.SecretWalletConfig;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
+import java.util.Map.Entry;
 import java.util.Optional;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
@@ -34,34 +36,37 @@ public class FeeValidationService {
 
   private CryptoService cryptoService;
   private FormatsUtilGeneric formatsUtil;
-  private WhirlpoolServerConfig whirlpoolServerConfig;
+  private WhirlpoolServerConfig serverConfig;
   private Bech32UtilGeneric bech32Util;
   private HD_WalletFactoryJava hdWalletFactory;
   private BIP47Account secretAccountBip47;
   private TxUtil txUtil;
   private BlockchainDataService blockchainDataService;
+  private WhirlpoolFee whirlpoolFee;
 
   public FeeValidationService(
       CryptoService cryptoService,
       FormatsUtilGeneric formatsUtil,
-      WhirlpoolServerConfig whirlpoolServerConfig,
+      WhirlpoolServerConfig serverConfig,
       Bech32UtilGeneric bech32UtilGeneric,
       HD_WalletFactoryJava hdWalletFactory,
       TxUtil txUtil,
-      BlockchainDataService blockchainDataService)
+      BlockchainDataService blockchainDataService,
+      WhirlpoolFee whirlpoolFee)
       throws Exception {
     this.cryptoService = cryptoService;
     this.formatsUtil = formatsUtil;
-    this.whirlpoolServerConfig = whirlpoolServerConfig;
+    this.serverConfig = serverConfig;
     this.bech32Util = bech32UtilGeneric;
     this.hdWalletFactory = hdWalletFactory;
     this.secretAccountBip47 = computeSecretAccount();
     this.txUtil = txUtil;
     this.blockchainDataService = blockchainDataService;
+    this.whirlpoolFee = whirlpoolFee;
   }
 
   private BIP47Account computeSecretAccount() throws Exception {
-    SecretWalletConfig secretWallet = whirlpoolServerConfig.getSamouraiFees().getSecretWallet();
+    SecretWalletConfig secretWallet = serverConfig.getSamouraiFees().getSecretWallet();
     HD_Wallet hdw =
         hdWalletFactory.restoreWallet(
             secretWallet.getWords(),
@@ -73,12 +78,43 @@ public class FeeValidationService {
         .getAccount(0);
   }
 
+  public WhirlpoolFeeData decodeFeeData(Transaction tx) {
+    byte[] opReturnMaskedValue = findOpReturnValue(tx);
+    if (opReturnMaskedValue == null) {
+      return null;
+    }
+
+    // decode opReturnMaskedValue
+    TransactionOutPoint input0OutPoint = tx.getInput(0).getOutpoint();
+    Callback<byte[]> fetchInputOutpointScriptBytes =
+        computeCallbackFetchOutpointScriptBytes(input0OutPoint); // needed for P2PK
+    byte[] input0Pubkey = txUtil.findInputPubkey(tx, 0, fetchInputOutpointScriptBytes);
+    WhirlpoolFeeData feeData =
+        whirlpoolFee.decode(opReturnMaskedValue, secretAccountBip47, input0OutPoint, input0Pubkey);
+    return feeData;
+  }
+
   public String getFeePaymentCode() {
     return secretAccountBip47.getPaymentCode();
   }
 
+  public boolean isValidTx0(Transaction tx0, WhirlpoolFeeData feeData) {
+    // validate feePayload
+    if (isValidFeePayload(feeData.getFeePayload())) {
+      return true;
+    } else {
+      // validate for feeIndice
+      return isTx0FeePaid(tx0, feeData.getFeeIndice());
+    }
+  }
+
   protected boolean isTx0FeePaid(Transaction tx0, int x) {
-    long samouraiFeesMin = whirlpoolServerConfig.getSamouraiFees().getAmount();
+    if (x < 0) {
+      log.error("Invalid samouraiFee indice: " + x);
+      return false;
+    }
+
+    long samouraiFeesMin = serverConfig.getSamouraiFees().getAmount();
 
     // find samourai payment address from xpub indice in tx payload
     String feesAddressBech32 = computeFeeAddress(x);
@@ -100,7 +136,7 @@ public class FeeValidationService {
 
   protected String computeFeeAddress(int x) {
     DeterministicKey mKey =
-        formatsUtil.createMasterPubKeyFromXPub(whirlpoolServerConfig.getSamouraiFees().getXpub());
+        formatsUtil.createMasterPubKeyFromXPub(serverConfig.getSamouraiFees().getXpub());
     DeterministicKey cKey =
         HDKeyDerivation.deriveChildKey(
             mKey, new ChildNumber(0, false)); // assume external/receive chain
@@ -109,23 +145,6 @@ public class FeeValidationService {
     String feeAddressBech32 =
         bech32Util.toBech32(feeECKey.getPubKey(), cryptoService.getNetworkParameters());
     return feeAddressBech32;
-  }
-
-  protected Integer findFeeIndice(Transaction tx) {
-    byte[] opReturnMaskedValue = findOpReturnValue(tx);
-    if (opReturnMaskedValue == null) {
-      return null;
-    }
-
-    // decode opReturnMaskedValue
-    TransactionOutPoint input0OutPoint = tx.getInput(0).getOutpoint();
-    Callback<byte[]> fetchInputOutpointScriptBytes =
-        computeCallbackFetchOutpointScriptBytes(input0OutPoint); // needed for P2PK
-    byte[] input0Pubkey = txUtil.findInputPubkey(tx, 0, fetchInputOutpointScriptBytes);
-    Integer dataUnmasked =
-        WhirlpoolProtocol.getWhirlpoolFee()
-            .decode(opReturnMaskedValue, secretAccountBip47, input0OutPoint, input0Pubkey);
-    return dataUnmasked;
   }
 
   private Callback<byte[]> computeCallbackFetchOutpointScriptBytes(TransactionOutPoint outPoint) {
@@ -167,5 +186,39 @@ public class FeeValidationService {
       }
     }
     return null;
+  }
+
+  private boolean isValidFeePayload(byte[] feePayload) {
+    if (feePayload == null || feePayload.length != WhirlpoolFee.FEE_PAYLOAD_LENGTH) {
+      return false;
+    }
+
+    // search in configuration
+    return getScodeByFeePayload(feePayload) != null;
+  }
+
+  protected String getScodeByFeePayload(byte[] feePayload) {
+    short feePayloadAsShort = Utils.feePayloadBytesToShort(feePayload);
+    Optional<Entry<String, Short>> feePayloadEntry =
+        serverConfig
+            .getSamouraiFees()
+            .getFeePayloadByScode()
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() == feePayloadAsShort)
+            .findFirst();
+    if (!feePayloadEntry.isPresent()) {
+      // scode not found
+      return null;
+    }
+    return feePayloadEntry.get().getKey();
+  }
+
+  public byte[] getFeePayloadByScode(String scode) {
+    Short feePayloadAsShort = serverConfig.getSamouraiFees().getFeePayloadByScode().get(scode);
+    if (feePayloadAsShort == null) {
+      return null;
+    }
+    return Utils.feePayloadShortToBytes(feePayloadAsShort);
   }
 }

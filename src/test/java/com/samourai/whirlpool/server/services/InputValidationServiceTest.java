@@ -79,7 +79,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void checkInput() throws Exception {
+  public void checkInput_noFeePayload() throws Exception {
     String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
 
     // accept when valid mustMix, paid exact fee
@@ -101,6 +101,22 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
       thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
       doCheckInput(txid, i);
     }
+  }
+
+  @Test
+  public void checkInput_feePayload_invalid() throws Exception {
+    // reject nofee when unknown feePayload
+    thrown.expect(IllegalInputException.class);
+    thrown.expectMessage(
+        "Input rejected (invalid fee for tx0=b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3, x=11, feePayloadHex=3039)");
+    doCheckInput("b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3", 2);
+  }
+
+  @Test
+  public void checkInput_feePayload_valid() throws Exception {
+    // accept when valid feePayload
+    serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
+    doCheckInput("b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3", 2);
   }
 
   private boolean doCheckInput(String utxoHash, long utxoIndex) throws IllegalInputException {

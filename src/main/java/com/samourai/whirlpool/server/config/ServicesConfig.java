@@ -7,6 +7,7 @@ import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.server.services.CryptoService;
 import java.lang.invoke.MethodHandles;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
@@ -48,6 +49,11 @@ public class ServicesConfig {
   @Bean
   WhirlpoolProtocol whirlpoolProtocol() {
     return new WhirlpoolProtocol();
+  }
+
+  @Bean
+  WhirlpoolFee whirlpoolFee() {
+    return WhirlpoolFee.getInstance();
   }
 
   @Bean

@@ -2,11 +2,13 @@ package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -125,5 +127,13 @@ public class Utils {
       log.error("unable to find toAddress", e);
     }
     return null;
+  }
+
+  public static byte[] feePayloadShortToBytes(short feePayloadAsShort) {
+    return ByteBuffer.allocate(WhirlpoolFee.FEE_PAYLOAD_LENGTH).putShort(feePayloadAsShort).array();
+  }
+
+  public static short feePayloadBytesToShort(byte[] feePayload) {
+    return ByteBuffer.wrap(feePayload).getShort();
   }
 }

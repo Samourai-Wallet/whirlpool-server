@@ -8,12 +8,16 @@ import com.samourai.whirlpool.client.tx0.Tx0;
 import com.samourai.whirlpool.client.tx0.Tx0Service;
 import com.samourai.whirlpool.client.utils.Bip84Wallet;
 import com.samourai.whirlpool.client.utils.indexHandler.MemoryIndexHandler;
+import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
+import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.function.BiFunction;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,31 +33,54 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long FEES_VALID = 975000;
 
+  private static final String SCODE_FOO = "foo";
+  private static final short SCODE_FOO_PAYLOAD = 1234;
+  private static final String SCODE_BAR = "bar";
+  private static final short SCODE_BAR_PAYLOAD = 5678;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     dbService.__reset();
     serverConfig.getSamouraiFees().setAmount(FEES_VALID);
+
+    // feePayloadByScode
+    Map<String, Short> feePayloadByScode = new HashMap<>();
+    feePayloadByScode.put(SCODE_FOO, SCODE_FOO_PAYLOAD);
+    feePayloadByScode.put(SCODE_BAR, SCODE_BAR_PAYLOAD);
+    serverConfig.getSamouraiFees().setFeePayloadByScode(feePayloadByScode);
+  }
+
+  private void assertFeeData(String txid, Integer feeIndice, byte[] feePayload) {
+    RpcTransaction rpcTransaction =
+        blockchainDataService
+            .getRpcTransaction(txid)
+            .orElseThrow(() -> new NoSuchElementException());
+    WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(rpcTransaction.getTx());
+    if (feeIndice == null && feePayload == null) {
+      Assert.assertNull(feeData);
+    } else {
+      Assert.assertEquals((int) feeIndice, feeData.getFeeIndice());
+      if (feePayload == null) {
+        Assert.assertNull(feeData.getFeePayload());
+      } else {
+        Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
+      }
+    }
   }
 
   @Test
-  public void findFeeIndice() {
-
-    BiFunction<String, Integer, Void> test =
-        (String txid, Integer xpubIndiceExpected) -> {
-          log.info("Test: " + txid + ", " + xpubIndiceExpected);
-          RpcTransaction rpcTransaction =
-              blockchainDataService
-                  .getRpcTransaction(txid)
-                  .orElseThrow(() -> new NoSuchElementException());
-          Integer x = feeValidationService.findFeeIndice(rpcTransaction.getTx());
-          Assert.assertEquals(xpubIndiceExpected, x);
-          return null;
-        };
-
-    test.apply("cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187", 1);
-    test.apply("7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16", null);
-    test.apply("5369dfb71b36ed2b91ca43f388b869e617558165e4f8306b80857d88bdd624f2", null);
+  public void findFeeData() {
+    //
+    assertFeeData("cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187", null, null);
+    assertFeeData("7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16", null, null);
+    assertFeeData("5369dfb71b36ed2b91ca43f388b869e617558165e4f8306b80857d88bdd624f2", null, null);
+    assertFeeData(
+        "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3",
+        11,
+        Utils.feePayloadShortToBytes((short) 12345));
+    assertFeeData("aa77a502ca48540706c6f4a62f6c7155ee415c344a4481e0bf945fb56bbbdfdd", 12, null);
+    assertFeeData("604dac3fa5f83b810fc8f4e8d94d9283e4d0b53e3831d0fe6dc9ecdb15dd8dfb", 13, null);
   }
 
   @Test
@@ -89,15 +116,19 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
   private boolean doIsTx0FeePaid(String txid, long minFees, int xpubIndice) {
     serverConfig.getSamouraiFees().setAmount(minFees);
+    return feeValidationService.isTx0FeePaid(getTx(txid), xpubIndice);
+  }
+
+  private Transaction getTx(String txid) {
     RpcTransaction rpcTransaction =
         blockchainDataService
             .getRpcTransaction(txid)
             .orElseThrow(() -> new NoSuchElementException());
-    return feeValidationService.isTx0FeePaid(rpcTransaction.getTx(), xpubIndice);
+    return rpcTransaction.getTx();
   }
 
   @Test
-  public void isTx0FeePaidClient() throws Exception {
+  public void isValidTx0_feePayload1() throws Exception {
     ECKey input0Key = new ECKey();
     String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
     TransactionOutPoint input0OutPoint =
@@ -111,6 +142,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     int feeIndice = 123456;
+    byte[] feePayload = new byte[] {123, 110};
     Tx0 tx0 =
         new Tx0Service(params)
             .tx0(
@@ -123,10 +155,51 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 xpubSamouraiFee,
                 FEES_VALID,
                 feePaymentCode,
-                feeIndice);
+                feeIndice,
+                feePayload);
 
-    int xpubIndice = feeValidationService.findFeeIndice(tx0.getTx());
-    Assert.assertEquals(feeIndice, xpubIndice);
-    Assert.assertTrue(feeValidationService.isTx0FeePaid(tx0.getTx(), xpubIndice));
+    WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
+    Assert.assertEquals(feeIndice, feeData.getFeeIndice());
+    Assert.assertEquals(feePayload, feeData.getFeePayload());
+    Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData));
+  }
+
+  @Test
+  public void isValidTx0_feePayload2() {
+    // reject nofee when unknown feePayload
+    String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
+
+    Transaction tx = getTx(txid);
+    Assert.assertFalse(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
+
+    // accept when valid feePayload
+    serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
+    Assert.assertTrue(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
+  }
+
+  @Test
+  public void getFeePayloadByScode() throws Exception {
+    Assert.assertEquals(
+        SCODE_FOO_PAYLOAD,
+        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_FOO)));
+    Assert.assertEquals(
+        SCODE_BAR_PAYLOAD,
+        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_BAR)));
+    Assert.assertEquals(null, feeValidationService.getFeePayloadByScode("invalid"));
+  }
+
+  @Test
+  public void getScodeByFeePayload() throws Exception {
+    Assert.assertEquals(
+        SCODE_FOO,
+        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD)));
+    Assert.assertEquals(
+        SCODE_BAR,
+        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_BAR_PAYLOAD)));
+
+    Assert.assertEquals(
+        null, feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes((short) 0)));
+    Assert.assertEquals(
+        null, feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes((short) -1)));
   }
 }

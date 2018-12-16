@@ -1,12 +1,14 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.MessageSignUtilGeneric;
+import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -58,18 +60,45 @@ public class InputValidationService {
   protected boolean checkInputProvenance(Transaction tx, long inputValue)
       throws IllegalInputException {
     // is it a tx0?
-    Integer x = feeValidationService.findFeeIndice(tx);
-    if (x != null) {
+    WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx);
+    if (feeData != null) {
       // this is a tx0 => mustMix
+      String feePayloadHex =
+          feeData.getFeePayload() != null ? Hex.toHexString(feeData.getFeePayload()) : "null";
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "Validating input: txid="
+                + tx.getHashAsString()
+                + ", value="
+                + inputValue
+                + ": feeIndice="
+                + feeData.getFeeIndice()
+                + ", feePayloadHex="
+                + feePayloadHex);
+      }
 
       // check fees paid
-      if (!feeValidationService.isTx0FeePaid(tx, x)) {
+      if (!feeValidationService.isValidTx0(tx, feeData)) {
         throw new IllegalInputException(
-            "Input rejected (invalid fee for tx0=" + tx.getHashAsString() + ", x=" + x + ")");
+            "Input rejected (invalid fee for tx0="
+                + tx.getHashAsString()
+                + ", x="
+                + feeData.getFeeIndice()
+                + ", feePayloadHex="
+                + feePayloadHex
+                + ")");
       }
       return false; // mustMix
     } else {
       // this is not a valid tx0 => liquidity coming from a previous whirlpool tx
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "Validating input: txid="
+                + tx.getHashAsString()
+                + ", value="
+                + inputValue
+                + ": feeData=null");
+      }
 
       boolean isWhirlpoolTx = isWhirlpoolTx(tx.getHashAsString(), inputValue);
       if (!isWhirlpoolTx) {

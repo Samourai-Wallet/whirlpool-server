@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.config;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.validation.constraints.NotEmpty;
@@ -392,6 +393,7 @@ public class WhirlpoolServerConfig {
     @NotEmpty private String xpub;
     private long amount;
     private SecretWalletConfig secretWallet;
+    private Map<String, Short> feePayloadByScode = new HashMap<>(); // -32,768 to 32,767
 
     public String getXpub() {
       return xpub;
@@ -415,6 +417,14 @@ public class WhirlpoolServerConfig {
 
     public void setSecretWallet(SecretWalletConfig secretWallet) {
       this.secretWallet = secretWallet;
+    }
+
+    public Map<String, Short> getFeePayloadByScode() {
+      return feePayloadByScode;
+    }
+
+    public void setFeePayloadByScode(Map<String, Short> feePayloadByScode) {
+      this.feePayloadByScode = feePayloadByScode;
     }
   }
 

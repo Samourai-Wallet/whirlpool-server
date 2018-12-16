@@ -1,11 +1,13 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.PoolInfo;
 import com.samourai.whirlpool.protocol.rest.PoolsResponse;
 import com.samourai.whirlpool.protocol.rest.RestErrorResponse;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.FeeValidationService;
 import com.samourai.whirlpool.server.services.PoolService;
 import java.lang.invoke.MethodHandles;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,15 +27,20 @@ public class PoolsController extends AbstractRestController {
 
   private PoolService poolService;
   private FeeValidationService feeValidationService;
+  private WhirlpoolServerConfig serverConfig;
 
   @Autowired
-  public PoolsController(PoolService poolService, FeeValidationService feeValidationService) {
+  public PoolsController(
+      PoolService poolService,
+      FeeValidationService feeValidationService,
+      WhirlpoolServerConfig serverConfig) {
     this.poolService = poolService;
     this.feeValidationService = feeValidationService;
+    this.serverConfig = serverConfig;
   }
 
   @RequestMapping(value = WhirlpoolEndpoint.REST_POOLS, method = RequestMethod.GET)
-  public PoolsResponse pools() {
+  public PoolsResponse pools(@RequestParam("scode") String scode) {
     PoolInfo[] pools =
         poolService
             .getPools()
@@ -40,7 +48,9 @@ public class PoolsController extends AbstractRestController {
             .map(pool -> computePoolInfo(pool))
             .toArray((i) -> new PoolInfo[i]);
     String feePaymentCode = feeValidationService.getFeePaymentCode();
-    PoolsResponse poolsResponse = new PoolsResponse(pools, feePaymentCode);
+    byte[] feePayload = feeValidationService.getFeePayloadByScode(scode);
+    PoolsResponse poolsResponse =
+        new PoolsResponse(pools, feePaymentCode, WhirlpoolProtocol.encodeBytes(feePayload));
     return poolsResponse;
   }
 

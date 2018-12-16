@@ -678,12 +678,14 @@ public class MixService {
       String mixId = mix.getMixId();
 
       // remove from confirming inputs
-      mix.removeConfirmingInputByUsername(username).ifPresent(confirmInput ->
-        log.info(" • ["
-            + mixId
-            + "] unregistered from confirming inputs, username="
-            + username)
-      );
+      mix.removeConfirmingInputByUsername(username)
+          .ifPresent(
+              confirmInput ->
+                  log.info(
+                      " • ["
+                          + mixId
+                          + "] unregistered from confirming inputs, username="
+                          + username));
 
       // mark registeredInput offline
       List<ConfirmedInput> confirmedInputs =
