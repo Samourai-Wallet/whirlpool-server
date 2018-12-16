@@ -40,7 +40,7 @@ public class PoolsController extends AbstractRestController {
   }
 
   @RequestMapping(value = WhirlpoolEndpoint.REST_POOLS, method = RequestMethod.GET)
-  public PoolsResponse pools(@RequestParam("scode") String scode) {
+  public PoolsResponse pools(@RequestParam(value = "scode", required = false) String scode) {
     PoolInfo[] pools =
         poolService
             .getPools()
