@@ -34,14 +34,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class SigningServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Autowired
-  private RegisterInputService registerInputService;
+  @Autowired private RegisterInputService registerInputService;
 
-  @Autowired
-  private ConfirmInputService confirmInputService;
+  @Autowired private ConfirmInputService confirmInputService;
 
-  @Autowired
-  private RegisterOutputService registerOutputService;
+  @Autowired private RegisterOutputService registerOutputService;
 
   @Override
   public void setUp() throws Exception {
@@ -60,12 +57,11 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params),
-            inputBalance,
-            10);
+            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // valid signature
-    UtxoWithBalance utxoWithBalance = new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
+    UtxoWithBalance utxoWithBalance =
+        new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
     PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey);
 
     // test
@@ -88,12 +84,11 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params),
-            inputBalance,
-            10);
+            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // valid signature
-    UtxoWithBalance utxoWithBalance = new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
+    UtxoWithBalance utxoWithBalance =
+        new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
     PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey);
 
     // test
@@ -101,7 +96,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
       String username = "user1";
       String[] witness64 = doSigning(mix, premixHandler, liquidity, txOutPoint, username);
       mixService.registerSignature(mix.getMixId(), "dummy", witness64); // invalid user
-    } catch(IllegalInputException e) {
+    } catch (IllegalInputException e) {
       // verify
       Assert.assertEquals("Input not found for signing username=dummy", e.getMessage());
       Assert.assertEquals(MixStatus.SIGNING, mix.getMixStatus());
@@ -121,22 +116,21 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     String firstUsername = "firstUser";
     TxOutPoint firstTxOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            testUtils.generateSegwitAddress(),
-            inputBalance,
-            10);
-    mix.registerInput(new ConfirmedInput(new RegisteredInput(firstUsername, false, firstTxOutPoint), new byte[]{}));
+            testUtils.generateSegwitAddress(), inputBalance, 10);
+    mix.registerInput(
+        new ConfirmedInput(
+            new RegisteredInput(firstUsername, false, firstTxOutPoint), new byte[] {}));
     mix.registerOutput(testUtils.generateSegwitAddress().getBech32AsString());
 
     // prepare input
     ECKey ecKey = new ECKey();
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params),
-            inputBalance,
-            10);
+            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // valid signature
-    UtxoWithBalance utxoWithBalance = new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
+    UtxoWithBalance utxoWithBalance =
+        new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
     PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey);
 
     // test
@@ -145,9 +139,9 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     mixService.registerSignature(mix.getMixId(), username, witness64); // valid
     try {
       mixService.registerSignature(mix.getMixId(), username, witness64); // duplicate signing
-    } catch(IllegalInputException e) {
+    } catch (IllegalInputException e) {
       // verify
-      Assert.assertEquals("User already signed, username="+username, e.getMessage());
+      Assert.assertEquals("User already signed, username=" + username, e.getMessage());
       Assert.assertEquals(MixStatus.SIGNING, mix.getMixStatus());
       return;
     }
@@ -165,26 +159,26 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params),
-            inputBalance,
-            10);
+            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // invalid signature (invalid signed amount)
-    UtxoWithBalance utxoWithBalance = new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
-    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey){
-      @Override
-      public void signTransaction(Transaction tx, int inputIndex, NetworkParameters params) {
-        long spendAmount = 1234; // invalid signed amount
-        TxUtil.getInstance().signInputSegwit(tx, inputIndex, ecKey, spendAmount, params);
-      }
-    };
+    UtxoWithBalance utxoWithBalance =
+        new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
+    PremixHandler premixHandler =
+        new PremixHandler(utxoWithBalance, ecKey) {
+          @Override
+          public void signTransaction(Transaction tx, int inputIndex, NetworkParameters params) {
+            long spendAmount = 1234; // invalid signed amount
+            TxUtil.getInstance().signInputSegwit(tx, inputIndex, ecKey, spendAmount, params);
+          }
+        };
 
     // test
     try {
       String username = "user1";
       String[] witness64 = doSigning(mix, premixHandler, liquidity, txOutPoint, username);
       mixService.registerSignature(mix.getMixId(), username, witness64);
-    } catch(IllegalInputException e) {
+    } catch (IllegalInputException e) {
       // verify
       Assert.assertEquals("Invalid signature", e.getMessage());
       Assert.assertEquals(MixStatus.SIGNING, mix.getMixStatus());
@@ -204,25 +198,26 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params),
-            inputBalance,
-            10);
+            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // invalid signature (invalid key)
-    UtxoWithBalance utxoWithBalance = new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
-    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey){
-      @Override
-      public void signTransaction(Transaction tx, int inputIndex, NetworkParameters params) {
-        TxUtil.getInstance().signInputSegwit(tx, inputIndex, new ECKey(), inputBalance, params); // invalid key
-      }
-    };
+    UtxoWithBalance utxoWithBalance =
+        new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
+    PremixHandler premixHandler =
+        new PremixHandler(utxoWithBalance, ecKey) {
+          @Override
+          public void signTransaction(Transaction tx, int inputIndex, NetworkParameters params) {
+            TxUtil.getInstance()
+                .signInputSegwit(tx, inputIndex, new ECKey(), inputBalance, params); // invalid key
+          }
+        };
 
     // test
     try {
       String username = "user1";
       String[] witness64 = doSigning(mix, premixHandler, liquidity, txOutPoint, username);
       mixService.registerSignature(mix.getMixId(), username, witness64);
-    } catch(IllegalInputException e) {
+    } catch (IllegalInputException e) {
       // verify
       Assert.assertEquals("Invalid signature", e.getMessage());
       Assert.assertEquals(MixStatus.SIGNING, mix.getMixStatus());
@@ -231,20 +226,20 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     Assert.assertTrue(false); // IllegalInputException expected
   }
 
-  private String[] doSigning(Mix mix, PremixHandler premixHandler, boolean liquidity, TxOutPoint txOutPoint, String username) throws Exception {
+  private String[] doSigning(
+      Mix mix,
+      PremixHandler premixHandler,
+      boolean liquidity,
+      TxOutPoint txOutPoint,
+      String username)
+      throws Exception {
     String mixId = mix.getMixId();
     String poolId = mix.getPool().getPoolId();
 
     // register input
     String signature = premixHandler.signMessage(poolId);
     registerInputService.registerInput(
-        poolId,
-        username,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        liquidity,
-        true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
 
     // confirm input
     RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();
@@ -252,7 +247,8 @@ public class SigningServiceTest extends AbstractIntegrationTest {
         clientCryptoService.computeBlindingParams(serverPublicKey);
     String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
-    byte[] signedBlindedBordereau = confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau).get();
+    byte[] signedBlindedBordereau =
+        confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau).get();
 
     // register output
     byte[] unblindedSignedBordereau =
@@ -262,7 +258,8 @@ public class SigningServiceTest extends AbstractIntegrationTest {
 
     // signing
     Transaction txToSign = new Transaction(params, mix.getTx().bitcoinSerialize());
-    int inputIndex = TxUtil.getInstance().findInputIndex(txToSign, txOutPoint.getHash(), txOutPoint.getIndex());
+    int inputIndex =
+        TxUtil.getInstance().findInputIndex(txToSign, txOutPoint.getHash(), txOutPoint.getIndex());
     premixHandler.signTransaction(txToSign, inputIndex, params);
     txToSign.verify();
     String[] witness64 = ClientUtils.witnessSerialize64(txToSign.getWitness(inputIndex));

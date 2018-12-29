@@ -195,7 +195,12 @@ public class Mix {
   }
 
   public Optional<ConfirmedInput> getInputByUsername(String username) {
-    return inputsById.values().stream().filter(confirmedInput -> confirmedInput.getRegisteredInput().getUsername().equals(username)).findFirst();
+    return inputsById
+        .values()
+        .stream()
+        .filter(
+            confirmedInput -> confirmedInput.getRegisteredInput().getUsername().equals(username))
+        .findFirst();
   }
 
   public int getNbInputs() {

@@ -374,9 +374,13 @@ public class MixService {
     Mix mix = getMix(mixId, MixStatus.SIGNING);
 
     // check user
-    ConfirmedInput confirmedInput = mix.getInputByUsername(username).orElseThrow(() -> new IllegalInputException("Input not found for signing username="+username));
+    ConfirmedInput confirmedInput =
+        mix.getInputByUsername(username)
+            .orElseThrow(
+                () ->
+                    new IllegalInputException("Input not found for signing username=" + username));
     if (mix.getSignedByUsername(username)) {
-      throw new IllegalInputException("User already signed, username="+username);
+      throw new IllegalInputException("User already signed, username=" + username);
     }
     TxOutPoint txOutPoint = confirmedInput.getRegisteredInput().getOutPoint();
 

@@ -154,10 +154,7 @@ public abstract class AbstractIntegrationTest {
     return __nextMix(poolConfig);
   }
 
-  protected Mix __nextMix(
-      int mustMixMin,
-      int anonymitySet,
-      Pool copyPool)
+  protected Mix __nextMix(int mustMixMin, int anonymitySet, Pool copyPool)
       throws IllegalInputException {
     // create new pool
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();

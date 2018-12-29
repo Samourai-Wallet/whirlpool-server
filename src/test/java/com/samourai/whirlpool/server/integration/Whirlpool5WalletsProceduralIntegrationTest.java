@@ -388,9 +388,6 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
         toPrivKeys.put(
             toAddress,
             hdw84.getAccountAt(Integer.MAX_VALUE - 2).getChain(0).getAddressAt(j).getECKey());
-        //                System.out.println("spend to:"  + toAddress + "," +
-        // hdw84.getAccountAt(Integer.MAX_VALUE -
-        // 2).getChain(0).getAddressAt(j).getECKey().getPrivateKeyAsWiF(params));
         spendTos.put(toAddress);
         mixables.put(toAddress, pcode);
       }

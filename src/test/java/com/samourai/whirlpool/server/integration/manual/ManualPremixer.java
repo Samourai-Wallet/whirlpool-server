@@ -73,7 +73,9 @@ public class ManualPremixer {
       HD_Wallet hdw =
           hdWalletFactory.restoreWallet(words, "all" + Integer.toString(10 + i), 1, params);
       // init BIP84 wallet for input
-      HD_Wallet hdw84 = hdWalletFactory.getHD(84, hdw.getSeedHex(), hdw.getPassphrase(), params);
+      HD_Wallet hdw84 =
+          hdWalletFactory.getHD(
+              84, hdWalletFactory.computeSeedFromWords(words), hdw.getPassphrase(), params);
       // init BIP47 wallet for input
       BIP47Wallet bip47w = hdWalletFactory.getBIP47(hdw.getSeedHex(), hdw.getPassphrase(), params);
 
@@ -159,9 +161,6 @@ public class ManualPremixer {
         toPrivKeys.put(
             toAddress,
             hdw84.getAccountAt(Integer.MAX_VALUE - 2).getChain(0).getAddressAt(j).getECKey());
-        //                System.out.println("spend to:"  + toAddress + "," +
-        // hdw84.getAccountAt(Integer.MAX_VALUE -
-        // 2).getChain(0).getAddressAt(j).getECKey().getPrivateKeyAsWiF(params));
         spendTos.put(toAddress);
         mixables.put(toAddress, pcode);
       }
