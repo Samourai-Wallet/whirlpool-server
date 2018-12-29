@@ -154,6 +154,28 @@ public abstract class AbstractIntegrationTest {
     return __nextMix(poolConfig);
   }
 
+  protected Mix __nextMix(
+      int mustMixMin,
+      int anonymitySet,
+      Pool copyPool)
+      throws IllegalInputException {
+    // create new pool
+    WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
+    poolConfig.setId(Utils.generateUniqueString());
+    poolConfig.setDenomination(copyPool.getDenomination());
+    poolConfig.setMinerFeeMin(copyPool.getMinerFeeMin());
+    poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());
+    poolConfig.setMustMixMin(mustMixMin);
+    poolConfig.setAnonymitySetTarget(anonymitySet);
+    poolConfig.setAnonymitySetMin(anonymitySet);
+    poolConfig.setAnonymitySetMax(anonymitySet);
+    poolConfig.setAnonymitySetAdjustTimeout(copyPool.getTimeoutAdjustAnonymitySet());
+    poolConfig.setLiquidityTimeout(copyPool.getLiquidityTimeout());
+
+    // run new mix for the pool
+    return __nextMix(poolConfig);
+  }
+
   protected Mix __getCurrentMix() {
     Pool pool = poolService.getPools().iterator().next();
     return pool.getCurrentMix();
