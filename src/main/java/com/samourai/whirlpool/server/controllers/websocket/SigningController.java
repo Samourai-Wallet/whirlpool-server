@@ -1,7 +1,6 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SigningRequest;
 import com.samourai.whirlpool.server.services.SigningService;
 import com.samourai.whirlpool.server.services.WebSocketService;
@@ -47,8 +46,7 @@ public class SigningController extends AbstractWebSocketController {
     }
 
     // signing
-    byte[][] witness = Utils.computeWitness(payload.witnesses64);
-    signingService.signing(payload.mixId, username, witness);
+    signingService.signing(payload.mixId, username, payload.witnesses64);
   }
 
   @MessageExceptionHandler

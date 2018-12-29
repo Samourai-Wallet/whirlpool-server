@@ -19,7 +19,6 @@ import com.samourai.whirlpool.server.beans.FailReason;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.Signature;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -370,17 +369,39 @@ public class MixService {
         == mix.getNbInputs()); // TODO -1 to not wait for the one who didn't sign?
   }
 
-  public synchronized void registerSignature(String mixId, String username, byte[][] witness)
+  public synchronized void registerSignature(String mixId, String username, String[] witness60)
       throws Exception {
-    log.info(" • registered signature: username=" + username);
     Mix mix = getMix(mixId, MixStatus.SIGNING);
-    Signature signature = new Signature(witness);
-    mix.setSignatureByUsername(username, signature);
+
+    // check user
+    ConfirmedInput confirmedInput = mix.getInputByUsername(username).orElseThrow(() -> new IllegalInputException("Input not found for signing username="+username));
+    if (mix.getSignedByUsername(username)) {
+      throw new IllegalInputException("User already signed, username="+username);
+    }
+    TxOutPoint txOutPoint = confirmedInput.getRegisteredInput().getOutPoint();
+
+    // sign
+    Transaction tx = mix.getTx();
+    Integer inputIndex = txUtil.findInputIndex(tx, txOutPoint.getHash(), txOutPoint.getIndex());
+    TransactionWitness witness = Utils.witnessUnserialize64(witness60);
+    tx.setWitness(inputIndex, witness);
+
+    // verify
+    try {
+      txUtil.verifySignInput(tx, inputIndex, txOutPoint.getValue(), txOutPoint.getScriptBytes());
+    } catch (Exception e) {
+      log.error("Invalid signature", e);
+      throw new IllegalInputException("Invalid signature");
+    }
+
+    // signature success
+    mix.setTx(tx);
+    mix.setSignedByUsername(username);
+    log.info(" • registered signature: username=" + username);
 
     if (isRegisterSignaturesReady(mix)) {
-      Transaction tx = mix.getTx();
-      tx = signTransaction(tx, mix);
-      mix.setTx(tx);
+      // check final transaction
+      tx.verify();
 
       log.info("Tx to broadcast: \n" + tx + "\nRaw: " + Utils.getRawTx(tx));
       try {
@@ -589,32 +610,6 @@ public class MixService {
     for (TransactionInput ti : inputs) {
       tx.addInput(ti);
     }
-    return tx;
-  }
-
-  private Transaction signTransaction(Transaction tx, Mix mix) throws IllegalInputException {
-    for (ConfirmedInput confirmedInput : mix.getInputs()) {
-      RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
-      Signature signature = mix.getSignatureByUsername(registeredInput.getUsername());
-
-      TxOutPoint txOutPoint = registeredInput.getOutPoint();
-      Integer inputIndex = txUtil.findInputIndex(tx, txOutPoint.getHash(), txOutPoint.getIndex());
-
-      TransactionWitness witness = Utils.witnessUnserialize(signature.witness);
-      tx.setWitness(inputIndex, witness);
-
-      // verify
-      try {
-        txUtil.verifySignInput(tx, inputIndex, txOutPoint.getValue(), txOutPoint.getScriptBytes());
-      } catch (Exception e) {
-        log.error("Invalid signature", e);
-        throw new IllegalInputException("Invalid signature");
-      }
-    }
-
-    // check final transaction
-    tx.verify();
-
     return tx;
   }
 

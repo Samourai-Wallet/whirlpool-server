@@ -17,8 +17,8 @@ public class SigningService {
     this.mixService = mixService;
   }
 
-  public void signing(String mixId, String username, byte[][] witness) throws Exception {
+  public void signing(String mixId, String username, String[] witness64) throws Exception {
     // signing
-    mixService.registerSignature(mixId, username, witness);
+    mixService.registerSignature(mixId, username, witness64);
   }
 }

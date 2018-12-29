@@ -41,7 +41,7 @@ public class Mix {
 
   private Set<String> receiveAddresses;
   private Map<String, String> revealedReceiveAddressesByUsername;
-  private Map<String, Signature> signatures;
+  private Map<String, Boolean> signed;
 
   private Transaction tx;
   private FailReason failReason;
@@ -70,7 +70,7 @@ public class Mix {
 
     this.receiveAddresses = new HashSet<>();
     this.revealedReceiveAddressesByUsername = new HashMap<>();
-    this.signatures = new HashMap<>();
+    this.signed = new HashMap<>();
 
     this.tx = null;
     this.failReason = null;
@@ -194,6 +194,10 @@ public class Mix {
     return inputsById.values();
   }
 
+  public Optional<ConfirmedInput> getInputByUsername(String username) {
+    return inputsById.values().stream().filter(confirmedInput -> confirmedInput.getRegisteredInput().getUsername().equals(username)).findFirst();
+  }
+
   public int getNbInputs() {
     return inputsById.size();
   }
@@ -275,15 +279,15 @@ public class Mix {
   }
 
   public int getNbSignatures() {
-    return signatures.size();
+    return signed.size();
   }
 
-  public Signature getSignatureByUsername(String username) {
-    return signatures.get(username);
+  public boolean getSignedByUsername(String username) {
+    return signed.containsKey(username);
   }
 
-  public void setSignatureByUsername(String username, Signature userSignature) {
-    signatures.put(username, userSignature);
+  public void setSignedByUsername(String username) {
+    signed.put(username, true);
   }
 
   public void setTx(Transaction tx) {

@@ -52,19 +52,12 @@ public class Utils {
     return org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize());
   }
 
-  public static byte[][] computeWitness(String[] witnesses64) {
-    byte[][] witnesses = new byte[witnesses64.length][];
+  public static TransactionWitness witnessUnserialize64(String[] witnesses64) {
+    TransactionWitness witness = new TransactionWitness(witnesses64.length);
     for (int i = 0; i < witnesses64.length; i++) {
       String witness64 = witnesses64[i];
-      witnesses[i] = WhirlpoolProtocol.decodeBytes(witness64);
-    }
-    return witnesses;
-  }
-
-  public static TransactionWitness witnessUnserialize(byte[][] serialized) {
-    TransactionWitness witness = new TransactionWitness(serialized.length);
-    for (int i = 0; i < serialized.length; i++) {
-      witness.setPush(i, serialized[i]);
+      byte[] witnessItem = WhirlpoolProtocol.decodeBytes(witness64);
+      witness.setPush(i, witnessItem);
     }
     return witness;
   }

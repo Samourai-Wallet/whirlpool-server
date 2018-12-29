@@ -291,9 +291,7 @@ public class MixLimitsService {
     Set<ConfirmedInput> confirmedInputsToBlame =
         mix.getInputs()
             .parallelStream()
-            .filter(
-                input ->
-                    mix.getSignatureByUsername(input.getRegisteredInput().getUsername()) == null)
+            .filter(input -> !mix.getSignedByUsername(input.getRegisteredInput().getUsername()))
             .collect(Collectors.toSet());
     confirmedInputsToBlame.forEach(
         confirmedInputToBlame ->
