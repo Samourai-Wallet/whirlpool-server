@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
+import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
@@ -49,6 +50,15 @@ public class Utils {
 
   public static String getRawTx(Transaction tx) {
     return org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize());
+  }
+
+  public static byte[][] computeWitness(String[] witnesses64) {
+    byte[][] witnesses = new byte[witnesses64.length][];
+    for (int i = 0; i < witnesses64.length; i++) {
+      String witness64 = witnesses64[i];
+      witnesses[i] = WhirlpoolProtocol.decodeBytes(witness64);
+    }
+    return witnesses;
   }
 
   public static TransactionWitness witnessUnserialize(byte[][] serialized) {

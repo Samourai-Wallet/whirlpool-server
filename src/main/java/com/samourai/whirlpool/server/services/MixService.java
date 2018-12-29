@@ -145,7 +145,7 @@ public class MixService {
     }
   }
 
-  public synchronized void confirmInput(String mixId, String username, byte[] blindedBordereau)
+  public synchronized byte[] confirmInput(String mixId, String username, byte[] blindedBordereau)
       throws IllegalInputException, MixException, QueueInputException {
     Mix mix = getMix(mixId);
 
@@ -169,9 +169,7 @@ public class MixService {
     validateOnConfirmInput(mix, confirmedInput);
 
     // sign bordereau to reply
-    String signedBordereau64 =
-        WhirlpoolProtocol.encodeBytes(
-            cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair()));
+    byte[] signedBordereau = cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair());
 
     // add to mix inputs
     mix.registerInput(confirmedInput);
@@ -183,6 +181,7 @@ public class MixService {
     logMixStatus(mix);
 
     // reply confirmInputResponse with signedBordereau
+    String signedBordereau64 = WhirlpoolProtocol.encodeBytes(signedBordereau);
     ConfirmInputResponse confirmInputResponse = new ConfirmInputResponse(mixId, signedBordereau64);
     webSocketService.sendPrivate(username, confirmInputResponse);
 
@@ -191,6 +190,7 @@ public class MixService {
 
     // check mix ready
     checkConfirmInputReady(mix);
+    return signedBordereau;
   }
 
   public void checkConfirmInputReady(Mix mix) {
@@ -607,15 +607,8 @@ public class MixService {
       try {
         txUtil.verifySignInput(tx, inputIndex, txOutPoint.getValue(), txOutPoint.getScriptBytes());
       } catch (Exception e) {
-        String error =
-            "Invalid signature for input #"
-                + inputIndex
-                + ": "
-                + txOutPoint.getHash()
-                + ":"
-                + txOutPoint.getIndex();
-        log.error(error, e);
-        throw new IllegalInputException(error);
+        log.error("Invalid signature", e);
+        throw new IllegalInputException("Invalid signature");
       }
     }
 

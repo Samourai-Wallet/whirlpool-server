@@ -5,6 +5,7 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import java.lang.invoke.MethodHandles;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,12 @@ public class ConfirmInputService {
     this.poolService = poolService;
   }
 
-  public synchronized void confirmInputOrQueuePool(
+  public synchronized Optional<byte[]> confirmInputOrQueuePool(
       String mixId, String username, byte[] blindedBordereau)
       throws IllegalInputException, MixException {
     try {
       // add input to mix & reply confirmInputResponse
-      mixService.confirmInput(mixId, username, blindedBordereau);
+      return Optional.of(mixService.confirmInput(mixId, username, blindedBordereau));
     } catch (QueueInputException e) {
       // input queued => re-enqueue in pool
       RegisteredInput registeredInput = e.getRegisteredInput();
@@ -48,6 +49,7 @@ public class ConfirmInputService {
           registeredInput.isLiquidity(),
           registeredInput.getOutPoint(),
           false);
+      return Optional.empty();
     }
   }
 }
