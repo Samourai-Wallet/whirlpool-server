@@ -39,6 +39,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     super.setUp();
     serverConfig.getRegisterInput().setMinConfirmationsMustMix(MIN_CONFIRMATIONS_MUSTMIX);
     serverConfig.getRegisterInput().setMinConfirmationsLiquidity(MIN_CONFIRMATIONS_LIQUIDITY);
+    serverConfig.setTestMode(true); // TODO
   }
 
   final Function<Boolean, TxOutPoint> runTestValidInput =
