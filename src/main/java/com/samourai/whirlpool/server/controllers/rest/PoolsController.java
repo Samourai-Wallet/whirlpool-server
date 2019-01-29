@@ -4,7 +4,6 @@ import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.PoolInfo;
 import com.samourai.whirlpool.protocol.rest.PoolsResponse;
-import com.samourai.whirlpool.protocol.rest.RestErrorResponse;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
@@ -14,8 +13,6 @@ import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -76,10 +73,5 @@ public class PoolsController extends AbstractRestController {
             currentMix.getElapsedTime(),
             mixNbConfirmed);
     return poolInfo;
-  }
-
-  @ExceptionHandler
-  public ResponseEntity<RestErrorResponse> handleException(Exception exception) {
-    return super.handleException(exception);
   }
 }

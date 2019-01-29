@@ -31,10 +31,11 @@ public abstract class AbstractWebSocketController {
     }
   }
 
-  protected void handleException(Exception exception, Principal principal) {
-    log.error("handleException", exception);
+  protected void handleException(Exception e, Principal principal) {
+    log.error("handleException", e);
+    NotifiableException notifiable = NotifiableException.computeNotifiableException(e);
+    String message = notifiable.getMessage();
     String username = principal.getName();
-    String message = NotifiableException.computeNotifiableMessage(exception);
     webSocketService.sendPrivateError(username, message);
   }
 

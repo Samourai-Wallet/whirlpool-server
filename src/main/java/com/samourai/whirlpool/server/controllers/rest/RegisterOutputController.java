@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.controllers.rest;
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
-import com.samourai.whirlpool.protocol.rest.RestErrorResponse;
 import com.samourai.whirlpool.server.services.BlameService;
 import com.samourai.whirlpool.server.services.DbService;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
@@ -12,8 +11,6 @@ import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -49,10 +46,5 @@ public class RegisterOutputController extends AbstractRestController {
         WhirlpoolProtocol.decodeBytes(payload.unblindedSignedBordereau64);
     registerOutputService.registerOutput(
         payload.inputsHash, unblindedSignedBordereau, payload.receiveAddress);
-  }
-
-  @ExceptionHandler
-  public ResponseEntity<RestErrorResponse> handleException(Exception exception) {
-    return super.handleException(exception);
   }
 }
