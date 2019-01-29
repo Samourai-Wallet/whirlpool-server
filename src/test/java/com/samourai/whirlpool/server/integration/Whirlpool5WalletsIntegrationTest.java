@@ -2,7 +2,7 @@ package com.samourai.whirlpool.server.integration;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-import com.samourai.wallet.bip47.rpc.BIP47Wallet;
+import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
@@ -320,8 +320,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
      * MIX
      */
     ManualMixer mixer =
-        new ManualMixer(
-            params, nbMixes, premixer.bip47Wallets, premixer.toPrivKeys, premixer.toUTXO);
+        new ManualMixer(params, nbMixes, premixer.wallets, premixer.toPrivKeys, premixer.toUTXO);
 
     mixer.__setDeterministPaymentCodeMatching(true);
     mixer.mix(firstMixables, premixer.biUnitSpendAmount, premixer.biUnitReceiveAmount);
@@ -347,7 +346,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
      */
     ManualPremixer premixer = new ManualPremixer(params, nbMixes);
     premixer.initWallets();
-    Assert.assertEquals(nbMixes, premixer.bip47Wallets.size());
+    Assert.assertEquals(nbMixes, premixer.wallets.size());
 
     premixer.premix(utxos, swFee, selectedAmount, unitSpendAmount, unitReceiveAmount, premixFee);
 
@@ -417,13 +416,12 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             int utxoIndex = Integer.parseInt(utxoHashSplit[1]);
 
             final String paymentCode = mixers.get(i);
-            final BIP47Wallet bip47Wallet = premixer.bip47Wallets.get(paymentCode);
+            final Bip84Wallet bip84Wallet = premixer.wallets.get(paymentCode).getBip84Wallet(0);
 
             multiClientManager.connectWithMock(
                 1,
                 segwitAddress,
-                bip47Wallet,
-                0,
+                bip84Wallet,
                 null,
                 utxoHash,
                 utxoIndex,

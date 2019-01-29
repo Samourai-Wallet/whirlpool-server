@@ -2,14 +2,16 @@ package com.samourai.whirlpool.server.utils;
 
 import com.samourai.http.client.JavaHttpClient;
 import com.samourai.stomp.client.JavaStompClient;
-import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
+import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
+import com.samourai.whirlpool.cli.config.CliConfig;
+import com.samourai.whirlpool.cli.services.CliTorClientService;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.mix.MixParams;
+import com.samourai.whirlpool.client.mix.handler.Bip84PostmixHandler;
 import com.samourai.whirlpool.client.mix.handler.IPostmixHandler;
 import com.samourai.whirlpool.client.mix.handler.IPremixHandler;
-import com.samourai.whirlpool.client.mix.handler.PostmixHandler;
 import com.samourai.whirlpool.client.mix.handler.PremixHandler;
 import com.samourai.whirlpool.client.mix.handler.UtxoWithBalance;
 import com.samourai.whirlpool.client.utils.MultiClientListener;
@@ -26,7 +28,6 @@ import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import java.lang.invoke.MethodHandles;
-import java.util.Optional;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
@@ -51,8 +52,7 @@ public class AssertMultiClientManager extends MultiClientManager {
 
   private TxOutPoint[] inputs;
   private ECKey[] inputKeys;
-  private BIP47Wallet[] bip47Wallets;
-  private int[] paymentCodeIndexs;
+  private Bip84Wallet[] bip84Wallets;
 
   public AssertMultiClientManager(
       int nbClients,
@@ -75,18 +75,19 @@ public class AssertMultiClientManager extends MultiClientManager {
 
     inputs = new TxOutPoint[nbClients];
     inputKeys = new ECKey[nbClients];
-    bip47Wallets = new BIP47Wallet[nbClients];
-    paymentCodeIndexs = new int[nbClients];
+    bip84Wallets = new Bip84Wallet[nbClients];
   }
 
   private WhirlpoolClient createClient() {
     String server = "127.0.0.1:" + port;
+    CliTorClientService cliTorClientService = new CliTorClientService(new CliConfig());
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
-            new JavaHttpClient(Optional.empty()),
-            new JavaStompClient(Optional.empty()),
+            new JavaHttpClient(cliTorClientService),
+            new JavaStompClient(cliTorClientService),
             server,
-            cryptoService.getNetworkParameters());
+            cryptoService.getNetworkParameters(),
+            false);
     config.setTestMode(testMode);
     config.setSsl(ssl);
     return WhirlpoolClientImpl.newClient(config);
@@ -94,16 +95,13 @@ public class AssertMultiClientManager extends MultiClientManager {
 
   private int prepareClientWithMock(long inputBalance) throws Exception {
     SegwitAddress inputAddress = testUtils.generateSegwitAddress();
-    BIP47Wallet bip47Wallet = testUtils.generateWallet().getBip47Wallet();
-    int paymentCodeIndex = 0;
-    return prepareClientWithMock(
-        inputAddress, bip47Wallet, paymentCodeIndex, null, null, null, inputBalance);
+    Bip84Wallet bip84Wallet = testUtils.generateWallet().getBip84Wallet(0);
+    return prepareClientWithMock(inputAddress, bip84Wallet, null, null, null, inputBalance);
   }
 
   private int prepareClientWithMock(
       SegwitAddress inputAddress,
-      BIP47Wallet bip47Wallet,
-      int paymentCodeIndex,
+      Bip84Wallet bip84Wallet,
       Integer nbConfirmations,
       String utxoHash,
       Integer utxoIndex,
@@ -115,15 +113,13 @@ public class AssertMultiClientManager extends MultiClientManager {
             inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
     ECKey utxoKey = inputAddress.getECKey();
 
-    return prepareClient(utxo, utxoKey, bip47Wallet, paymentCodeIndex);
+    return prepareClient(utxo, utxoKey, bip84Wallet);
   }
 
-  private synchronized int prepareClient(
-      TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet, int paymentCodeIndex) {
+  private synchronized int prepareClient(TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
     int i = clients.size();
     register(createClient(), currentMix);
-    bip47Wallets[i] = bip47Wallet;
-    paymentCodeIndexs[i] = paymentCodeIndex;
+    bip84Wallets[i] = bip84Wallet;
     inputs[i] = utxo;
     inputKeys[i] = utxoKey;
     return i;
@@ -158,8 +154,7 @@ public class AssertMultiClientManager extends MultiClientManager {
   public void connectWithMock(
       int mixs,
       SegwitAddress inputAddress,
-      BIP47Wallet bip47Wallet,
-      int paymentCodeIndex,
+      Bip84Wallet bip84Wallet,
       Integer nbConfirmations,
       String utxoHash,
       Integer utxoIndex,
@@ -167,19 +162,12 @@ public class AssertMultiClientManager extends MultiClientManager {
       throws Exception {
     int i =
         prepareClientWithMock(
-            inputAddress,
-            bip47Wallet,
-            paymentCodeIndex,
-            nbConfirmations,
-            utxoHash,
-            utxoIndex,
-            inputBalance);
+            inputAddress, bip84Wallet, nbConfirmations, utxoHash, utxoIndex, inputBalance);
     whirlpool(i, mixs);
   }
 
-  public void connect(
-      int mixs, TxOutPoint utxo, ECKey utxoKey, BIP47Wallet bip47Wallet, int paymentCodeIndex) {
-    int i = prepareClient(utxo, utxoKey, bip47Wallet, paymentCodeIndex);
+  public void connect(int mixs, TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
+    int i = prepareClient(utxo, utxoKey, bip84Wallet);
     whirlpool(i, mixs);
   }
 
@@ -189,12 +177,11 @@ public class AssertMultiClientManager extends MultiClientManager {
     MultiClientListener listener = listeners.get(i);
     TxOutPoint input = inputs[i];
     ECKey ecKey = inputKeys[i];
-    int paymentCodeIndex = 0;
 
-    BIP47Wallet bip47Wallet = bip47Wallets[i];
+    Bip84Wallet bip84Wallet = bip84Wallets[i];
     UtxoWithBalance utxo = new UtxoWithBalance(input.getHash(), input.getIndex(), input.getValue());
     IPremixHandler premixHandler = new PremixHandler(utxo, ecKey);
-    IPostmixHandler postmixHandler = new PostmixHandler(bip47Wallet, paymentCodeIndex, bip47Util);
+    IPostmixHandler postmixHandler = new Bip84PostmixHandler(bip84Wallet);
 
     MixParams mixParams =
         new MixParams(pool.getPoolId(), pool.getDenomination(), premixHandler, postmixHandler);

@@ -142,9 +142,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         hdWalletFactory.restoreWallet(
             "all all all all all all all all all all all all", "test", 1, params);
 
-    Bip84Wallet depositWallet = new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet depositWallet =
+        new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet premixWallet =
-        new Bip84Wallet(bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -192,9 +194,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         hdWalletFactory.restoreWallet(
             "all all all all all all all all all all all all", "test", 1, params);
 
-    Bip84Wallet depositWallet = new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet depositWallet =
+        new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet premixWallet =
-        new Bip84Wallet(bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -210,7 +214,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
-    byte[] feePayload = new byte[]{01, 23}; // invalid feePayload
+    byte[] feePayload = new byte[] {01, 23}; // invalid feePayload
     Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
 
     Tx0 tx0 =
@@ -255,9 +259,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         hdWalletFactory.restoreWallet(
             "all all all all all all all all all all all all", "test", 1, params);
 
-    Bip84Wallet depositWallet = new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet depositWallet =
+        new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet premixWallet =
-        new Bip84Wallet(bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");

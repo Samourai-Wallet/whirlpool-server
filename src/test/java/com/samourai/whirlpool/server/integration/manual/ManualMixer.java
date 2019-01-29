@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.integration.manual;
 
-import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.bip47.rpc.PaymentAddress;
 import com.samourai.wallet.bip47.rpc.PaymentCode;
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
@@ -10,6 +9,7 @@ import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.whirlpool.server.utils.BIP47WalletAndHDWallet;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +39,7 @@ public class ManualMixer {
   // parameters
   private final int nbMixes;
   private final NetworkParameters params;
-  private HashMap<String, BIP47Wallet> bip47Wallets;
+  private HashMap<String, BIP47WalletAndHDWallet> wallets;
   private HashMap<String, ECKey> toPrivKeys;
   private HashMap<String, String> toUTXO;
   private boolean deterministPaymentCodeMatching; // for testing purpose only
@@ -55,13 +55,13 @@ public class ManualMixer {
   public ManualMixer(
       NetworkParameters params,
       int nbMixes,
-      HashMap<String, BIP47Wallet> bip47Wallets,
+      HashMap<String, BIP47WalletAndHDWallet> wallets,
       HashMap<String, ECKey> toPrivKeys,
       HashMap<String, String> toUTXO) {
     this.params = params;
     this.nbMixes = nbMixes;
 
-    this.bip47Wallets = bip47Wallets;
+    this.wallets = wallets;
     this.toPrivKeys = toPrivKeys;
     this.toUTXO = toUTXO;
     this.deterministPaymentCodeMatching = false;
@@ -133,11 +133,11 @@ public class ManualMixer {
       // sender calculates address with receiver's payment code
       PaymentAddress sendAddress =
           bip47Util.getSendAddress(
-              bip47Wallets.get(fromPCode), new PaymentCode(toPCode), 0, params);
+              wallets.get(fromPCode).getBip47Wallet(), new PaymentCode(toPCode), 0, params);
       // receiver calculates address with sender's payment code
       PaymentAddress receiveAddress =
           bip47Util.getReceiveAddress(
-              bip47Wallets.get(toPCode), new PaymentCode(fromPCode), 0, params);
+              wallets.get(toPCode).getBip47Wallet(), new PaymentCode(fromPCode), 0, params);
 
       // sender calculates from pubkey
       String addressFromSender =
