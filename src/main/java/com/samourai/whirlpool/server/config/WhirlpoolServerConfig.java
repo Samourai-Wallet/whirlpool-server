@@ -19,6 +19,7 @@ public class WhirlpoolServerConfig {
   private boolean testMode;
   private int port;
   private boolean testnet;
+  private NetworkParameters networkParameters;
   private RpcClientConfig rpcClient;
   private RegisterInputConfig registerInput;
   private RegisterOutputConfig registerOutput;
@@ -52,16 +53,18 @@ public class WhirlpoolServerConfig {
     this.port = port;
   }
 
-  public NetworkParameters getNetworkParameters() {
-    return testnet ? TestNet3Params.get() : MainNetParams.get();
+  public boolean isTestnet() {
+    return testnet;
   }
 
   public void setTestnet(boolean testnet) {
     this.testnet = testnet;
+    NetworkParameters networkParameters = testnet ? TestNet3Params.get() : MainNetParams.get();
+    this.networkParameters = networkParameters;
   }
 
-  public boolean isTestnet() {
-    return testnet;
+  public NetworkParameters getNetworkParameters() {
+    return networkParameters;
   }
 
   public RpcClientConfig getRpcClient() {
@@ -455,7 +458,7 @@ public class WhirlpoolServerConfig {
     configInfo.put("testMode", String.valueOf(testMode));
     configInfo.put(
         "rpcClient",
-        rpcClient.getHost() + ":" + rpcClient.getPort() + "," + (testnet ? "testnet" : "mainnet"));
+        rpcClient.getHost() + ":" + rpcClient.getPort() + "," + networkParameters.getId());
     configInfo.put("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
 
     String feesXpub =

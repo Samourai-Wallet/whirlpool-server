@@ -133,7 +133,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void isValidTx0_feePayload1() throws Exception {
+  public void isValidTx0_feePayloadValid() throws Exception {
     ECKey input0Key = new ECKey();
     String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
     TransactionOutPoint input0OutPoint =
@@ -160,7 +160,120 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
-    byte[] feePayload = new byte[] {123, 110};
+    byte[] feePayload = Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD); // valid feePayload
+    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+
+    Tx0 tx0 =
+        new Tx0Service(params, xpubSamouraiFee, FEES_VALID)
+            .tx0(
+                input0Key.getPrivKeyBytes(),
+                input0OutPoint,
+                depositWallet,
+                premixWallet,
+                feeIndexHandler,
+                2,
+                pools,
+                pool,
+                4);
+
+    WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
+    Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
+    Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
+    Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData));
+  }
+
+  @Test
+  public void isValidTx0_feePayloadInvalid() throws Exception {
+    ECKey input0Key = new ECKey();
+    String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
+    TransactionOutPoint input0OutPoint =
+        cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, 99000000, params);
+    HD_Wallet bip84w =
+        hdWalletFactory.restoreWallet(
+            "all all all all all all all all all all all all", "test", 1, params);
+
+    Bip84Wallet depositWallet = new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet premixWallet =
+        new Bip84Wallet(bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+
+    Pool pool = new Pool();
+    pool.setPoolId("foo");
+    pool.setDenomination(1000000);
+    pool.setMinerFeeMin(102);
+    pool.setMinerFeeMax(10000);
+    pool.setMinAnonymitySet(1);
+    pool.setMixAnonymitySet(2);
+    List<Pool> poolItems = new ArrayList<>();
+    poolItems.add(pool);
+
+    String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
+    String feePaymentCode = feeValidationService.getFeePaymentCode();
+    int feeIndice = 123456;
+    IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
+    byte[] feePayload = new byte[]{01, 23}; // invalid feePayload
+    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+
+    Tx0 tx0 =
+        new Tx0Service(params, xpubSamouraiFee, FEES_VALID)
+            .tx0(
+                input0Key.getPrivKeyBytes(),
+                input0OutPoint,
+                depositWallet,
+                premixWallet,
+                feeIndexHandler,
+                2,
+                pools,
+                pool,
+                4);
+
+    WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
+    Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
+    Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
+    Assert.assertFalse(feeValidationService.isValidTx0(tx0.getTx(), feeData));
+  }
+
+  @Test
+  public void isValidTx0_feePayload2() {
+    // reject nofee when unknown feePayload
+    String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
+
+    Transaction tx = getTx(txid);
+    Assert.assertFalse(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
+
+    // accept when valid feePayload
+    serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
+    Assert.assertTrue(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
+  }
+
+  @Test
+  public void isValidTx0_noFeePayload() throws Exception {
+    ECKey input0Key = new ECKey();
+    String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
+    TransactionOutPoint input0OutPoint =
+        cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, 99000000, params);
+    HD_Wallet bip84w =
+        hdWalletFactory.restoreWallet(
+            "all all all all all all all all all all all all", "test", 1, params);
+
+    Bip84Wallet depositWallet = new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet premixWallet =
+        new Bip84Wallet(bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+
+    Pool pool = new Pool();
+    pool.setPoolId("foo");
+    pool.setDenomination(1000000);
+    pool.setMinerFeeMin(102);
+    pool.setMinerFeeMax(10000);
+    pool.setMinAnonymitySet(1);
+    pool.setMixAnonymitySet(2);
+    List<Pool> poolItems = new ArrayList<>();
+    poolItems.add(pool);
+
+    String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
+    String feePaymentCode = feeValidationService.getFeePaymentCode();
+    int feeIndice = 123456;
+    IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
+    byte[] feePayload = null; // no feePayload
     Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
 
     Tx0 tx0 =
@@ -178,21 +291,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(feeIndice, feeData.getFeeIndice());
-    Assert.assertEquals(feePayload, feeData.getFeePayload());
+    Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
     Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData));
-  }
-
-  @Test
-  public void isValidTx0_feePayload2() {
-    // reject nofee when unknown feePayload
-    String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
-
-    Transaction tx = getTx(txid);
-    Assert.assertFalse(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
-
-    // accept when valid feePayload
-    serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
-    Assert.assertTrue(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
   }
 
   @Test
