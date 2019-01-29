@@ -7,6 +7,7 @@ import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32Segwit;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.whirlpool.server.utils.BIP47WalletAndHDWallet;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -41,8 +42,7 @@ public class ManualPremixer {
   private int nbMixes;
 
   // init results
-  private HashMap<String, HD_Wallet> wallets;
-  public HashMap<String, BIP47Wallet> bip47Wallets;
+  public HashMap<String, BIP47WalletAndHDWallet> wallets;
   private HashMap<String, JSONObject> payloads;
 
   // premix results
@@ -59,8 +59,7 @@ public class ManualPremixer {
   }
 
   public void initWallets() throws Exception {
-    wallets = new HashMap<String, HD_Wallet>();
-    bip47Wallets = new HashMap<String, BIP47Wallet>();
+    wallets = new HashMap<String, BIP47WalletAndHDWallet>();
     payloads = new HashMap<String, JSONObject>();
 
     String words = "all all all all all all all all all all all all";
@@ -90,8 +89,8 @@ public class ManualPremixer {
       // collect wallet payment codes
       //
       String pcode = bip47w.getAccount(0).getPaymentCode();
-      wallets.put(pcode, hdw84);
-      bip47Wallets.put(pcode, bip47w);
+      BIP47WalletAndHDWallet bip47WalletAndHDWallet = new BIP47WalletAndHDWallet(bip47w, hdw84);
+      wallets.put(pcode, bip47WalletAndHDWallet);
 
       JSONObject payloadObj = new JSONObject();
       payloadObj.put("pcode", pcode);
@@ -124,10 +123,8 @@ public class ManualPremixer {
 
     mixables = new HashMap<String, String>();
 
-    List<HD_Wallet> _wallets = new ArrayList<HD_Wallet>();
+    List<BIP47WalletAndHDWallet> _wallets = new ArrayList<BIP47WalletAndHDWallet>();
     _wallets.addAll(wallets.values());
-    List<BIP47Wallet> _bip47Wallets = new ArrayList<BIP47Wallet>();
-    _bip47Wallets.addAll(bip47Wallets.values());
 
     toPrivKeys = new HashMap<String, ECKey>();
     toUTXO = new HashMap<String, String>();
@@ -137,9 +134,9 @@ public class ManualPremixer {
     //
     for (int i = 0; i < nbMixes; i++) {
       // init BIP84 wallet for input
-      HD_Wallet hdw84 = _wallets.get(i);
+      HD_Wallet hdw84 = _wallets.get(i).getHdWallet();
       // init BIP47 wallet for input
-      BIP47Wallet bip47w = _bip47Wallets.get(i);
+      BIP47Wallet bip47w = _wallets.get(i).getBip47Wallet();
 
       String tx0spendFrom =
           bech32Util.toBech32(hdw84.getAccount(0).getChain(0).getAddressAt(0), params);
