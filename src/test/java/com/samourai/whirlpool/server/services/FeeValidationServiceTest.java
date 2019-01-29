@@ -2,18 +2,23 @@ package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
+import com.samourai.wallet.client.Bip84Wallet;
+import com.samourai.wallet.client.indexHandler.IIndexHandler;
+import com.samourai.wallet.client.indexHandler.MemoryIndexHandler;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.tx0.Tx0;
 import com.samourai.whirlpool.client.tx0.Tx0Service;
-import com.samourai.whirlpool.client.utils.Bip84Wallet;
-import com.samourai.whirlpool.client.utils.indexHandler.MemoryIndexHandler;
+import com.samourai.whirlpool.client.whirlpool.beans.Pool;
+import com.samourai.whirlpool.client.whirlpool.beans.Pools;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.bitcoinj.core.ECKey;
@@ -136,27 +141,40 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     HD_Wallet bip84w =
         hdWalletFactory.restoreWallet(
             "all all all all all all all all all all all all", "test", 1, params);
-    Bip84Wallet depositAndPremixWallet =
-        new Bip84Wallet(bip84w, Integer.MAX_VALUE, new MemoryIndexHandler());
+
+    Bip84Wallet depositWallet = new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet premixWallet =
+        new Bip84Wallet(bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+
+    Pool pool = new Pool();
+    pool.setPoolId("foo");
+    pool.setDenomination(1000000);
+    pool.setMinerFeeMin(102);
+    pool.setMinerFeeMax(10000);
+    pool.setMinAnonymitySet(1);
+    pool.setMixAnonymitySet(2);
+    List<Pool> poolItems = new ArrayList<>();
+    poolItems.add(pool);
 
     String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     int feeIndice = 123456;
+    IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = new byte[] {123, 110};
+    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+
     Tx0 tx0 =
-        new Tx0Service(params)
+        new Tx0Service(params, xpubSamouraiFee, FEES_VALID)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
-                4,
-                depositAndPremixWallet,
-                1000000,
-                300,
-                xpubSamouraiFee,
-                FEES_VALID,
-                feePaymentCode,
-                feeIndice,
-                feePayload);
+                depositWallet,
+                premixWallet,
+                feeIndexHandler,
+                2,
+                pools,
+                pool,
+                4);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(feeIndice, feeData.getFeeIndice());

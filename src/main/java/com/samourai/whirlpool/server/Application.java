@@ -5,6 +5,7 @@ import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.DbUtils;
 import com.samourai.whirlpool.server.utils.LogbackUtils;
 import com.samourai.whirlpool.server.utils.Utils;
+import java.util.Arrays;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,12 @@ public class Application implements ApplicationRunner {
     }
 
     log.info("------------ whirlpool-server ------------");
+    log.info(
+        "Running whirlpool-server {} on java {}",
+        Arrays.toString(args.getSourceArgs()),
+        System.getProperty("java.version"));
     for (Map.Entry<String, String> entry : whirlpoolServerConfig.getConfigInfo().entrySet()) {
-      log.info(entry.getKey() + ": " + entry.getValue());
+      log.info("config: " + entry.getKey() + ": " + entry.getValue());
     }
   }
 
