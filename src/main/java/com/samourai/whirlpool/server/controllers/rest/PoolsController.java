@@ -57,8 +57,7 @@ public class PoolsController extends AbstractRestController {
     int nbRegistered =
         currentMix.getNbConfirmingInputs()
             + pool.getMustMixQueue().getSize()
-            + pool.getLiquidityQueue().getSize()
-            + pool.getUnconfirmedQueue().getSize();
+            + pool.getLiquidityQueue().getSize();
     int mixNbConfirmed = currentMix.getNbInputs();
     PoolInfo poolInfo =
         new PoolInfo(

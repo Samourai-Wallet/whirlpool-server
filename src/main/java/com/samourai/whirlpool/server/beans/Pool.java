@@ -17,7 +17,6 @@ public class Pool {
   private Mix currentMix;
   private InputPool mustMixQueue;
   private InputPool liquidityQueue;
-  private InputPool unconfirmedQueue;
 
   public Pool(
       String poolId,
@@ -42,7 +41,6 @@ public class Pool {
     this.liquidityTimeout = liquidityTimeout;
     this.mustMixQueue = new InputPool();
     this.liquidityQueue = new InputPool();
-    this.unconfirmedQueue = new InputPool();
   }
 
   public boolean checkInputBalance(long inputBalance, boolean liquidity) {
@@ -113,9 +111,5 @@ public class Pool {
 
   public InputPool getLiquidityQueue() {
     return liquidityQueue;
-  }
-
-  public InputPool getUnconfirmedQueue() {
-    return unconfirmedQueue;
   }
 }

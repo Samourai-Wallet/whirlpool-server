@@ -299,7 +299,6 @@ public class MixService {
   private void logMixStatus(Mix mix) {
     int liquiditiesQueued = mix.getPool().getLiquidityQueue().getSize();
     int mustMixQueued = mix.getPool().getMustMixQueue().getSize();
-    int unconfirmedQueued = mix.getPool().getUnconfirmedQueue().getSize();
     log.info(
         mix.getNbInputsMustMix()
             + "/"
@@ -312,9 +311,7 @@ public class MixService {
             + liquiditiesQueued
             + " liquidities + "
             + mustMixQueued
-            + " mustMixs + "
-            + unconfirmedQueued
-            + " unconfirmed)");
+            + " mustMixs)");
 
     // update mix status in database
     if (mix.getNbInputsMustMix() > 0) {

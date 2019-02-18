@@ -95,14 +95,13 @@ public class TestUtils {
     }
   }
 
-  public void assertPool(int nbMustMix, int nbLiquidity, int nbUnconfirmed, Pool pool) {
+  public void assertPool(int nbMustMix, int nbLiquidity, Pool pool) {
     Assert.assertEquals(nbMustMix, pool.getMustMixQueue().getSize());
     Assert.assertEquals(nbLiquidity, pool.getLiquidityQueue().getSize());
-    Assert.assertEquals(nbUnconfirmed, pool.getUnconfirmedQueue().getSize());
   }
 
   public void assertPoolEmpty(Pool pool) {
-    assertPool(0, 0, 0, pool);
+    assertPool(0, 0, pool);
   }
 
   public void assertMix(int nbInputs, int confirming, Mix mix) {

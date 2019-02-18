@@ -129,15 +129,7 @@ public class PoolService {
 
     // verify confirmations
     if (!isUtxoConfirmed(txOutPoint, liquidity)) {
-      log.info(
-          " • ["
-              + poolId
-              + "] queueing to UNCONFIRMED "
-              + (liquidity ? "liquidity" : "mustMix")
-              + ": "
-              + txOutPoint);
-      pool.getUnconfirmedQueue().register(registeredInput);
-      return;
+      throw new IllegalInputException("Input is not confirmed");
     }
 
     Mix currentMix = pool.getCurrentMix();
@@ -246,17 +238,6 @@ public class PoolService {
       boolean mustMixRemoved = pool.getMustMixQueue().removeByUsername(username).isPresent();
       if (mustMixRemoved) {
         log.info(" • [" + pool.getPoolId() + "] removed 1 mustMix from pool, username=" + username);
-      }
-
-      // remove unconfirmed utxo
-      boolean unconfirmedInputRemoved =
-          pool.getUnconfirmedQueue().removeByUsername(username).isPresent();
-      if (unconfirmedInputRemoved) {
-        log.info(
-            " • ["
-                + pool.getPoolId()
-                + "] removed 1 unconfirmed UTXO from pool, username="
-                + username);
       }
     }
   }

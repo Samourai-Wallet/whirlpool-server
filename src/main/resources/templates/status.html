@@ -26,7 +26,7 @@
                 <th class="align-middle">Denom.<br/>(btc)</th>
                 <th class="align-middle">Status</th>
                 <th class="align-middle">Mix users / target<br/>(mustMix + liquidities)</th>
-                <th class="align-middle">Pool queue<br/>(mustMix + liquidities + unconfirmed)</th>
+                <th class="align-middle">Pool queue<br/>(mustMix + liquidities)</th>
                 <th class="align-middle">mustMix / min</th>
                 <th class="align-middle">Elapsed time<br/>(mix)</br.></th>
                 <th class="align-middle">Configuration</th>
@@ -49,7 +49,7 @@
                     <span th:text="${pool.nbInputs}" style="font-weight:bold"/> / <span th:text="${pool.targetAnonymitySet}"/><br/>
                     (<span th:text="${pool.nbInputsMustMix}"/> + <span th:text="${pool.nbInputsLiquidities}"/>)
                 </td>
-                <td><span th:text="${pool.mustMixQueued}"/> + <span th:text="${pool.liquiditiesQueued}"/> + <span th:text="${pool.unconfirmedQueued}"/></td>
+                <td><span th:text="${pool.mustMixQueued}"/> + <span th:text="${pool.liquiditiesQueued}"/></td>
                 <td>
                     <span th:text="${pool.nbInputsMustMix}" style="font-weight:bold"/> / <span th:text="${pool.minMustMix}"/>
                 </td>

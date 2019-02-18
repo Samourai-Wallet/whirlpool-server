@@ -108,7 +108,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // liquidity should be queued
     Assert.assertTrue(liquidityPool.hasInput(txOutPoint));
-    testUtils.assertPool(0, 1, 0, pool); // mustMix queued
+    testUtils.assertPool(0, 1, pool); // mustMix queued
     testUtils.assertMixEmpty(mix);
   }
 
@@ -124,7 +124,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     // VERIFY
 
     // mustMix should be registered
-    testUtils.assertPool(1, 0, 0, pool); // mustMix queued
+    testUtils.assertPool(1, 0, pool); // mustMix queued
     testUtils.assertMixEmpty(mix);
     Assert.assertTrue(mix.getPool().getMustMixQueue().hasInput(txOutPoint));
   }
@@ -143,7 +143,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // liquidity should be queued
     Assert.assertTrue(liquidityPool.hasInput(txOutPoint));
-    testUtils.assertPool(0, 1, 0, pool); // mustMix queued
+    testUtils.assertPool(0, 1, pool); // mustMix queued
     testUtils.assertMixEmpty(mix);
   }
 
@@ -206,7 +206,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
             poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
         // VERIFY
-        testUtils.assertPool(1, 0, 0, mix.getPool()); // mustMix queued
+        testUtils.assertPool(1, 0, mix.getPool()); // mustMix queued
         testUtils.assertMixEmpty(mix);
       }
     }
@@ -339,6 +339,34 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     testUtils.assertMixEmpty(mix);
   }
 
+  @Test
+  public void registerInput_shouldFailWhenZeroConfirmations() throws Exception {
+    Mix mix = __getCurrentMix();
+
+    // TEST
+    thrown.expect(IllegalInputException.class);
+    thrown.expectMessage("Input is not confirmed");
+    doRegisterInput(0, false);
+
+    // VERIFY
+    testUtils.assertPoolEmpty(mix.getPool());
+    testUtils.assertMixEmpty(mix);
+  }
+
+  @Test
+  public void registerInput_shouldFailWhenLessConfirmations() throws Exception {
+    Mix mix = __getCurrentMix();
+
+    // TEST
+    thrown.expect(IllegalInputException.class);
+    thrown.expectMessage("Input is not confirmed");
+    doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX - 1, false);
+
+    // VERIFY
+    testUtils.assertPoolEmpty(mix.getPool());
+    testUtils.assertMixEmpty(mix);
+  }
+
   private void doRegisterInput(int confirmations, boolean liquidity) throws Exception {
     Mix mix = __getCurrentMix();
     String poolId = mix.getPool().getPoolId();
@@ -359,45 +387,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void registerInput_shouldQueueUnconfirmedWhenZeroConfirmations() throws Exception {
-    Mix mix = __getCurrentMix();
-    Pool pool = mix.getPool();
-
-    // mustMix
-    //        testUtils.assertPool(0, 0, 0, pool);
-    doRegisterInput(0, false);
-    testUtils.assertPool(0, 0, 1, pool);
-    testUtils.assertMixEmpty(mix);
-
-    // liquidity
-    mix.getPool().getUnconfirmedQueue().removeRandom(); // reset
-    testUtils.assertPool(0, 0, 0, pool);
-    doRegisterInput(0, true);
-    testUtils.assertPool(0, 0, 1, pool);
-    testUtils.assertMixEmpty(mix);
-  }
-
-  @Test
-  public void registerInput_shouldQueueUnconfirmedWhenLessConfirmations() throws Exception {
-    Mix mix = __getCurrentMix();
-    Pool pool = mix.getPool();
-    testUtils.assertPoolEmpty(pool);
-    testUtils.assertMixEmpty(mix);
-
-    // mustMix
-    doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX - 1, false);
-    testUtils.assertPool(0, 0, 1, pool);
-    testUtils.assertMixEmpty(mix);
-
-    // liquidity
-    mix.getPool().getUnconfirmedQueue().removeRandom(); // reset
-    testUtils.assertPool(0, 0, 0, pool);
-    doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY - 1, true);
-    testUtils.assertPool(0, 0, 1, pool);
-    testUtils.assertMixEmpty(mix);
-  }
-
-  @Test
   public void registerInput_shouldSuccessWhenMoreConfirmations() throws Exception {
     Mix mix = __getCurrentMix();
     Pool pool = mix.getPool();
@@ -411,7 +400,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // liquidity
     doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY + 1, true);
-    testUtils.assertPool(0, 1, 0, pool);
+    testUtils.assertPool(0, 1, pool);
     testUtils.assertMix(0, 1, mix);
   }
 
