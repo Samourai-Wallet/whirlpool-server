@@ -9,10 +9,13 @@ import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -293,12 +296,15 @@ public class MixLimitsService {
             .parallelStream()
             .filter(input -> !mix.getSignedByUsername(input.getRegisteredInput().getUsername()))
             .collect(Collectors.toSet());
-    confirmedInputsToBlame.forEach(
-        confirmedInputToBlame ->
-            blameService.blame(confirmedInputToBlame, BlameReason.NO_SIGNING, mixId));
+    List<String> outpointKeysToBlame = new ArrayList<>();
+    for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
+      blameService.blame(confirmedInputToBlame, BlameReason.NO_SIGNING, mixId);
+      outpointKeysToBlame.add(confirmedInputToBlame.getRegisteredInput().getOutPoint().toKey());
+    }
 
     // reset mix
-    mixService.goFail(mix, FailReason.FAIL_SIGNING);
+    String outpointKeysToBlameStr = StringUtils.join(outpointKeysToBlame, ";");
+    mixService.goFail(mix, FailReason.FAIL_SIGNING, outpointKeysToBlameStr);
   }
 
   public Long getLimitsWatcherTimeToWait(Mix mix) {

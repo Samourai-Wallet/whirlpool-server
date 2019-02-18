@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
@@ -49,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import wf.bitcoin.javabitcoindrpcclient.BitcoinRPCException;
 
 @Service
 public class MixService {
@@ -408,9 +410,12 @@ public class MixService {
       try {
         rpcClientService.broadcastTransaction(tx);
         goSuccess(mix);
+      } catch (BitcoinRPCException e) {
+        log.error("Unable to broadcast tx", e);
+        goFail(mix, FailReason.FAIL_BROADCAST, e.getResponse());
       } catch (Exception e) {
         log.error("Unable to broadcast tx", e);
-        goFail(mix, FailReason.FAIL_BROADCAST);
+        goFail(mix, FailReason.FAIL_BROADCAST, e.getMessage());
       }
     }
   }
@@ -618,7 +623,7 @@ public class MixService {
     if (mix.getReceiveAddresses().isEmpty()) {
       // no output registered at all => no legit user suffered, skip REVEAL_OUTPUT and immediately
       // restart round
-      goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
+      goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS, null);
     } else {
       // we have legit output registered => go REVEAL_OUTPUT to blame the others
       log.info(
@@ -641,16 +646,21 @@ public class MixService {
             .filter(
                 input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername()))
             .collect(Collectors.toSet());
-    confirmedInputsToBlame.forEach(
-        confirmedInputToBlame ->
-            blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId));
+
+    List<String> outpointKeysToBlame = new ArrayList<>();
+    for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
+      blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId);
+      outpointKeysToBlame.add(confirmedInputToBlame.getRegisteredInput().getOutPoint().toKey());
+    }
 
     // reset mix
-    goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS);
+    String outpointKeysToBlameStr = StringUtils.join(outpointKeysToBlame, ";");
+    goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS, outpointKeysToBlameStr);
   }
 
-  public void goFail(Mix mix, FailReason failReason) {
+  public void goFail(Mix mix, FailReason failReason, String failInfo) {
     mix.setFailReason(failReason);
+    mix.setFailInfo(failInfo);
     changeMixStatus(mix.getMixId(), MixStatus.FAIL);
 
     exportService.exportMix(mix);

@@ -47,8 +47,12 @@ public class TxOutPoint {
     return toAddress;
   }
 
+  public String toKey() {
+    return hash + ":" + index;
+  }
+
   @Override
   public String toString() {
-    return "[" + hash + ":" + index + " (" + value + "sats, " + confirmations + " confirmations)";
+    return toKey() + " (" + value + "sats, " + confirmations + " confirmations)";
   }
 }

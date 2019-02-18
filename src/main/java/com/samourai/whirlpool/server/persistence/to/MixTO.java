@@ -30,6 +30,8 @@ public class MixTO extends EntityCreatedUpdatedTO {
   @Enumerated(EnumType.STRING)
   private FailReason failReason;
 
+  private String failInfo;
+
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "mix")
   private MixLogTO mixLog;
 
@@ -49,6 +51,7 @@ public class MixTO extends EntityCreatedUpdatedTO {
     this.mixDuration = mix.computeMixDuration();
     this.mixStatus = mix.getMixStatus();
     this.failReason = mix.getFailReason();
+    this.failInfo = mix.getFailInfo();
 
     if (this.mixLog == null) {
       this.mixLog = new MixLogTO();
@@ -106,6 +109,10 @@ public class MixTO extends EntityCreatedUpdatedTO {
 
   public FailReason getFailReason() {
     return failReason;
+  }
+
+  public String getFailInfo() {
+    return failInfo;
   }
 
   public MixLogTO getMixLog() {

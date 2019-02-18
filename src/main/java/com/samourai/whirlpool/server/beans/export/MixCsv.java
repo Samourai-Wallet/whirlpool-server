@@ -27,6 +27,7 @@ public class MixCsv {
         "feesPrice",
         "mixStatus",
         "failReason",
+        "failInfo",
         "txid",
         "rawTx"
       };
@@ -83,12 +84,15 @@ public class MixCsv {
   @Enumerated(EnumType.STRING)
   private FailReason failReason;
 
+  @CsvBindByPosition(position = 16)
+  private String failInfo;
+
   //
 
-  @CsvBindByPosition(position = 16)
+  @CsvBindByPosition(position = 17)
   private String txid;
 
-  @CsvBindByPosition(position = 17)
+  @CsvBindByPosition(position = 18)
   private String rawTx;
 
   public MixCsv(MixTO to) {
@@ -109,6 +113,7 @@ public class MixCsv {
     this.mixDuration = to.getMixDuration();
     this.mixStatus = to.getMixStatus();
     this.failReason = to.getFailReason();
+    this.failInfo = to.getFailInfo();
 
     if (to.getMixLog() != null) {
       this.txid = to.getMixLog().getTxid();
@@ -178,6 +183,10 @@ public class MixCsv {
 
   public FailReason getFailReason() {
     return failReason;
+  }
+
+  public String getFailInfo() {
+    return failInfo;
   }
 
   public String getTxid() {

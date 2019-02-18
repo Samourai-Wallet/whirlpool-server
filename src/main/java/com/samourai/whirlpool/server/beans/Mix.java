@@ -45,6 +45,7 @@ public class Mix {
 
   private Transaction tx;
   private FailReason failReason;
+  private String failInfo;
 
   public Mix(String mixId, Pool pool, CryptoService cryptoService) {
     this.mixTO = null;
@@ -74,6 +75,7 @@ public class Mix {
 
     this.tx = null;
     this.failReason = null;
+    this.failInfo = null;
   }
 
   public MixTO computeMixTO() {
@@ -309,6 +311,14 @@ public class Mix {
 
   public FailReason getFailReason() {
     return failReason;
+  }
+
+  public void setFailInfo(String failInfo) {
+    this.failInfo = failInfo;
+  }
+
+  public String getFailInfo() {
+    return failInfo;
   }
 
   public boolean isInvitationOpen(boolean liquidity) {

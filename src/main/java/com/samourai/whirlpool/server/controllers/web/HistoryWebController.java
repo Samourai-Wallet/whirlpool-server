@@ -61,6 +61,7 @@ public class HistoryWebController {
         mixTO.getFeesPrice();
         mixTO.getMixStatus();
         mixTO.getFailReason();
+        mixTO.getFailInfo();
         MixLogTO mixLogTO = mixTO.getMixLog();
         mixLogTO.getTxid();
         mixLogTO.getRawTx();

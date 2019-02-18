@@ -38,7 +38,10 @@
                     <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
                     <td class="denomination"><pre><code th:text="${@templateUtil.satoshisToBtc(mix.denomination)}"/></pre></td>
                     <td class="anonymitySet"><span th:text="${mix.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${mix.nbMustMix}" title="mustMix"/> + <span th:text="${mix.nbLiquidities}" title="liquidities"/>)</td>
-                    <td class="status"><span th:text="${mix.mixStatus}"/> <span th:text="${mix.failReason != null} ? ${'(' + mix.failReason + ')'} : ''"/></td>
+                    <td class="status">
+                        <span th:text="${mix.mixStatus}"/> <span th:text="${mix.failReason != null} ? ${'(' + mix.failReason + ')'} : ''"/>
+                        <a th:if="${mix.failInfo != null}" href="#" data-toggle="popover" title="FailInfo" th:data-content="${mix.failInfo}"><span data-feather="code" /></a>
+                    </td>
                     <td class="fees">
                         <span th:text="${mix.feesAmount != null ? @templateUtil.satoshisToBtc(mix.feesAmount) : ''}"/><br/>
                         <span th:text="${mix.feesPrice != null ? '('+mix.feesPrice+'sat/B)' : ''}"/>
