@@ -21,6 +21,7 @@ import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.exceptions.BroadcastException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
@@ -50,7 +51,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import wf.bitcoin.javabitcoindrpcclient.BitcoinRPCException;
 
 @Service
 public class MixService {
@@ -410,12 +410,9 @@ public class MixService {
       try {
         rpcClientService.broadcastTransaction(tx);
         goSuccess(mix);
-      } catch (BitcoinRPCException e) {
+      } catch (BroadcastException e) {
         log.error("Unable to broadcast tx", e);
-        goFail(mix, FailReason.FAIL_BROADCAST, e.getResponse());
-      } catch (Exception e) {
-        log.error("Unable to broadcast tx", e);
-        goFail(mix, FailReason.FAIL_BROADCAST, e.getMessage());
+        goFail(mix, FailReason.FAIL_BROADCAST, e.getFailInfo());
       }
     }
   }

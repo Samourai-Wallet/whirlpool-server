@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.services.rpc;
 
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.exceptions.MixException;
+import com.samourai.whirlpool.server.exceptions.BroadcastException;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
@@ -94,7 +94,7 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
   }
 
   @Override
-  public void broadcastTransaction(Transaction tx) throws Exception {
+  public void broadcastTransaction(Transaction tx) throws BroadcastException {
     String txid = tx.getHashAsString();
     if (whirlpoolServerConfig.getRpcClient().isMockTxBroadcast()) {
       log.warn("NOT broadcasting tx " + txid + "(server.rpc-client.mock-tx-broadcast=TRUE)");
@@ -105,8 +105,7 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
       log.info("Broadcasting tx " + txid);
       rpcClient.sendRawTransaction(org.bitcoinj.core.Utils.HEX.encode(tx.bitcoinSerialize()));
     } catch (Exception e) {
-      log.error("Unable to broadcast tx " + txid, e);
-      throw new MixException("Unable to broadcast tx");
+      throw BroadcastException.computeBroadcastException(e);
     }
   }
 
