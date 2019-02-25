@@ -18,7 +18,6 @@ import com.samourai.whirlpool.client.utils.MultiClientListener;
 import com.samourai.whirlpool.client.utils.MultiClientManager;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientConfig;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientImpl;
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.InputPool;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -126,9 +125,7 @@ public class AssertMultiClientManager extends MultiClientManager {
   }
 
   private long computeInputBalanceMin(boolean liquidity) {
-    long inputBalance =
-        WhirlpoolProtocol.computeInputBalanceMin(
-            mix.getPool().getDenomination(), liquidity, mix.getPool().getMinerFeeMin());
+    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
     return inputBalance;
   }
 

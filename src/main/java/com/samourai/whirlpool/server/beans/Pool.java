@@ -50,11 +50,19 @@ public class Pool {
   }
 
   public long computeInputBalanceMin(boolean liquidity) {
-    return WhirlpoolProtocol.computeInputBalanceMin(denomination, liquidity, minerFeeMin);
+    return WhirlpoolProtocol.computeInputBalanceMin(denomination, computeMustMixBalanceMin(), liquidity);
   }
 
   public long computeInputBalanceMax(boolean liquidity) {
-    return WhirlpoolProtocol.computeInputBalanceMax(denomination, liquidity, minerFeeMax);
+    return WhirlpoolProtocol.computeInputBalanceMax(denomination, computeMustMixBalanceMax(), liquidity);
+  }
+
+  public long computeMustMixBalanceMin() {
+    return denomination + minerFeeMin;
+  }
+
+  public long computeMustMixBalanceMax() {
+    return denomination + minerFeeMax;
   }
 
   public String getPoolId() {

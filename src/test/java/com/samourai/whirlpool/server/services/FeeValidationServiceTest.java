@@ -151,8 +151,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Pool pool = new Pool();
     pool.setPoolId("foo");
     pool.setDenomination(1000000);
-    pool.setMinerFeeMin(102);
-    pool.setMinerFeeMax(10000);
+    pool.setMustMixBalanceMin(1000102);
+    pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
     List<Pool> poolItems = new ArrayList<>();
@@ -203,8 +203,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Pool pool = new Pool();
     pool.setPoolId("foo");
     pool.setDenomination(1000000);
-    pool.setMinerFeeMin(102);
-    pool.setMinerFeeMax(10000);
+    pool.setMustMixBalanceMin(1000102);
+    pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
     List<Pool> poolItems = new ArrayList<>();
@@ -268,8 +268,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Pool pool = new Pool();
     pool.setPoolId("foo");
     pool.setDenomination(1000000);
-    pool.setMinerFeeMin(102);
-    pool.setMinerFeeMax(10000);
+    pool.setMustMixBalanceMin(1000102);
+    pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
     List<Pool> poolItems = new ArrayList<>();

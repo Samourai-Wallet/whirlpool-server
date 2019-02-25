@@ -96,8 +96,8 @@ public class PoolService {
         new SubscribePoolResponse(
             cryptoService.getNetworkParameters().getPaymentProtocolId(),
             pool.getDenomination(),
-            pool.getMinerFeeMin(),
-            pool.getMinerFeeMax());
+            pool.computeMustMixBalanceMin(),
+            pool.computeMustMixBalanceMax());
     return poolStatusNotification;
   }
 
