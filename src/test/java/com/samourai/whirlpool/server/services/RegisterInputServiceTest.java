@@ -56,7 +56,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
                       "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
           String signature = ecKey.signMessage(poolId);
 
-          long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
+          long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
           int confirmations = liquidity ? MIN_CONFIRMATIONS_LIQUIDITY : MIN_CONFIRMATIONS_MUSTMIX;
           txOutPoint =
               rpcClientService.createAndMockTxOutPoint(
@@ -159,7 +159,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -199,7 +199,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
         // TEST
         String signature = ecKey.signMessage(poolId);
-        long inputBalance = mix.getPool().computeInputBalanceMin(false);
+        long inputBalance = mix.getPool().computePremixBalanceMin(false);
         TxOutPoint txOutPoint =
             rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
         registerInputService.registerInput(
@@ -223,7 +223,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = "INVALID";
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -248,7 +248,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         testUtils.generateSegwitAddress(); // INVALID: not related to pubkey
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -274,7 +274,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -300,7 +300,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false) - 1; // BALANCE TOO LOW
+    long inputBalance = mix.getPool().computePremixBalanceMin(false) - 1; // BALANCE TOO LOW
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -325,7 +325,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMax(false) + 1; // BALANCE TOO HIGH
+    long inputBalance = mix.getPool().computePremixBalanceMax(false) + 1; // BALANCE TOO HIGH
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -377,7 +377,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
     // mock input with 0 confirmations
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);

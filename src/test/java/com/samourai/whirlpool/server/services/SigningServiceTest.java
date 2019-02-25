@@ -54,7 +54,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // prepare input
     ECKey ecKey = new ECKey();
     boolean liquidity = false;
-    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
+    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
             new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
@@ -81,7 +81,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // prepare input
     ECKey ecKey = new ECKey();
     boolean liquidity = false;
-    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
+    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
             new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
@@ -110,7 +110,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // mix config
     Mix mix = __nextMix(2, 2, __getCurrentMix().getPool()); // 2 users
     boolean liquidity = false;
-    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
+    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
 
     // trick to simulate one first user registered
     String firstUsername = "firstUser";
@@ -156,7 +156,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // prepare input
     ECKey ecKey = new ECKey();
     boolean liquidity = false;
-    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
+    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
             new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
@@ -195,7 +195,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // prepare input
     ECKey ecKey = new ECKey();
     boolean liquidity = false;
-    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
+    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
             new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);

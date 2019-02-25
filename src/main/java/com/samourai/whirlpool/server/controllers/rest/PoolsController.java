@@ -44,10 +44,12 @@ public class PoolsController extends AbstractRestController {
             .parallelStream()
             .map(pool -> computePoolInfo(pool))
             .toArray((i) -> new PoolInfo[i]);
+    long feeValue = serverConfig.getSamouraiFees().getAmount();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     byte[] feePayload = feeValidationService.getFeePayloadByScode(scode);
     PoolsResponse poolsResponse =
-        new PoolsResponse(pools, feePaymentCode, WhirlpoolProtocol.encodeBytes(feePayload));
+        new PoolsResponse(
+            pools, feeValue, feePaymentCode, WhirlpoolProtocol.encodeBytes(feePayload));
     return poolsResponse;
   }
 
@@ -58,19 +60,19 @@ public class PoolsController extends AbstractRestController {
         currentMix.getNbConfirmingInputs()
             + pool.getMustMixQueue().getSize()
             + pool.getLiquidityQueue().getSize();
-    int mixNbConfirmed = currentMix.getNbInputs();
+    int nbConfirmed = currentMix.getNbInputs();
     PoolInfo poolInfo =
         new PoolInfo(
             pool.getPoolId(),
             pool.getDenomination(),
-            pool.getMinerFeeMin(),
-            pool.getMinerFeeMax(),
+            pool.computeMustMixBalanceMin(),
+            pool.computeMustMixBalanceMax(),
             pool.getMinAnonymitySet(),
             nbRegistered,
             currentMix.getTargetAnonymitySet(),
             currentMix.getMixStatus(),
             currentMix.getElapsedTime(),
-            mixNbConfirmed);
+            nbConfirmed);
     return poolInfo;
   }
 }

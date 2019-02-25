@@ -163,10 +163,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD); // valid feePayload
-    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+    Pools pools = new Pools(poolItems, FEES_VALID, feePaymentCode, feePayload);
 
     Tx0 tx0 =
-        new Tx0Service(params, xpubSamouraiFee, FEES_VALID)
+        new Tx0Service(params, xpubSamouraiFee)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
@@ -215,10 +215,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = new byte[] {01, 23}; // invalid feePayload
-    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+    Pools pools = new Pools(poolItems, FEES_VALID, feePaymentCode, feePayload);
 
     Tx0 tx0 =
-        new Tx0Service(params, xpubSamouraiFee, FEES_VALID)
+        new Tx0Service(params, xpubSamouraiFee)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
@@ -280,10 +280,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = null; // no feePayload
-    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+    Pools pools = new Pools(poolItems, FEES_VALID, feePaymentCode, feePayload);
 
     Tx0 tx0 =
-        new Tx0Service(params, xpubSamouraiFee, FEES_VALID)
+        new Tx0Service(params, xpubSamouraiFee)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,

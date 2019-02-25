@@ -91,12 +91,12 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             liquidityTimeout);
 
     AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
-    long inputBalanceMin = mix.getPool().computeInputBalanceMin(false);
+    long premixBalanceMin = mix.getPool().computePremixBalanceMin(false);
 
     // connect all clients except one, to stay in CONFIRM_INPUT
     log.info("# Connect first clients...");
     for (int i = 0; i < NB_CLIENTS - 1; i++) {
-      long inputBalance = inputBalanceMin + (100 * i); // mixed amounts
+      long inputBalance = premixBalanceMin + (100 * i); // mixed amounts
       taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(1, inputBalance));
     }
 
@@ -151,9 +151,9 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     log.info("# Connect first clients...");
     for (int i = 0; i < NB_CLIENTS - 1; i++) {
       boolean liquidity = (i < mustMixMin ? false : true);
-      long inputBalanceMin = mix.getPool().computeInputBalanceMin(liquidity);
+      long premixBalanceMin = mix.getPool().computePremixBalanceMin(liquidity);
       long inputBalance =
-          (liquidity ? inputBalanceMin : inputBalanceMin + (100 * i)); // mixed amounts
+          (liquidity ? premixBalanceMin : premixBalanceMin + (100 * i)); // mixed amounts
       taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(1, inputBalance));
     }
 

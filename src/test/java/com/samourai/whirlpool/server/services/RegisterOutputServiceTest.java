@@ -44,7 +44,7 @@ public class RegisterOutputServiceTest extends AbstractIntegrationTest {
     ECKey ecKey = new ECKey();
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computeInputBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(
             new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),

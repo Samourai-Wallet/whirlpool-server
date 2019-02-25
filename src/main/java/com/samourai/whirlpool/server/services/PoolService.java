@@ -113,8 +113,8 @@ public class PoolService {
     // verify balance
     long inputBalance = txOutPoint.getValue();
     if (!pool.checkInputBalance(inputBalance, liquidity)) {
-      long balanceMin = pool.computeInputBalanceMin(liquidity);
-      long balanceMax = pool.computeInputBalanceMax(liquidity);
+      long balanceMin = pool.computePremixBalanceMin(liquidity);
+      long balanceMax = pool.computePremixBalanceMax(liquidity);
       throw new IllegalInputException(
           "Invalid input balance (expected: "
               + balanceMin

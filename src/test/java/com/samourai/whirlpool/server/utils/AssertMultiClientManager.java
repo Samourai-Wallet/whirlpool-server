@@ -124,14 +124,14 @@ public class AssertMultiClientManager extends MultiClientManager {
     return i;
   }
 
-  private long computeInputBalanceMin(boolean liquidity) {
-    long inputBalance = mix.getPool().computeInputBalanceMin(liquidity);
-    return inputBalance;
+  private long computePremixBalanceMin(boolean liquidity) {
+    long premixBalanceMin = mix.getPool().computePremixBalanceMin(liquidity);
+    return premixBalanceMin;
   }
 
   public void connectWithMockOrFail(boolean liquidity, int mixs) {
-    long inputBalance = computeInputBalanceMin(liquidity);
-    connectWithMockOrFail(mixs, inputBalance);
+    long premixBalanceMin = computePremixBalanceMin(liquidity);
+    connectWithMockOrFail(mixs, premixBalanceMin);
   }
 
   public void connectWithMockOrFail(int mixs, long inputBalance) {
