@@ -25,7 +25,6 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   public void setUp() throws Exception {
     super.setUp();
     dbService.__reset();
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID);
   }
 
   @Test
@@ -83,19 +82,16 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
 
     // accept when valid mustMix, paid exact fee
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID);
     for (int i = 0; i < 8; i++) {
       Assert.assertFalse(doCheckInput(txid, i));
     }
 
     // accept when valid mustMix, paid more than fee
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID - 1);
     for (int i = 0; i < 8; i++) {
       Assert.assertFalse(doCheckInput(txid, i));
     }
 
     // reject when paid less than fee
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID + 1);
     for (int i = 0; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
       thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
@@ -126,7 +122,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
             .orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
     long inputValue = rpcTransaction.getTx().getOutput(utxoIndex).getValue().getValue();
     boolean isLiquidity =
-        inputValidationService.checkInputProvenance(rpcTransaction.getTx(), inputValue);
+        inputValidationService.checkInputProvenance(rpcTransaction.getTx(), inputValue, FEES_VALID);
     return isLiquidity;
   }
 }

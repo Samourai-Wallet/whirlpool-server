@@ -47,7 +47,6 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   public void setUp() throws Exception {
     super.setUp();
     dbService.__reset();
-    serverConfig.getSamouraiFees().setAmount(FEES_VALID);
 
     // feePayloadByScode
     Map<String, Short> feePayloadByScode = new HashMap<>();
@@ -120,8 +119,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   }
 
   private boolean doIsTx0FeePaid(String txid, long minFees, int xpubIndice) {
-    serverConfig.getSamouraiFees().setAmount(minFees);
-    return feeValidationService.isTx0FeePaid(getTx(txid), xpubIndice);
+    return feeValidationService.isTx0FeePaid(getTx(txid), xpubIndice, FEES_VALID);
   }
 
   private Transaction getTx(String txid) {
@@ -181,7 +179,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
     Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
-    Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData));
+    Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData, FEES_VALID));
   }
 
   @Test
@@ -233,7 +231,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
     Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
-    Assert.assertFalse(feeValidationService.isValidTx0(tx0.getTx(), feeData));
+    Assert.assertFalse(feeValidationService.isValidTx0(tx0.getTx(), feeData, FEES_VALID));
   }
 
   @Test
@@ -242,11 +240,13 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
 
     Transaction tx = getTx(txid);
-    Assert.assertFalse(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
+    Assert.assertFalse(
+        feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx), FEES_VALID));
 
     // accept when valid feePayload
     serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
-    Assert.assertTrue(feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx)));
+    Assert.assertTrue(
+        feeValidationService.isValidTx0(tx, feeValidationService.decodeFeeData(tx), FEES_VALID));
   }
 
   @Test
@@ -298,7 +298,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(feeIndice, feeData.getFeeIndice());
     Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
-    Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData));
+    Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData, FEES_VALID));
   }
 
   @Test

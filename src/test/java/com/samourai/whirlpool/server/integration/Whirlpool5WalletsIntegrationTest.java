@@ -377,6 +377,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
 
     // start mix
     long denomination = premixer.biUnitReceiveAmount.longValue();
+    long feeValue = 500000L;
     long minerFeeMin = mixFee;
     long minerFeeMax = mixFee * 10;
     int mustMixMin = NB_CLIENTS;
@@ -388,6 +389,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,

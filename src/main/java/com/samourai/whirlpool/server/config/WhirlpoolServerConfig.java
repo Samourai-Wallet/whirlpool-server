@@ -245,6 +245,7 @@ public class WhirlpoolServerConfig {
   public static class PoolConfig {
     private String id;
     private long denomination;
+    private long feeValue;
     private long minerFeeMin;
     private long minerFeeMax;
     private int mustMixMin;
@@ -268,6 +269,14 @@ public class WhirlpoolServerConfig {
 
     public void setDenomination(long denomination) {
       this.denomination = denomination;
+    }
+
+    public long getFeeValue() {
+      return feeValue;
+    }
+
+    public void setFeeValue(long feeValue) {
+      this.feeValue = feeValue;
     }
 
     public long getMinerFeeMin() {
@@ -394,7 +403,6 @@ public class WhirlpoolServerConfig {
 
   public static class SamouraiFeeConfig {
     @NotEmpty private String xpub;
-    private long amount;
     private SecretWalletConfig secretWallet;
     private Map<String, Short> feePayloadByScode = new HashMap<>(); // -32,768 to 32,767
 
@@ -404,14 +412,6 @@ public class WhirlpoolServerConfig {
 
     public void setXpub(String xpub) {
       this.xpub = xpub;
-    }
-
-    public long getAmount() {
-      return amount;
-    }
-
-    public void setAmount(long amount) {
-      this.amount = amount;
     }
 
     public SecretWalletConfig getSecretWallet() {
@@ -468,13 +468,7 @@ public class WhirlpoolServerConfig {
                 samouraiFees.xpub.length() - 3, samouraiFees.xpub.length());
     int nbSeedWords = samouraiFees.getSecretWallet().getWords().split(" ").length;
     configInfo.put(
-        "samouraiFees",
-        String.valueOf(samouraiFees.amount)
-            + ", xpub="
-            + feesXpub
-            + ", secretWallet=("
-            + nbSeedWords
-            + " seed words)");
+        "samouraiFees", "xpub=" + feesXpub + ", secretWallet=(" + nbSeedWords + " seed words)");
 
     configInfo.put(
         "registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));
@@ -498,7 +492,9 @@ public class WhirlpoolServerConfig {
     for (PoolConfig poolConfig : pools) {
       String poolInfo = "denomination=" + String.valueOf(poolConfig.denomination);
       poolInfo +=
-          ", anonymitySet="
+          ", feeValue="
+              + poolConfig.feeValue
+              + ", anonymitySet="
               + poolConfig.anonymitySetTarget
               + "["
               + poolConfig.anonymitySetMin

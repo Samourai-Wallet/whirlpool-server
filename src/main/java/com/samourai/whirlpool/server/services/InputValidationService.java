@@ -36,7 +36,7 @@ public class InputValidationService {
   }
 
   public TxOutPoint validateProvenance(
-      TxOutPoint txOutPoint, Transaction tx, boolean liquidity, boolean testMode)
+      TxOutPoint txOutPoint, Transaction tx, boolean liquidity, boolean testMode, long poolFeeValue)
       throws IllegalInputException {
 
     // provenance verification can be disabled with testMode
@@ -44,7 +44,7 @@ public class InputValidationService {
 
     // verify input comes from a valid tx0 or previous mix
     if (!skipInputProvenanceCheck) {
-      boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue());
+      boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue(), poolFeeValue);
       if (!isLiquidity && liquidity) {
         throw new IllegalInputException("Input rejected: joined as liquidity but is a mustMix");
       }
@@ -57,7 +57,7 @@ public class InputValidationService {
     return txOutPoint;
   }
 
-  protected boolean checkInputProvenance(Transaction tx, long inputValue)
+  protected boolean checkInputProvenance(Transaction tx, long inputValue, long poolFeeValue)
       throws IllegalInputException {
     // is it a tx0?
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx);
@@ -78,7 +78,7 @@ public class InputValidationService {
       }
 
       // check fees paid
-      if (!feeValidationService.isValidTx0(tx, feeData)) {
+      if (!feeValidationService.isValidTx0(tx, feeData, poolFeeValue)) {
         throw new IllegalInputException(
             "Input rejected (invalid fee for tx0="
                 + tx.getHashAsString()

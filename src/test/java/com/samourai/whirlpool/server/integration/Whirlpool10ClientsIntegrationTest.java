@@ -23,6 +23,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     final int NB_CLIENTS = 10;
     // start mix
     long denomination = 200000000;
+    long feeValue = 10000000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     int mustMixMin = NB_CLIENTS;
@@ -34,6 +35,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,
@@ -70,6 +72,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     final int NB_CLIENTS = 10;
     // start mix
     long denomination = 1000000;
+    long feeValue = 50000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     int mustMixMin = NB_CLIENTS;
@@ -81,6 +84,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,
@@ -125,6 +129,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     final int NB_CLIENTS = 5;
     // start mix
     long denomination = 1000000;
+    long feeValue = 50000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     int mustMixMin = 3;
@@ -136,6 +141,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,

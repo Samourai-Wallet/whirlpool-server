@@ -30,6 +30,7 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
 
     // MIX #1
     long denomination = 200000000;
+    long feeValue = 10000000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     int mustMixMin = 1;
@@ -41,6 +42,7 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,

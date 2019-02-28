@@ -37,6 +37,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
 
     // start mix
     long denomination = 200000000;
+    long feeValue = 10000000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
@@ -44,6 +45,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,

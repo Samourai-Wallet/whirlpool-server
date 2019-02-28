@@ -50,6 +50,7 @@ public class PoolService {
     for (WhirlpoolServerConfig.PoolConfig poolConfig : poolConfigs) {
       String poolId = poolConfig.getId();
       long denomination = poolConfig.getDenomination();
+      long feeValue = poolConfig.getFeeValue();
       long minerFeeMin = poolConfig.getMinerFeeMin();
       long minerFeeMax = poolConfig.getMinerFeeMax();
       int minMustMix = poolConfig.getMustMixMin();
@@ -65,6 +66,7 @@ public class PoolService {
           new Pool(
               poolId,
               denomination,
+              feeValue,
               minerFeeMin,
               minerFeeMax,
               minMustMix,

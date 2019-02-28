@@ -377,7 +377,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computePremixBalanceMin(false);
+    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     // mock input with 0 confirmations
     TxOutPoint txOutPoint =
         rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);

@@ -128,6 +128,7 @@ public abstract class AbstractIntegrationTest {
 
   protected Mix __nextMix(
       long denomination,
+      long feeValue,
       long minerFeeMin,
       long minerFeeMax,
       int mustMixMin,
@@ -140,6 +141,7 @@ public abstract class AbstractIntegrationTest {
     // create new pool
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
     poolConfig.setId(Utils.generateUniqueString());
+    poolConfig.setFeeValue(feeValue);
     poolConfig.setDenomination(denomination);
     poolConfig.setMinerFeeMin(minerFeeMin);
     poolConfig.setMinerFeeMax(minerFeeMax);
@@ -160,6 +162,7 @@ public abstract class AbstractIntegrationTest {
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
     poolConfig.setId(Utils.generateUniqueString());
     poolConfig.setDenomination(copyPool.getDenomination());
+    poolConfig.setFeeValue(copyPool.getFeeValue());
     poolConfig.setMinerFeeMin(copyPool.getMinerFeeMin());
     poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());
     poolConfig.setMustMixMin(mustMixMin);

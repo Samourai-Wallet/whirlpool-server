@@ -27,6 +27,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
   public void isRegisterInputReady_noLiquidity() throws Exception {
     MixService spyMixService = Mockito.spy(mixService);
     long denomination = 200000000;
+    long feeValue = 10000000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     int mustMixMin = 1;
@@ -38,6 +39,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,
@@ -65,6 +67,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
   public void isRegisterInputReady_withLiquidityBefore() throws Exception {
     MixService spyMixService = Mockito.spy(mixService);
     long denomination = 200000000;
+    long feeValue = 10000000;
     long minerFeeMin = 100;
     long minerFeeMax = 10000;
     int mustMixMin = 1;
@@ -76,6 +79,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     Mix mix =
         __nextMix(
             denomination,
+            feeValue,
             minerFeeMin,
             minerFeeMax,
             mustMixMin,

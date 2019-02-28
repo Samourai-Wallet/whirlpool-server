@@ -98,30 +98,28 @@ public class FeeValidationService {
     return secretAccountBip47.getPaymentCode();
   }
 
-  public boolean isValidTx0(Transaction tx0, WhirlpoolFeeData feeData) {
+  public boolean isValidTx0(Transaction tx0, WhirlpoolFeeData feeData, long poolFeeValue) {
     // validate feePayload
     if (isValidFeePayload(feeData.getFeePayload())) {
       return true;
     } else {
       // validate for feeIndice
-      return isTx0FeePaid(tx0, feeData.getFeeIndice());
+      return isTx0FeePaid(tx0, feeData.getFeeIndice(), poolFeeValue);
     }
   }
 
-  protected boolean isTx0FeePaid(Transaction tx0, int x) {
+  protected boolean isTx0FeePaid(Transaction tx0, int x, long poolFeeValue) {
     if (x < 0) {
       log.error("Invalid samouraiFee indice: " + x);
       return false;
     }
-
-    long samouraiFeesMin = serverConfig.getSamouraiFees().getAmount();
 
     // find samourai payment address from xpub indice in tx payload
     String feesAddressBech32 = computeFeeAddress(x);
 
     // make sure tx contains an output to samourai fees
     for (TransactionOutput txOutput : tx0.getOutputs()) {
-      if (txOutput.getValue().getValue() >= samouraiFeesMin) {
+      if (txOutput.getValue().getValue() >= poolFeeValue) {
         // is this the fees payment output?
         String toAddress =
             Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());

@@ -44,12 +44,10 @@ public class PoolsController extends AbstractRestController {
             .parallelStream()
             .map(pool -> computePoolInfo(pool))
             .toArray((i) -> new PoolInfo[i]);
-    long feeValue = serverConfig.getSamouraiFees().getAmount();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     byte[] feePayload = feeValidationService.getFeePayloadByScode(scode);
     PoolsResponse poolsResponse =
-        new PoolsResponse(
-            pools, feeValue, feePaymentCode, WhirlpoolProtocol.encodeBytes(feePayload));
+        new PoolsResponse(pools, feePaymentCode, WhirlpoolProtocol.encodeBytes(feePayload));
     return poolsResponse;
   }
 
@@ -65,6 +63,7 @@ public class PoolsController extends AbstractRestController {
         new PoolInfo(
             pool.getPoolId(),
             pool.getDenomination(),
+            pool.getFeeValue(),
             pool.computeMustMixBalanceMin(),
             pool.computeMustMixBalanceMax(),
             pool.getMinAnonymitySet(),
