@@ -54,8 +54,7 @@ public class RegisterInputController extends AbstractWebSocketController {
         payload.utxoHash,
         payload.utxoIndex,
         payload.liquidity,
-        payload.testMode,
-        payload.resumeConfirmedMixId);
+        payload.testMode);
   }
 
   @MessageExceptionHandler

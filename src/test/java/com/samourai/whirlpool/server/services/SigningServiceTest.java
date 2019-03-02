@@ -239,7 +239,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // register input
     String signature = premixHandler.signMessage(poolId);
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true, null);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
 
     // confirm input
     RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();

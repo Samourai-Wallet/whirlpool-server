@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
@@ -46,8 +45,7 @@ public class RegisterInputService {
       String utxoHash,
       long utxoIndex,
       boolean liquidity,
-      boolean testMode,
-      String resumeConfirmedMixId)
+      boolean testMode)
       throws IllegalInputException, MixException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
       throw new IllegalInputException("Invalid utxoHash");
@@ -79,30 +77,11 @@ public class RegisterInputService {
       inputValidationService.validateProvenance(
           txOutPoint, rpcTransaction.getTx(), liquidity, testMode, poolFeeValue);
 
-      if (resumeConfirmedMixId != null) {
-        resumeConfirmedInput(username, txOutPoint, pool, resumeConfirmedMixId);
-      } else {
-        // register input to pool
-        poolService.registerInput(poolId, username, liquidity, txOutPoint, true);
-      }
+      // register input to pool
+      poolService.registerInput(poolId, username, liquidity, txOutPoint, true);
     } catch (IllegalInputException e) {
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;
     }
-  }
-
-  private void resumeConfirmedInput(
-      String username, TxOutPoint txOutPoint, Pool pool, String resumeConfirmedMixId)
-      throws IllegalInputException, MixException {
-
-    // check mixId
-    Mix mix = pool.getCurrentMix();
-    if (!mix.getMixId().equals(resumeConfirmedMixId)) {
-      // mix already ended
-      throw new IllegalInputException("Couldn't resume input (mix ended)");
-    }
-
-    // resume
-    mixService.resumeConfirmedInput(username, txOutPoint, mix);
   }
 }

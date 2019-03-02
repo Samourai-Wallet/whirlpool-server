@@ -52,7 +52,7 @@ public class RegisterOutputServiceTest extends AbstractIntegrationTest {
             999);
 
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
   }
 
   private byte[] confirmInput(

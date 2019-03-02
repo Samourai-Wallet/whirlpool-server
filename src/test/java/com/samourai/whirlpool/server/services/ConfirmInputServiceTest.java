@@ -38,117 +38,49 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
     serverConfig.setTestMode(true);
   }
 
-  private TxOutPoint registerInput(Mix mix, String username, ECKey ecKey, TxOutPoint txOutPoint, String resumeConfirmedMixId) throws Exception {
+  private void registerInput(Mix mix, String username) throws Exception {
     String poolId = mix.getPool().getPoolId();
 
+    ECKey ecKey = new ECKey();
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computePremixBalanceMin(false);
-    if (txOutPoint == null) {
-      txOutPoint =
-          rpcClientService.createAndMockTxOutPoint(
-              new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
-              inputBalance,
-              999);
-    }
+    TxOutPoint txOutPoint =
+        rpcClientService.createAndMockTxOutPoint(
+            new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
+            inputBalance,
+            999);
 
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, resumeConfirmedMixId);
-
-    return txOutPoint;
-  }
-
-  private byte[] confirmInput(Mix mix, String username, String receiveAddress, RSABlindingParameters blindingParams) throws Exception {
-    // blind bordereau
-    byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
-
-    // CONFIRM_INPUT
-    confirmInputService.confirmInputOrQueuePool(mix.getMixId(), username, blindedBordereau);
-    return blindedBordereau;
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
   }
 
   @Test
   public void confirmInput_shouldSuccessWhenValid() throws Exception {
-    Mix mix = __getCurrentMix();
-    String username = "testusername";
-    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
-
-    // REGISTER_INPUT
-    ECKey ecKey = new ECKey();
-    registerInput(mix, username, ecKey, null, null);
-    testUtils.assertMix(0, 1, mix); // mustMix confirming
-
-    // CONFIRM_INPUT
-    RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();
-    RSABlindingParameters blindingParams =
-        clientCryptoService.computeBlindingParams(serverPublicKey);
-
-    byte[] blindedBordereau = confirmInput(mix, username, receiveAddress, blindingParams);
-
-    // get a valid signed blinded bordereau
-    byte[] signedBlindedBordereau =
-        cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair());
-
-    // REGISTER_OUTPUT
-    mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT);
-    Assert.assertEquals(0, mix.getReceiveAddresses().size());
-    byte[] unblindedSignedBordereau =
-        clientCryptoService.unblind(signedBlindedBordereau, blindingParams);
-    registerOutputService.registerOutput(
-        mix.computeInputsHash(), unblindedSignedBordereau, receiveAddress);
-    Assert.assertEquals(1, mix.getReceiveAddresses().size());
-
-    // TEST
-
-    // VERIFY
-    testUtils.assertMix(1, 0, mix); // mustMix confirmed
-  }
-
-  @Test
-  public void resumeConfirmedInput_shouldSuccessWhenValid() throws Exception {
     Mix mix = __getCurrentMix();
     String mixId = mix.getMixId();
     String username = "testusername";
     String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
 
     // REGISTER_INPUT
-    ECKey ecKey = new ECKey();
-    TxOutPoint txOutPoint = registerInput(mix, username, ecKey, null, null);
+    registerInput(mix, username);
     testUtils.assertMix(0, 1, mix); // mustMix confirming
 
-    // CONFIRM_INPUT
+    // blind bordereau
     RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();
     RSABlindingParameters blindingParams =
         clientCryptoService.computeBlindingParams(serverPublicKey);
+    byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
 
-    byte[] blindedBordereau = confirmInput(mix, username, receiveAddress, blindingParams);
-
-    // input is confirmed
-    testUtils.assertMix(1, 0, mix);
-
-    // => REGISTER_OUTPUT
-    mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT);
-
-    // simulate input disconnect
-    mixService.onClientDisconnect(username);
-
-    // verify input still here but offlined
-    testUtils.assertMix(1, 0, mix);
-    Assert.assertTrue(mix.getInputs().iterator().next().isOffline());
-
-    // resume confirmed input (REGISTER_INPUT again)
-    String resumeConfirmedMixId = mixId;
-    registerInput(mix, username, ecKey, txOutPoint, resumeConfirmedMixId);
-
-    // verify mustMix already confirmed & back online
-    testUtils.assertMix(1, 0, mix);
-    Assert.assertFalse(mix.getInputs().iterator().next().isOffline());
+    // CONFIRM_INPUT
+    confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau);
 
     // get a valid signed blinded bordereau
     byte[] signedBlindedBordereau =
         cryptoService.signBlindedOutput(blindedBordereau, mix.getKeyPair());
 
     // REGISTER_OUTPUT
+    mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT);
     Assert.assertEquals(0, mix.getReceiveAddresses().size());
     byte[] unblindedSignedBordereau =
         clientCryptoService.unblind(signedBlindedBordereau, blindingParams);
@@ -160,5 +92,6 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
 
     // VERIFY
     testUtils.assertMix(1, 0, mix); // mustMix confirmed
+    Thread.sleep(5000);
   }
 }

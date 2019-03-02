@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -644,16 +643,21 @@ public class MixService {
             .filter(
                 input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername()))
             .collect(Collectors.toSet());
-
-    List<String> outpointKeysToBlame = new ArrayList<>();
     for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
       blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId);
+    }
+    // reset mix
+    String outpointKeysToBlameStr = computeOutpointKeysToBlame(confirmedInputsToBlame);
+    goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS, outpointKeysToBlameStr);
+  }
+
+  private String computeOutpointKeysToBlame(Collection<ConfirmedInput> confirmedInputsToBlame) {
+    List<String> outpointKeysToBlame = new ArrayList<>();
+    for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
       outpointKeysToBlame.add(confirmedInputToBlame.getRegisteredInput().getOutPoint().toKey());
     }
-
-    // reset mix
     String outpointKeysToBlameStr = StringUtils.join(outpointKeysToBlame, ";");
-    goFail(mix, FailReason.FAIL_REGISTER_OUTPUTS, outpointKeysToBlameStr);
+    return outpointKeysToBlameStr;
   }
 
   public void goFail(Mix mix, FailReason failReason, String failInfo) {
@@ -670,45 +674,6 @@ public class MixService {
     exportService.exportMix(mix);
   }
 
-  public synchronized void resumeConfirmedInput(String username, TxOutPoint txOutPoint, Mix mix)
-      throws MixException, IllegalInputException {
-    // find confirmedInput by outPoint
-    Optional<ConfirmedInput> searchResult =
-        mix.getInputs()
-            .parallelStream()
-            .filter(
-                confirmedInput ->
-                    confirmedInput.getRegisteredInput().getOutPoint().getHash().equals(txOutPoint.getHash())
-                        && confirmedInput.getRegisteredInput().getOutPoint().getIndex()
-                            == txOutPoint.getIndex()
-                        && confirmedInput.isOffline())
-            .findFirst();
-    if (!searchResult.isPresent()) {
-      throw new IllegalInputException("Couldn't resume input (input not found)");
-    }
-    // confirmedInput found => resume
-    String mixId = mix.getMixId();
-    ConfirmedInput confirmedInput = searchResult.get();
-    log.info(
-        " • ["
-            + mixId
-            + "] resuming "
-            + (confirmedInput.getRegisteredInput().isLiquidity() ? "liquidity" : "mustMix")
-            + " from running mix ( "
-            + mix.getMixStatus()
-            + "), username: "
-            + confirmedInput.getRegisteredInput().getUsername()
-            + " -> "
-            + username);
-    // update username & set online
-    confirmedInput.getRegisteredInput().changeUsername(username);
-    confirmedInput.setOffline(false);
-
-    // send mixStatus
-    MixStatusNotification mixStatusNotification = computeMixStatusNotification(mixId);
-    webSocketService.sendPrivate(username, mixStatusNotification);
-  }
-
   public synchronized void onClientDisconnect(String username) {
     for (Mix mix : getCurrentMixs()) {
       String mixId = mix.getMixId();
@@ -723,7 +688,7 @@ public class MixService {
                           + "] unregistered from confirming inputs, username="
                           + username));
 
-      // mark registeredInput offline
+      // remove from confirmed inputs
       List<ConfirmedInput> confirmedInputs =
           mix.getInputs()
               .parallelStream()
@@ -732,38 +697,31 @@ public class MixService {
                       confirmedInput.getRegisteredInput().getUsername().equals(username))
               .collect(Collectors.toList());
       if (!confirmedInputs.isEmpty()) {
-        if (MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
-          // mix not started yet => remove input as mix isn't started yet
-          confirmedInputs.forEach(
-              confirmedInput -> {
-                log.info(
-                    " • ["
-                        + mixId
-                        + "] unregistered "
-                        + (confirmedInput.getRegisteredInput().isLiquidity()
-                            ? "liquidity"
-                            : "mustMix")
-                        + " from registered inputs, username="
-                        + username);
-                mix.unregisterInput(confirmedInput);
-              });
-        } else {
-          // mix already started => mark input as offline
-          confirmedInputs.forEach(
-              confirmedInput -> {
-                log.info(
-                    " • ["
-                        + mixId
-                        + "] offlined "
-                        + (confirmedInput.getRegisteredInput().isLiquidity()
-                            ? "liquidity"
-                            : "mustMix")
-                        + " from running mix ( "
-                        + mix.getMixStatus()
-                        + "), username="
-                        + username);
-                confirmedInput.setOffline(true);
-              });
+        boolean mixAlreadyStarted = !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus());
+
+        confirmedInputs.forEach(
+            confirmedInput -> {
+              log.info(
+                  " • ["
+                      + mixId
+                      + "] unregistered "
+                      + (confirmedInput.getRegisteredInput().isLiquidity()
+                          ? "liquidity"
+                          : "mustMix")
+                      + " from registered inputs, username="
+                      + username);
+              mix.unregisterInput(confirmedInput);
+
+              if (mixAlreadyStarted) {
+                // blame
+                blameService.blame(confirmedInput, BlameReason.DISCONNECT, mixId);
+              }
+            });
+
+        if (mixAlreadyStarted) {
+          // restart mix
+          String outpointKeysToBlame = computeOutpointKeysToBlame(confirmedInputs);
+          goFail(mix, FailReason.DISCONNECT, outpointKeysToBlame);
         }
       }
     }
