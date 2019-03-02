@@ -72,7 +72,8 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
               txOutPoint.getHash(),
               txOutPoint.getIndex(),
               liquidity,
-              true);
+              true,
+              null);
 
         } catch (Exception e) {
           e.printStackTrace();
@@ -166,7 +167,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Pool not found");
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -203,7 +204,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         TxOutPoint txOutPoint =
             rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
         registerInputService.registerInput(
-            poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+            poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
 
         // VERIFY
         testUtils.assertPool(1, 0, mix.getPool()); // mustMix queued
@@ -230,7 +231,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid signature");
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -255,7 +256,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid signature");
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -279,12 +280,12 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // TEST
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // confirming
 
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // not confirming twice
   }
@@ -307,7 +308,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid input balance");
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -332,7 +333,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Invalid input balance");
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true, null);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -383,7 +384,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);
 
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true, null);
   }
 
   @Test

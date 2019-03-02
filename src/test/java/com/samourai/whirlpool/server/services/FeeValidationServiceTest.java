@@ -149,6 +149,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Pool pool = new Pool();
     pool.setPoolId("foo");
     pool.setDenomination(1000000);
+    pool.setFeeValue(FEES_VALID);
     pool.setMustMixBalanceMin(1000102);
     pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
@@ -161,7 +162,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD); // valid feePayload
-    Pools pools = new Pools(poolItems, FEES_VALID, feePaymentCode, feePayload);
+    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
 
     Tx0 tx0 =
         new Tx0Service(params, xpubSamouraiFee)
@@ -201,6 +202,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Pool pool = new Pool();
     pool.setPoolId("foo");
     pool.setDenomination(1000000);
+    pool.setFeeValue(FEES_VALID);
     pool.setMustMixBalanceMin(1000102);
     pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
@@ -213,7 +215,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = new byte[] {01, 23}; // invalid feePayload
-    Pools pools = new Pools(poolItems, FEES_VALID, feePaymentCode, feePayload);
+    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
 
     Tx0 tx0 =
         new Tx0Service(params, xpubSamouraiFee)
@@ -268,6 +270,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Pool pool = new Pool();
     pool.setPoolId("foo");
     pool.setDenomination(1000000);
+    pool.setFeeValue(FEES_VALID);
     pool.setMustMixBalanceMin(1000102);
     pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
@@ -280,7 +283,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     int feeIndice = 123456;
     IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = null; // no feePayload
-    Pools pools = new Pools(poolItems, FEES_VALID, feePaymentCode, feePayload);
+    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
 
     Tx0 tx0 =
         new Tx0Service(params, xpubSamouraiFee)

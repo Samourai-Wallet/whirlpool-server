@@ -5,8 +5,8 @@ import wf.bitcoin.javabitcoindrpcclient.BitcoinRPCException;
 public class BroadcastException extends MixException {
   private String failInfo;
 
-  public BroadcastException(String message, String failInfo) {
-    super(message);
+  public BroadcastException(String failInfo) {
+    super("Unable to broadcast tx: " + failInfo);
     this.failInfo = failInfo;
   }
 
@@ -15,7 +15,7 @@ public class BroadcastException extends MixException {
     if (BitcoinRPCException.class.isAssignableFrom(e.getClass())) {
       failInfo = ((BitcoinRPCException) e).getResponse();
     }
-    return new BroadcastException("Unable to broadcast tx", failInfo);
+    return new BroadcastException(failInfo);
   }
 
   public String getFailInfo() {

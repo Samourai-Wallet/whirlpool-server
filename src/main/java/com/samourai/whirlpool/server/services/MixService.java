@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -411,7 +412,7 @@ public class MixService {
         rpcClientService.broadcastTransaction(tx);
         goSuccess(mix);
       } catch (BroadcastException e) {
-        log.error("Unable to broadcast tx", e);
+        log.error("Unable to broadcast tx: ", e);
         goFail(mix, FailReason.FAIL_BROADCAST, e.getFailInfo());
       }
     }
@@ -667,6 +668,45 @@ public class MixService {
     changeMixStatus(mix.getMixId(), MixStatus.SUCCESS);
 
     exportService.exportMix(mix);
+  }
+
+  public synchronized void resumeConfirmedInput(String username, TxOutPoint txOutPoint, Mix mix)
+      throws MixException, IllegalInputException {
+    // find confirmedInput by outPoint
+    Optional<ConfirmedInput> searchResult =
+        mix.getInputs()
+            .parallelStream()
+            .filter(
+                confirmedInput ->
+                    confirmedInput.getRegisteredInput().getOutPoint().getHash().equals(txOutPoint.getHash())
+                        && confirmedInput.getRegisteredInput().getOutPoint().getIndex()
+                            == txOutPoint.getIndex()
+                        && confirmedInput.isOffline())
+            .findFirst();
+    if (!searchResult.isPresent()) {
+      throw new IllegalInputException("Couldn't resume input (input not found)");
+    }
+    // confirmedInput found => resume
+    String mixId = mix.getMixId();
+    ConfirmedInput confirmedInput = searchResult.get();
+    log.info(
+        " • ["
+            + mixId
+            + "] resuming "
+            + (confirmedInput.getRegisteredInput().isLiquidity() ? "liquidity" : "mustMix")
+            + " from running mix ( "
+            + mix.getMixStatus()
+            + "), username: "
+            + confirmedInput.getRegisteredInput().getUsername()
+            + " -> "
+            + username);
+    // update username & set online
+    confirmedInput.getRegisteredInput().changeUsername(username);
+    confirmedInput.setOffline(false);
+
+    // send mixStatus
+    MixStatusNotification mixStatusNotification = computeMixStatusNotification(mixId);
+    webSocketService.sendPrivate(username, mixStatusNotification);
   }
 
   public synchronized void onClientDisconnect(String username) {

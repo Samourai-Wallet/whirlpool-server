@@ -13,6 +13,10 @@ public class RegisteredInput {
     this.outPoint = outPoint;
   }
 
+  public void changeUsername(String username) {
+    this.username = username;
+  }
+
   public String getUsername() {
     return username;
   }

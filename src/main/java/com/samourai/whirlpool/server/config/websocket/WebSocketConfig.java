@@ -19,6 +19,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -35,6 +36,7 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
     implements WebSocketMessageBrokerConfigurer {
   private static Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  private static final int HEARTBEAT_DELAY = 20000;
 
   public static String[] WEBSOCKET_ENDPOINTS =
       new String[] {
@@ -88,7 +90,16 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker(whirlpoolProtocol.WS_PREFIX_USER_REPLY);
+    // enable heartbeat (mandatory to detect client disconnect)
+    ThreadPoolTaskScheduler te = new ThreadPoolTaskScheduler();
+    te.setPoolSize(1);
+    te.setThreadNamePrefix("wss-heartbeat-thread-");
+    te.initialize();
+
+    registry
+        .enableSimpleBroker(whirlpoolProtocol.WS_PREFIX_USER_REPLY)
+        .setHeartbeatValue(new long[] {HEARTBEAT_DELAY, HEARTBEAT_DELAY})
+        .setTaskScheduler(te);
     registry.setUserDestinationPrefix(whirlpoolProtocol.WS_PREFIX_USER_PRIVATE);
   }
 
