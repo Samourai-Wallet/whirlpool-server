@@ -6,10 +6,11 @@
 	<artifactId>whirlpool-server</artifactId>
 	<version>develop-SNAPSHOT</version>
 	<name>whirlpool-server</name>
-    <properties>
-        <spring.version>2.0.3.RELEASE</spring.version>
+	<properties>
+		<spring.version>2.0.3.RELEASE</spring.version>
 		<spring-security.version>5.0.6.RELEASE</spring-security.version>
-    </properties>
+		<project.scm.id>samourai</project.scm.id>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
@@ -183,18 +184,27 @@
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>com.coveo</groupId>
-                <artifactId>fmt-maven-plugin</artifactId>
-                <version>2.6.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+					<groupId>com.coveo</groupId>
+					<artifactId>fmt-maven-plugin</artifactId>
+					<version>2.6.0</version>
+					<executions>
+							<execution>
+									<goals>
+											<goal>format</goal>
+									</goals>
+							</execution>
+					</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<tagNameFormat>@{project.version}</tagNameFormat>
+					<developmentVersion>develop-SNAPSHOT</developmentVersion>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<repositories>
@@ -203,4 +213,8 @@
 			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
+	<scm>
+		<connection>scm:git:https://github.com/Samourai-Wallet/whirlpool-server.git</connection>
+		<tag>HEAD</tag>
+	</scm>
 </project>
