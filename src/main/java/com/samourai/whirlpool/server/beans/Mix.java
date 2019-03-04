@@ -322,7 +322,18 @@ public class Mix {
   }
 
   public boolean isInvitationOpen(boolean liquidity) {
-    return MixStatus.CONFIRM_INPUT.equals(mixStatus) && (!liquidity || acceptLiquidities);
+    return MixStatus.CONFIRM_INPUT.equals(mixStatus) && (!liquidity || isRegisterLiquiditiesOpen());
+  }
+
+  public boolean isRegisterLiquiditiesOpen() {
+    if (!hasMinMustMixReached()) {
+      // wait to get enough mustMix before accepting liquidities
+      return false;
+    }
+    if (!isAcceptLiquidities()) {
+      return false;
+    }
+    return true;
   }
 
   public long computeAmountIn() {

@@ -122,7 +122,7 @@ public class MixService {
     }
 
     // liquidity: verify liquidities open
-    if (registeredInput.isLiquidity() && !isRegisterLiquiditiesOpen(mix)) {
+    if (registeredInput.isLiquidity() && !mix.isRegisterLiquiditiesOpen()) {
       throw new IllegalInputException(
           "Current mix not opened to liquidities yet"); // should not happen
     }
@@ -253,17 +253,6 @@ public class MixService {
   private void goRegisterOutput(Mix mix) {
     mix.clearScheduleRegisterOutput();
     changeMixStatus(mix.getMixId(), MixStatus.REGISTER_OUTPUT);
-  }
-
-  private boolean isRegisterLiquiditiesOpen(Mix mix) {
-    if (!mix.hasMinMustMixReached()) {
-      // wait to get enough mustMix before accepting liquidities
-      return false;
-    }
-    if (!mix.isAcceptLiquidities()) {
-      return false;
-    }
-    return true;
   }
 
   public boolean isRegisterInputReady(Mix mix) {
