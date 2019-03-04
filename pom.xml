@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.Samourai-Wallet</groupId>
 	<artifactId>whirlpool-server</artifactId>
-	<version>develop-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>whirlpool-server</name>
 	<properties>
 		<spring.version>2.0.3.RELEASE</spring.version>
@@ -15,13 +14,13 @@
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>whirlpool-protocol</artifactId>
-			<version>develop-SNAPSHOT</version>
+			<version>0.0.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>extlibj</artifactId>
-			<version>develop-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -109,7 +108,7 @@
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>whirlpool-client-cli</artifactId>
-			<version>develop-SNAPSHOT</version>
+			<version>0.0.1</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -215,6 +214,6 @@
 	</repositories>
 	<scm>
 		<connection>scm:git:https://github.com/Samourai-Wallet/whirlpool-server.git</connection>
-		<tag>HEAD</tag>
+		<tag>0.0.1</tag>
 	</scm>
 </project>
