@@ -31,10 +31,10 @@ import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -100,7 +100,7 @@ public class MixService {
     this.taskService = taskService;
     this.txUtil = txUtil;
 
-    this.currentMixs = new HashMap<>();
+    this.currentMixs = new ConcurrentHashMap<>();
 
     this.__reset();
   }
@@ -721,7 +721,7 @@ public class MixService {
   }
 
   public void __reset() {
-    currentMixs = new HashMap<>();
+    currentMixs = new ConcurrentHashMap<>();
     mixLimitsService.__reset();
     poolService
         .getPools()

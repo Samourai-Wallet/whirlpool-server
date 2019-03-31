@@ -2,8 +2,8 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
 import java.lang.invoke.MethodHandles;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class WebSocketSessionService {
       MixService mixService, PoolService poolService, WebSocketConfig websocketConfig) {
     this.mixService = mixService;
     this.poolService = poolService;
-    this.sessions = new HashMap<>();
+    this.sessions = new ConcurrentHashMap<>();
 
     // subscribe to websocket activity
     websocketConfig.__setWebSocketHandlerListener(this);
@@ -37,7 +37,7 @@ public class WebSocketSessionService {
     }
     Map<String, WebSocketSession> usernameSessions = sessions.get(username);
     if (usernameSessions == null) {
-      usernameSessions = new HashMap<>();
+      usernameSessions = new ConcurrentHashMap<>();
       sessions.put(username, usernameSessions);
     }
     if (usernameSessions.containsKey(sessionId)) {
@@ -57,10 +57,12 @@ public class WebSocketSessionService {
     if (log.isDebugEnabled()) {
       log.debug("(--> " + username + ") : disconnect (sessionId=" + sessionId + ")");
     }
-    if (sessions.getOrDefault(username, new HashMap<>()).containsKey(sessionId)) {
+
+    Map<String, WebSocketSession> userSessions = sessions.get(username);
+    if (userSessions != null && userSessions.containsKey(sessionId)) {
       mixService.onClientDisconnect(username);
       poolService.onClientDisconnect(username);
-      sessions.getOrDefault(username, new HashMap<>()).remove(sessionId);
+      userSessions.remove(sessionId);
     } else {
       log.error(
           "unknown session for disconnected client: username="

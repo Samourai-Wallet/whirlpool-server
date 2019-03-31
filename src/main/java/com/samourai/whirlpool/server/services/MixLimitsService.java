@@ -10,10 +10,10 @@ import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -343,7 +343,7 @@ public class MixLimitsService {
       limitsWatchers.values().forEach(watcher -> watcher.stop());
     }
 
-    this.limitsWatchers = new HashMap<>();
-    this.liquidityWatchers = new HashMap<>();
+    this.limitsWatchers = new ConcurrentHashMap<>();
+    this.liquidityWatchers = new ConcurrentHashMap<>();
   }
 }

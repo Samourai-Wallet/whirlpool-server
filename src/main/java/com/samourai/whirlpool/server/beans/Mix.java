@@ -10,11 +10,11 @@ import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import org.bitcoinj.core.Transaction;
@@ -58,7 +58,7 @@ public class Mix {
       throw new RuntimeException(e);
     }
     this.timeStarted = new Timestamp(System.currentTimeMillis());
-    this.timeStatus = new HashMap<>();
+    this.timeStatus = new ConcurrentHashMap<>();
     this.scheduleRegisterOutput = null;
 
     this.pool = pool;
@@ -67,11 +67,11 @@ public class Mix {
 
     this.mixStatus = MixStatus.CONFIRM_INPUT;
     this.confirmingInputs = new InputPool();
-    this.inputsById = new HashMap<>();
+    this.inputsById = new ConcurrentHashMap<>();
 
     this.receiveAddresses = new HashSet<>();
-    this.revealedReceiveAddressesByUsername = new HashMap<>();
-    this.signed = new HashMap<>();
+    this.revealedReceiveAddressesByUsername = new ConcurrentHashMap<>();
+    this.signed = new ConcurrentHashMap<>();
 
     this.tx = null;
     this.failReason = null;
