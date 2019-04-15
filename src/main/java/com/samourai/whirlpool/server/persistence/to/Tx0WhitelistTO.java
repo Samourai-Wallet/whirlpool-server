@@ -5,7 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-@Entity(name = "tx0Whitelist")
+@Entity(name = "tx0_whitelist")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"txid"})})
 public class Tx0WhitelistTO extends EntityCreatedTO {
   private String txid;
