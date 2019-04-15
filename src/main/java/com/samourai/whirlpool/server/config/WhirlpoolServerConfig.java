@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.config;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.server.utils.Utils;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -490,10 +491,10 @@ public class WhirlpoolServerConfig {
     configInfo.put("export.mixs", export.mixs.directory + " -> " + export.mixs.filename);
     configInfo.put("ban.blames", String.valueOf(ban.blames));
     for (PoolConfig poolConfig : pools) {
-      String poolInfo = "denomination=" + String.valueOf(poolConfig.denomination);
+      String poolInfo = "denomination=" + Utils.satoshisToBtc(poolConfig.denomination);
       poolInfo +=
           ", feeValue="
-              + poolConfig.feeValue
+              + Utils.satoshisToBtc(poolConfig.feeValue)
               + ", anonymitySet="
               + poolConfig.anonymitySetTarget
               + "["

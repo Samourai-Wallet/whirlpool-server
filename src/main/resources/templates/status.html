@@ -55,6 +55,7 @@
                 </td>
                 <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
                 <td>
+                    Pool fee: <span th:text="${@templateUtil.satoshisToBtc(pool.feeValue)}"/><br/>
                     Miner fee: <span th:text="${pool.minerFeeMin}"/>-<span th:text="${pool.minerFeeMax}"/><br/>
                     AnonymitySet: <span th:text="${pool.minAnonymitySet}"/>-<span th:text="${pool.maxAnonymitySet}"/>
                 </td>
