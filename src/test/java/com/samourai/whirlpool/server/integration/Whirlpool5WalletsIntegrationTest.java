@@ -421,7 +421,6 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             final Bip84Wallet bip84Wallet = premixer.wallets.get(paymentCode).getBip84Wallet(0);
 
             multiClientManager.connectWithMock(
-                1,
                 segwitAddress,
                 bip84Wallet,
                 null,

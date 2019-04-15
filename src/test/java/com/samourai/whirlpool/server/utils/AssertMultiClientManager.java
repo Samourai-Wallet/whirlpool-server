@@ -47,7 +47,6 @@ public class AssertMultiClientManager extends MultiClientManager {
   private boolean testMode;
 
   private Mix mix;
-  int currentMix = 0;
 
   private TxOutPoint[] inputs;
   private ECKey[] inputKeys;
@@ -117,7 +116,7 @@ public class AssertMultiClientManager extends MultiClientManager {
 
   private synchronized int prepareClient(TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
     int i = clients.size();
-    register(createClient(), currentMix);
+    register(createClient());
     bip84Wallets[i] = bip84Wallet;
     inputs[i] = utxo;
     inputKeys[i] = utxoKey;
@@ -129,27 +128,26 @@ public class AssertMultiClientManager extends MultiClientManager {
     return premixBalanceMin;
   }
 
-  public void connectWithMockOrFail(boolean liquidity, int mixs) {
+  public void connectWithMockOrFail(boolean liquidity) {
     long premixBalanceMin = computePremixBalanceMin(liquidity);
-    connectWithMockOrFail(mixs, premixBalanceMin);
+    connectWithMockOrFail(premixBalanceMin);
   }
 
-  public void connectWithMockOrFail(int mixs, long inputBalance) {
+  public void connectWithMockOrFail(long inputBalance) {
     try {
-      connectWithMock(mixs, inputBalance);
+      connectWithMock(inputBalance);
     } catch (Exception e) {
       log.error("", e);
       Assert.assertTrue(false);
     }
   }
 
-  public void connectWithMock(int mixs, long inputBalance) throws Exception {
+  public void connectWithMock(long inputBalance) throws Exception {
     int i = prepareClientWithMock(inputBalance);
-    whirlpool(i, mixs);
+    whirlpool(i);
   }
 
   public void connectWithMock(
-      int mixs,
       SegwitAddress inputAddress,
       Bip84Wallet bip84Wallet,
       Integer nbConfirmations,
@@ -160,15 +158,15 @@ public class AssertMultiClientManager extends MultiClientManager {
     int i =
         prepareClientWithMock(
             inputAddress, bip84Wallet, nbConfirmations, utxoHash, utxoIndex, inputBalance);
-    whirlpool(i, mixs);
+    whirlpool(i);
   }
 
-  public void connect(int mixs, TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
+  public void connect(TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
     int i = prepareClient(utxo, utxoKey, bip84Wallet);
-    whirlpool(i, mixs);
+    whirlpool(i);
   }
 
-  private void whirlpool(int i, int mixs) {
+  private void whirlpool(int i) {
     Pool pool = mix.getPool();
     WhirlpoolClient whirlpoolClient = clients.get(i);
     MultiClientListener listener = listeners.get(i);
@@ -183,7 +181,7 @@ public class AssertMultiClientManager extends MultiClientManager {
     MixParams mixParams =
         new MixParams(pool.getPoolId(), pool.getDenomination(), premixHandler, postmixHandler);
 
-    whirlpoolClient.whirlpool(mixParams, mixs, listener);
+    whirlpoolClient.whirlpool(mixParams, listener);
   }
 
   private void waitRegisteredInputs(int nbInputsExpected) throws Exception {
@@ -277,7 +275,6 @@ public class AssertMultiClientManager extends MultiClientManager {
     Mix nextMix = mix.getPool().getCurrentMix();
     Assert.assertNotEquals(mix, nextMix);
     this.mix = nextMix;
-    this.currentMix++;
     log.info("============= NEW MIX DETECTED: " + nextMix.getMixId() + " =============");
   }
 
@@ -297,11 +294,6 @@ public class AssertMultiClientManager extends MultiClientManager {
 
   public void assertMixStatusSuccess(int nbAllRegisteredExpected, boolean hasLiquidityExpected)
       throws Exception {
-    assertMixStatusSuccess(nbAllRegisteredExpected, hasLiquidityExpected, 1);
-  }
-
-  public void assertMixStatusSuccess(
-      int nbAllRegisteredExpected, boolean hasLiquidityExpected, int numMix) throws Exception {
     // wait inputs to register
     waitRegisteredInputs(nbAllRegisteredExpected);
 
@@ -322,7 +314,7 @@ public class AssertMultiClientManager extends MultiClientManager {
     Assert.assertEquals(nbAllRegisteredExpected, mix.getNbSignatures());
 
     // all clients should be SUCCESS
-    assertClientsSuccess(nbAllRegisteredExpected, numMix);
+    assertClientsSuccess(nbAllRegisteredExpected);
   }
 
   public void assertMixTx(String expectedTxHash, String expectedTxHex) {
@@ -333,9 +325,9 @@ public class AssertMultiClientManager extends MultiClientManager {
     Assert.assertEquals(expectedTxHex, txHex);
   }
 
-  private void assertClientsSuccess(int nbSuccessExpected, int numMix) {
-    waitDone(numMix, nbSuccessExpected);
-    Assert.assertTrue(getNbSuccess(numMix) == nbSuccessExpected);
+  private void assertClientsSuccess(int nbSuccessExpected) {
+    waitDone(nbSuccessExpected);
+    Assert.assertTrue(getNbSuccess() == nbSuccessExpected);
   }
 
   public void nextTargetAnonymitySetAdjustment() throws Exception {

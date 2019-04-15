@@ -57,13 +57,13 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
     // connect 2 clients
     log.info("# Connect 2 clients for first mix...");
     for (int i = 0; i < NB_CLIENTS_FIRST_MIX; i++) {
-      taskExecutor.execute(
-          () -> multiClientManager.connectWithMockOrFail(false, 2)); // stay for 2 mixs
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false));
     }
 
     // all clients should have registered their outputs and signed
     multiClientManager.assertMixStatusSuccess(NB_CLIENTS_FIRST_MIX, true);
 
+    /*
     // MIX #2
     Thread.sleep(2000);
     multiClientManager.setMixNext();
@@ -78,6 +78,6 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
     multiClientManager.assertMixStatusConfirmInput(1, true);
 
     multiClientManager.nextTargetAnonymitySetAdjustment(); // add liquidities
-    multiClientManager.assertMixStatusSuccess(2, true, 2); // still one liquidity
+    multiClientManager.assertMixStatusSuccess(2, true, 2); // still one liquidity*/
   }
 }

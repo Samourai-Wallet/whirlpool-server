@@ -64,7 +64,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     log.info("# Begin connecting " + NB_LIQUIDITIES_CONNECTING + " liquidities...");
     for (int i = 0; i < NB_LIQUIDITIES_CONNECTING; i++) {
       log.info("Connecting liquidity #" + (i + 1) + "/" + NB_LIQUIDITIES_CONNECTING);
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true, 1));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true));
     }
 
     // liquidities should be placed on queue...
@@ -77,7 +77,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     for (int i = NB_LIQUIDITIES_CONNECTING; i < NB_ALL_CONNECTING; i++) {
       log.info("Connecting mustMix #" + (i + 1) + "/" + NB_ALL_CONNECTING);
       final int clientIndice = i;
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, 1));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false));
     }
 
     return multiClientManager;

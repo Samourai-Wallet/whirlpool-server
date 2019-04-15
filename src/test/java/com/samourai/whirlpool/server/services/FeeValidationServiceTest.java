@@ -154,6 +154,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
+    pool.setMinMustMix(1);
     List<Pool> poolItems = new ArrayList<>();
     poolItems.add(pool);
 
@@ -207,6 +208,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
+    pool.setMinMustMix(1);
     List<Pool> poolItems = new ArrayList<>();
     poolItems.add(pool);
 
@@ -275,6 +277,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     pool.setMustMixBalanceMax(1010000);
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
+    pool.setMinMustMix(1);
     List<Pool> poolItems = new ArrayList<>();
     poolItems.add(pool);
 
