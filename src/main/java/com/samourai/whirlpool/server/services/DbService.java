@@ -8,6 +8,7 @@ import com.samourai.whirlpool.server.beans.MixStats;
 import com.samourai.whirlpool.server.persistence.repositories.MixOutputRepository;
 import com.samourai.whirlpool.server.persistence.repositories.MixRepository;
 import com.samourai.whirlpool.server.persistence.repositories.MixTxidRepository;
+import com.samourai.whirlpool.server.persistence.repositories.Tx0WhitelistRepository;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.persistence.to.MixOutputTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
@@ -22,15 +23,18 @@ import org.springframework.stereotype.Service;
 public class DbService {
   private List<BlameTO> blames;
   private MixRepository mixRepository;
+  private Tx0WhitelistRepository tx0WhitelistRepository;
   private MixOutputRepository mixOutputRepository;
   private MixTxidRepository mixTxidRepository;
   private MixStats mixStats; // cached value
 
   public DbService(
       MixRepository mixRepository,
+      Tx0WhitelistRepository tx0WhitelistRepository,
       MixOutputRepository mixOutputRepository,
       MixTxidRepository mixTxidRepository) {
     this.mixRepository = mixRepository;
+    this.tx0WhitelistRepository = tx0WhitelistRepository;
     this.mixOutputRepository = mixOutputRepository;
     this.mixTxidRepository = mixTxidRepository;
     __reset(); // TODO
@@ -56,6 +60,12 @@ public class DbService {
       mixStats = new MixStats(nbMixs, sumAmountOut);
     }
     return mixStats;
+  }
+
+  // tx0Whitelist
+
+  public boolean hasTx0Whitelist(String txid) {
+    return tx0WhitelistRepository.findByTxid(txid).isPresent();
   }
 
   // output

@@ -40,19 +40,25 @@ public class InputValidationService {
       throws IllegalInputException {
 
     // provenance verification can be disabled with testMode
-    boolean skipInputProvenanceCheck = whirlpoolServerConfig.isTestMode() && testMode;
+    if (whirlpoolServerConfig.isTestMode() && testMode) {
+      log.warn("tx0 check disabled by testMode");
+      return txOutPoint;
+    }
+
+    // check tx0Whitelist
+    String txid = tx.getHashAsString();
+    if (dbService.hasTx0Whitelist(txid)) {
+      log.warn("tx0 check disabled by whitelist for txid=" + txid);
+      return txOutPoint;
+    }
 
     // verify input comes from a valid tx0 or previous mix
-    if (!skipInputProvenanceCheck) {
-      boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue(), poolFeeValue);
-      if (!isLiquidity && liquidity) {
-        throw new IllegalInputException("Input rejected: joined as liquidity but is a mustMix");
-      }
-      if (isLiquidity && !liquidity) {
-        throw new IllegalInputException("Input rejected: joined as mustMix but is as a liquidity");
-      }
-    } else {
-      log.warn("tx0 checks disabled by testMode");
+    boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue(), poolFeeValue);
+    if (!isLiquidity && liquidity) {
+      throw new IllegalInputException("Input rejected: joined as liquidity but is a mustMix");
+    }
+    if (isLiquidity && !liquidity) {
+      throw new IllegalInputException("Input rejected: joined as mustMix but is as a liquidity");
     }
     return txOutPoint;
   }
