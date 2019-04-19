@@ -9,7 +9,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
@@ -51,7 +50,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @Autowired private WhirlpoolProtocol whirlpoolProtocol;
 
-  private WebSocketHandler webSocketHandler;
+  @Autowired private WebSocketSessionService webSocketSessionService;
 
   @Override
   public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
@@ -61,6 +60,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
   @Override
   public void configureClientInboundChannel(ChannelRegistration registration) {
     super.configureClientInboundChannel(registration);
+    registration.interceptors(new AssignPrincipalChannelInterceptor());
   }
 
   @Override
@@ -80,16 +80,12 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry
-        .addEndpoint(WEBSOCKET_ENDPOINTS)
-        // assign a random username as principal for each websocket client
-        // this is needed to be able to communicate with a specific client
-        .setHandshakeHandler(new AssignPrincipalWebsocketHandler())
-        .setAllowedOrigins("*");
+    registry.addEndpoint(WEBSOCKET_ENDPOINTS).setAllowedOrigins("*").withSockJS();
   }
 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
+    //// registry.setPreservePublishOrder()
     // enable heartbeat (mandatory to detect client disconnect)
     ThreadPoolTaskScheduler te = new ThreadPoolTaskScheduler();
     te.setPoolSize(1);
@@ -97,6 +93,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
     te.initialize();
 
     registry
+        ////// .setApplicationDestinationPrefixes(WS_WEBSOCKET_ENDPOINTS.WS_PREFIX)
         .enableSimpleBroker(whirlpoolProtocol.WS_PREFIX_USER_REPLY)
         .setHeartbeatValue(new long[] {HEARTBEAT_DELAY, HEARTBEAT_DELAY})
         .setTaskScheduler(te);
@@ -118,40 +115,27 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @EventListener
   public void handleSubscribeEvent(SessionSubscribeEvent event) {
+    String username = event.getUser().getName();
     if (log.isDebugEnabled()) {
-      log.debug("[event] subscribe: username=" + event.getUser().getName() + ", event=" + event);
+      log.debug("[event] subscribe: username=" + username + ", event=" + event);
     }
   }
 
   @EventListener
   public void handleConnectEvent(SessionConnectEvent event) {
+    String username = event.getUser().getName();
     if (log.isDebugEnabled()) {
-      log.debug("[event] connect: username=" + event.getUser().getName() + ", event=" + event);
+      log.debug("[event] connect: username=" + username + ", event=" + event);
     }
+    webSocketSessionService.onConnect(username);
   }
 
   @EventListener
   public void handleDisconnectEvent(SessionDisconnectEvent event) {
+    String username = event.getUser().getName();
     if (log.isDebugEnabled()) {
-      log.debug("[event] disconnect: username=" + event.getUser().getName() + ", event=" + event);
+      log.debug("[event] disconnect: username=" + username + ", event=" + event);
     }
-  }
-
-  @Bean
-  @Override
-  public org.springframework.web.socket.WebSocketHandler subProtocolWebSocketHandler() {
-    return getWebSocketHandler();
-  }
-
-  private WebSocketHandler getWebSocketHandler() {
-    if (this.webSocketHandler == null) {
-      this.webSocketHandler = new WebSocketHandler(this);
-    }
-    return this.webSocketHandler;
-  }
-
-  // avoids circular reference
-  public void __setWebSocketHandlerListener(WebSocketSessionService webSocketSessionService) {
-    getWebSocketHandler().__setWebSocketSessionService(webSocketSessionService);
+    webSocketSessionService.onDisconnect(username);
   }
 }

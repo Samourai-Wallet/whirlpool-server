@@ -10,6 +10,7 @@ import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.utils.MessageListener;
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.Map;
@@ -33,11 +34,21 @@ public class PoolService {
   public PoolService(
       WhirlpoolServerConfig whirlpoolServerConfig,
       CryptoService cryptoService,
-      WebSocketService webSocketService) {
+      WebSocketService webSocketService,
+      WebSocketSessionService webSocketSessionService) {
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.cryptoService = cryptoService;
     this.webSocketService = webSocketService;
     __reset();
+
+    // listen websocket onDisconnect
+    webSocketSessionService.addOnDisconnectListener(
+        new MessageListener<String>() {
+          @Override
+          public void onMessage(String username) {
+            onClientDisconnect(username);
+          }
+        });
   }
 
   public void __reset() {
@@ -227,7 +238,7 @@ public class PoolService {
     return true;
   }
 
-  public synchronized void onClientDisconnect(String username) {
+  private synchronized void onClientDisconnect(String username) {
     for (Pool pool : getPools()) {
       // remove queued liquidity
       boolean liquidityRemoved = pool.getLiquidityQueue().removeByUsername(username).isPresent();

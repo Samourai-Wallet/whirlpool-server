@@ -26,6 +26,7 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
+import com.samourai.whirlpool.server.utils.MessageListener;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
@@ -85,7 +86,8 @@ public class MixService {
       PoolService poolService,
       ExportService exportService,
       TaskService taskService,
-      TxUtil txUtil) {
+      TxUtil txUtil,
+      WebSocketSessionService webSocketSessionService) {
     this.cryptoService = cryptoService;
     this.blameService = blameService;
     this.dbService = dbService;
@@ -99,10 +101,18 @@ public class MixService {
     this.exportService = exportService;
     this.taskService = taskService;
     this.txUtil = txUtil;
-
     this.currentMixs = new ConcurrentHashMap<>();
 
     this.__reset();
+
+    // listen websocket onDisconnect
+    webSocketSessionService.addOnDisconnectListener(
+        new MessageListener<String>() {
+          @Override
+          public void onMessage(String username) {
+            onClientDisconnect(username);
+          }
+        });
   }
 
   /** Last input validations when adding it to a mix (not when queueing it) */
@@ -663,7 +673,7 @@ public class MixService {
     exportService.exportMix(mix);
   }
 
-  public synchronized void onClientDisconnect(String username) {
+  private synchronized void onClientDisconnect(String username) {
     for (Mix mix : getCurrentMixs()) {
       String mixId = mix.getMixId();
 

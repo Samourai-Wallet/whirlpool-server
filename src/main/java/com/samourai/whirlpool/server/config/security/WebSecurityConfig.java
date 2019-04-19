@@ -6,6 +6,7 @@ import com.samourai.whirlpool.server.controllers.web.ConfigWebController;
 import com.samourai.whirlpool.server.controllers.web.HistoryWebController;
 import com.samourai.whirlpool.server.controllers.web.LoginWebController;
 import com.samourai.whirlpool.server.controllers.web.StatusWebController;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -21,16 +22,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private static final String[] REST_MIX_ENDPOINTS =
-      new String[] {WhirlpoolEndpoint.REST_POOLS, WhirlpoolEndpoint.REST_REGISTER_OUTPUT};
+      new String[] {
+        WhirlpoolEndpoint.REST_POOLS, WhirlpoolEndpoint.REST_REGISTER_OUTPUT,
+      };
   private static final String[] STATICS =
       new String[] {"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+    String WS_CONNECT_XHR = WhirlpoolEndpoint.WS_CONNECT + "/**";
 
     // disable csrf for mixing
     http.csrf()
-        .ignoringAntMatchers(REST_MIX_ENDPOINTS)
+        .ignoringAntMatchers(ArrayUtils.addAll(REST_MIX_ENDPOINTS, WS_CONNECT_XHR))
         .and()
         .authorizeRequests()
 
@@ -45,7 +49,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .permitAll()
 
         // public mixing websocket
-        .antMatchers(WebSocketConfig.WEBSOCKET_ENDPOINTS)
+        .antMatchers(ArrayUtils.addAll(WebSocketConfig.WEBSOCKET_ENDPOINTS, WS_CONNECT_XHR))
         .permitAll()
         .antMatchers(REST_MIX_ENDPOINTS)
         .permitAll()

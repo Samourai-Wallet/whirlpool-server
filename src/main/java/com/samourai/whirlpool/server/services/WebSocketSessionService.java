@@ -1,74 +1,56 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
+import com.samourai.whirlpool.server.utils.MessageListener;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.WebSocketSession;
 
 @Service
 public class WebSocketSessionService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  private Map<String, Map<String, WebSocketSession>> sessions;
-  private MixService mixService;
-  private PoolService poolService;
+  private Map<String, Boolean> sessions;
+  private List<MessageListener<String>> onDisconnectListeners;
 
   @Autowired
-  public WebSocketSessionService(
-      MixService mixService, PoolService poolService, WebSocketConfig websocketConfig) {
-    this.mixService = mixService;
-    this.poolService = poolService;
+  public WebSocketSessionService() {
+    this.onDisconnectListeners = new ArrayList<>();
     this.sessions = new ConcurrentHashMap<>();
-
-    // subscribe to websocket activity
-    websocketConfig.__setWebSocketHandlerListener(this);
   }
 
-  public synchronized void onConnect(WebSocketSession webSocketSession) {
-    String sessionId = webSocketSession.getId();
-    String username = webSocketSession.getPrincipal().getName();
+  public void addOnDisconnectListener(MessageListener<String> listener) {
+    onDisconnectListeners.add(listener);
+  }
+
+  public synchronized void onConnect(String username) {
     if (log.isDebugEnabled()) {
-      log.debug("(--> " + username + ") : connect (sessionId=" + sessionId + ")");
+      log.debug("(--> " + username + ") : connect");
     }
-    Map<String, WebSocketSession> usernameSessions = sessions.get(username);
-    if (usernameSessions == null) {
-      usernameSessions = new ConcurrentHashMap<>();
-      sessions.put(username, usernameSessions);
-    }
-    if (usernameSessions.containsKey(sessionId)) {
-      log.error(
-          "session already registered for connecting client: username="
-              + username
-              + ", sessionId="
-              + sessionId);
+    if (!sessions.containsKey(username)) {
+      sessions.put(username, Boolean.TRUE);
     } else {
-      usernameSessions.put(sessionId, webSocketSession);
+      log.error("session already registered for connecting client: username=" + username);
     }
   }
 
-  public synchronized void onDisconnect(WebSocketSession webSocketSession) {
-    String sessionId = webSocketSession.getId();
-    String username = webSocketSession.getPrincipal().getName();
+  public synchronized void onDisconnect(String username) {
     if (log.isDebugEnabled()) {
-      log.debug("(--> " + username + ") : disconnect (sessionId=" + sessionId + ")");
+      log.debug("(--> " + username + ") : disconnect");
     }
 
-    Map<String, WebSocketSession> userSessions = sessions.get(username);
-    if (userSessions != null && userSessions.containsKey(sessionId)) {
-      mixService.onClientDisconnect(username);
-      poolService.onClientDisconnect(username);
-      userSessions.remove(sessionId);
+    if (sessions.containsKey(username)) {
+      for (MessageListener<String> listener : onDisconnectListeners) {
+        listener.onMessage(username);
+      }
+      sessions.remove(username);
     } else {
-      log.error(
-          "unknown session for disconnected client: username="
-              + username
-              + ", sessionId="
-              + sessionId);
+      log.error("unknown session for disconnected client: username=" + username);
     }
   }
 }
