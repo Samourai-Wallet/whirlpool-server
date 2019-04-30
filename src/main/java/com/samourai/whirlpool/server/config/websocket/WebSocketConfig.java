@@ -115,7 +115,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @EventListener
   public void handleSubscribeEvent(SessionSubscribeEvent event) {
-    String username = event.getUser().getName();
+    String username = event.getUser() != null ? event.getUser().getName() : "unknown";
     if (log.isDebugEnabled()) {
       log.debug("[event] subscribe: username=" + username + ", event=" + event);
     }
@@ -123,7 +123,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @EventListener
   public void handleConnectEvent(SessionConnectEvent event) {
-    String username = event.getUser().getName();
+    String username = event.getUser() != null ? event.getUser().getName() : "unknown";
     if (log.isDebugEnabled()) {
       log.debug("[event] connect: username=" + username + ", event=" + event);
     }
