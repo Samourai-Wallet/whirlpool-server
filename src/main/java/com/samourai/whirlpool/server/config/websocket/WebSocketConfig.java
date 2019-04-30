@@ -132,7 +132,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @EventListener
   public void handleDisconnectEvent(SessionDisconnectEvent event) {
-    String username = event.getUser().getName();
+    String username = event.getUser() != null ? event.getUser().getName() : "unknown";
     if (log.isDebugEnabled()) {
       log.debug("[event] disconnect: username=" + username + ", event=" + event);
     }
