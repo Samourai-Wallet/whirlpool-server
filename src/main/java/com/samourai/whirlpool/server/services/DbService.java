@@ -56,8 +56,9 @@ public class DbService {
   public MixStats getMixStats() {
     if (mixStats == null) {
       long nbMixs = mixRepository.countByMixStatus(MixStatus.SUCCESS);
+      long sumMustMix = mixRepository.sumMustMixByMixStatus(MixStatus.SUCCESS);
       long sumAmountOut = mixRepository.sumAmountOutByMixStatus(MixStatus.SUCCESS);
-      mixStats = new MixStats(nbMixs, sumAmountOut);
+      mixStats = new MixStats(nbMixs, sumMustMix, sumAmountOut);
     }
     return mixStats;
   }

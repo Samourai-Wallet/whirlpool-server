@@ -552,7 +552,7 @@ public class MixService {
             .filter(mix -> mix.computeInputsHash().equals(inputsHash))
             .collect(Collectors.toList());
     if (mixsFound.size() != 1) {
-      throw new IllegalInputException("Mix not found for inputsHash");
+      throw new IllegalInputException("REGISTER_OUTPUT too late, mix is over");
     }
     Mix mix = mixsFound.get(0);
     if (mixStatus != null && !mixStatus.equals(mix.getMixStatus())) {

@@ -10,6 +10,9 @@ public interface MixRepository extends PagingAndSortingRepository<MixTO, Long> {
   @Query("SELECT COUNT(m) from mix m WHERE mixStatus=:mixStatus")
   Long countByMixStatus(@Param("mixStatus") MixStatus mixStatus);
 
+  @Query("SELECT SUM(nbMustMix*denomination) from mix WHERE mixStatus=:mixStatus")
+  Long sumMustMixByMixStatus(@Param("mixStatus") MixStatus mixStatus);
+
   @Query("SELECT SUM(amountOut) from mix WHERE mixStatus=:mixStatus")
   Long sumAmountOutByMixStatus(@Param("mixStatus") MixStatus mixStatus);
 }

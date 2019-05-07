@@ -12,8 +12,9 @@
     <div layout:fragment="main">
         <h1 class="h2">History</h1>
 
-        Mixs success: <strong th:text="${mixStats.nbMixs}"/><br/>
-        Total mixed: <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumAmountOut)+'btc'}"/>
+        <strong th:text="${mixStats.nbMixs}"/> mixs •
+        <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumMustMix)+'btc'}"/> mixed •
+        <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumAmountOut)+'btc'}"/> volume
         <div class="table-responsive">
         <table class="table table-sm history">
             <thead>
@@ -33,7 +34,7 @@
             </thead>
             <tbody>
                 <tr th:each="mix : ${page.content}">
-                    <td class="created"><span th:text="${#dates.format(mix.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
+                    <td class="updated"><span th:text="${#dates.format(mix.updated, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
                     <td class="poolId"><pre><code th:text="${mix.poolId}"/></pre></td>
                     <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
                     <td class="denomination"><pre><code th:text="${@templateUtil.satoshisToBtc(mix.denomination)}"/></pre></td>
