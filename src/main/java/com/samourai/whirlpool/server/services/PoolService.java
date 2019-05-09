@@ -63,7 +63,8 @@ public class PoolService {
       long denomination = poolConfig.getDenomination();
       long feeValue = poolConfig.getFeeValue();
       long minerFeeMin = poolConfig.getMinerFeeMin();
-      long minerFeeMax = poolConfig.getMinerFeeMax();
+      long minerFeeMaxSoft = poolConfig.getMinerFeeMaxSoft();
+      long minerFeeMaxHard = poolConfig.getMinerFeeMaxHard();
       int minMustMix = poolConfig.getMustMixMin();
       int targetAnonymitySet = poolConfig.getAnonymitySetTarget();
       int minAnonymitySet = poolConfig.getAnonymitySetMin();
@@ -79,7 +80,8 @@ public class PoolService {
               denomination,
               feeValue,
               minerFeeMin,
-              minerFeeMax,
+              minerFeeMaxSoft,
+              minerFeeMaxHard,
               minMustMix,
               targetAnonymitySet,
               minAnonymitySet,
@@ -110,7 +112,7 @@ public class PoolService {
             cryptoService.getNetworkParameters().getPaymentProtocolId(),
             pool.getDenomination(),
             pool.computeMustMixBalanceMin(),
-            pool.computeMustMixBalanceMax());
+            pool.computeMustMixBalanceMaxSoft());
     return poolStatusNotification;
   }
 
@@ -127,12 +129,12 @@ public class PoolService {
     long inputBalance = txOutPoint.getValue();
     if (!pool.checkInputBalance(inputBalance, liquidity)) {
       long balanceMin = pool.computePremixBalanceMin(liquidity);
-      long balanceMax = pool.computePremixBalanceMax(liquidity);
+      long balanceMaxHard = pool.computePremixBalanceMaxHard(liquidity);
       throw new IllegalInputException(
           "Invalid input balance (expected: "
               + balanceMin
               + "-"
-              + balanceMax
+              + balanceMaxHard
               + ", actual:"
               + txOutPoint.getValue()
               + ")");

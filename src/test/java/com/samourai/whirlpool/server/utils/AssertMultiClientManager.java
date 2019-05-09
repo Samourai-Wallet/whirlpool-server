@@ -82,7 +82,7 @@ public class AssertMultiClientManager extends MultiClientManager {
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
             new JavaHttpClient(cliTorClientService),
-            new JavaStompClient(cliTorClientService),
+            new JavaStompClient(cliTorClientService, null), // TODO
             server,
             cryptoService.getNetworkParameters(),
             false);

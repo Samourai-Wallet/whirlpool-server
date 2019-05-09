@@ -29,7 +29,8 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long denomination = 200000000;
     long feeValue = 10000000;
     long minerFeeMin = 100;
-    long minerFeeMax = 10000;
+    long minerFeeMaxSoft = 9500;
+    long minerFeeMaxHard = 10000;
     int mustMixMin = 1;
     int anonymitySetTarget = 2;
     int anonymitySetMin = 2;
@@ -41,7 +42,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+            minerFeeMaxSoft, minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -69,7 +70,8 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long denomination = 200000000;
     long feeValue = 10000000;
     long minerFeeMin = 100;
-    long minerFeeMax = 10000;
+    long minerFeeMaxSoft = 9500;
+    long minerFeeMaxHard = 10000;
     int mustMixMin = 1;
     int anonymitySetTarget = 2;
     int anonymitySetMin = 2;
@@ -81,7 +83,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+            minerFeeMaxSoft, minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,

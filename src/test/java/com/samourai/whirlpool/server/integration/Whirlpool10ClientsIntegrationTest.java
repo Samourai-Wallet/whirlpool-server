@@ -25,7 +25,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long denomination = 200000000;
     long feeValue = 10000000;
     long minerFeeMin = 100;
-    long minerFeeMax = 10000;
+    long minerFeeMaxSoft = 9500;
+    long minerFeeMaxHard = 10000;
     int mustMixMin = NB_CLIENTS;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -37,7 +38,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+            minerFeeMaxSoft,
+            minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -74,7 +76,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long denomination = 1000000;
     long feeValue = 50000;
     long minerFeeMin = 100;
-    long minerFeeMax = 10000;
+    long minerFeeMaxSoft = 9500;
+    long minerFeeMaxHard = 10000;
     int mustMixMin = NB_CLIENTS;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -86,7 +89,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+                minerFeeMaxSoft, minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -131,7 +134,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long denomination = 1000000;
     long feeValue = 50000;
     long minerFeeMin = 100;
-    long minerFeeMax = 10000;
+    long minerFeeMaxSoft = 9500;
+    long minerFeeMaxHard = 10000;
     int mustMixMin = 3;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -143,7 +147,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+            minerFeeMaxSoft,minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,

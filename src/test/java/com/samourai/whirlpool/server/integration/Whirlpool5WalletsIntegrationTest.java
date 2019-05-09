@@ -379,7 +379,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     long denomination = premixer.biUnitReceiveAmount.longValue();
     long feeValue = 500000L;
     long minerFeeMin = mixFee;
-    long minerFeeMax = mixFee * 10;
+    long minerFeeMaxSoft = mixFee * 10 - 2;
+    long minerFeeMaxHard = mixFee * 10;
     int mustMixMin = NB_CLIENTS;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -391,7 +392,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+            minerFeeMaxSoft,
+                minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,

@@ -130,7 +130,8 @@ public abstract class AbstractIntegrationTest {
       long denomination,
       long feeValue,
       long minerFeeMin,
-      long minerFeeMax,
+      long minerFeeMaxSoft,
+      long minerFeeMaxHard,
       int mustMixMin,
       int anonymitySetTarget,
       int anonymitySetMin,
@@ -144,7 +145,8 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setFeeValue(feeValue);
     poolConfig.setDenomination(denomination);
     poolConfig.setMinerFeeMin(minerFeeMin);
-    poolConfig.setMinerFeeMax(minerFeeMax);
+    poolConfig.setMinerFeeMaxSoft(minerFeeMaxSoft);
+    poolConfig.setMinerFeeMaxHard(minerFeeMaxHard);
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setAnonymitySetTarget(anonymitySetTarget);
     poolConfig.setAnonymitySetMin(anonymitySetMin);
@@ -164,7 +166,8 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setDenomination(copyPool.getDenomination());
     poolConfig.setFeeValue(copyPool.getFeeValue());
     poolConfig.setMinerFeeMin(copyPool.getMinerFeeMin());
-    poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());
+    poolConfig.setMinerFeeMaxSoft(copyPool.getMinerFeeMaxSoft());
+    poolConfig.setMinerFeeMaxHard(copyPool.getMinerFeeMaxHard());
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setAnonymitySetTarget(anonymitySet);
     poolConfig.setAnonymitySetMin(anonymitySet);

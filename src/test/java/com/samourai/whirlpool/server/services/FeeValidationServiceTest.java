@@ -119,7 +119,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   }
 
   private boolean doIsTx0FeePaid(String txid, long minFees, int xpubIndice) {
-    return feeValidationService.isTx0FeePaid(getTx(txid), xpubIndice, FEES_VALID);
+    return feeValidationService.isTx0FeePaid(getTx(txid), xpubIndice, minFees);
   }
 
   private Transaction getTx(String txid) {
@@ -173,7 +173,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 feeIndexHandler,
-                2,
+                2, 2,
                 pools,
                 pool,
                 4);
@@ -227,7 +227,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 feeIndexHandler,
-                2,
+                2, 2,
                 pools,
                 pool,
                 4);
@@ -296,7 +296,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 feeIndexHandler,
-                2,
+                2, 2,
                 pools,
                 pool,
                 4);

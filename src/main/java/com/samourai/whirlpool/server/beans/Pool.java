@@ -7,7 +7,8 @@ public class Pool {
   private long denomination; // in satoshis
   private long feeValue; // in satoshis
   private long minerFeeMin; // in satoshis
-  private long minerFeeMax; // in satoshis
+  private long minerFeeMaxSoft; // in satoshis
+  private long minerFeeMaxHard; // in satoshis
   private int minMustMix;
   private int targetAnonymitySet;
   private int minAnonymitySet;
@@ -24,7 +25,8 @@ public class Pool {
       long denomination,
       long feeValue,
       long minerFeeMin,
-      long minerFeeMax,
+      long minerFeeMaxSoft,
+      long minerFeeMaxHard,
       int minMustMix,
       int targetAnonymitySet,
       int minAnonymitySet,
@@ -35,7 +37,8 @@ public class Pool {
     this.denomination = denomination;
     this.feeValue = feeValue;
     this.minerFeeMin = minerFeeMin;
-    this.minerFeeMax = minerFeeMax;
+    this.minerFeeMaxSoft = minerFeeMaxSoft;
+    this.minerFeeMaxHard = minerFeeMaxHard;
     this.minMustMix = minMustMix;
     this.targetAnonymitySet = targetAnonymitySet;
     this.minAnonymitySet = minAnonymitySet;
@@ -48,8 +51,8 @@ public class Pool {
 
   public boolean checkInputBalance(long inputBalance, boolean liquidity) {
     long minBalance = computePremixBalanceMin(liquidity);
-    long maxBalance = computePremixBalanceMax(liquidity);
-    return inputBalance >= minBalance && inputBalance <= maxBalance;
+    long maxBalanceHard = computePremixBalanceMaxHard(liquidity);
+    return inputBalance >= minBalance && inputBalance <= maxBalanceHard;
   }
 
   public long computePremixBalanceMin(boolean liquidity) {
@@ -57,17 +60,26 @@ public class Pool {
         denomination, computeMustMixBalanceMin(), liquidity);
   }
 
-  public long computePremixBalanceMax(boolean liquidity) {
+  public long computePremixBalanceMaxSoft(boolean liquidity) {
     return WhirlpoolProtocol.computePremixBalanceMax(
-        denomination, computeMustMixBalanceMax(), liquidity);
+        denomination, computeMustMixBalanceMaxSoft(), liquidity);
+  }
+
+  public long computePremixBalanceMaxHard(boolean liquidity) {
+    return WhirlpoolProtocol.computePremixBalanceMax(
+        denomination, computeMustMixBalanceMaxHard(), liquidity);
   }
 
   public long computeMustMixBalanceMin() {
     return denomination + minerFeeMin;
   }
 
-  public long computeMustMixBalanceMax() {
-    return denomination + minerFeeMax;
+  public long computeMustMixBalanceMaxSoft() {
+    return denomination + minerFeeMaxSoft;
+  }
+
+  public long computeMustMixBalanceMaxHard() {
+    return denomination + minerFeeMaxHard;
   }
 
   public String getPoolId() {
@@ -86,8 +98,12 @@ public class Pool {
     return minerFeeMin;
   }
 
-  public long getMinerFeeMax() {
-    return minerFeeMax;
+  public long getMinerFeeMaxSoft() {
+    return minerFeeMaxSoft;
+  }
+
+  public long getMinerFeeMaxHard() {
+    return minerFeeMaxHard;
   }
 
   public int getMinMustMix() {

@@ -39,7 +39,8 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     long denomination = 200000000;
     long feeValue = 10000000;
     long minerFeeMin = 100;
-    long minerFeeMax = 10000;
+    long minerFeeMaxSoft = 9500;
+    long minerFeeMaxHard = 10000;
     long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
     long liquidityTimeout = 60;
     Mix mix =
@@ -47,7 +48,8 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMax,
+            minerFeeMaxSoft,
+            minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,

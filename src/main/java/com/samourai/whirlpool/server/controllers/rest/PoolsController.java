@@ -65,7 +65,7 @@ public class PoolsController extends AbstractRestController {
             pool.getDenomination(),
             pool.getFeeValue(),
             pool.computeMustMixBalanceMin(),
-            pool.computeMustMixBalanceMax(),
+            pool.computeMustMixBalanceMaxSoft(),
             pool.getMinAnonymitySet(),
             pool.getMinMustMix(),
             nbRegistered,
