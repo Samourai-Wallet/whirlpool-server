@@ -322,15 +322,16 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     ECKey ecKey = new ECKey();
     SegwitAddress inputAddress =
-            new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computePremixBalanceMaxSoft(false) + 1; // BALANCE SOFT TOO HIGH BUT HARD OK
+    long inputBalance =
+        mix.getPool().computePremixBalanceMaxSoft(false) + 1; // BALANCE SOFT TOO HIGH BUT HARD OK
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
     registerInputService.registerInput(
-            poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
 
     // VERIFY
     testUtils.assertMix(0, 1, mix); // mustMix confirming

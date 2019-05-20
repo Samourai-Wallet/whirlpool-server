@@ -173,7 +173,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 feeIndexHandler,
-                2, 2,
+                2,
+                2,
                 pools,
                 pool,
                 4);
@@ -227,7 +228,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 feeIndexHandler,
-                2, 2,
+                2,
+                2,
                 pools,
                 pool,
                 4);
@@ -296,7 +298,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 feeIndexHandler,
-                2, 2,
+                2,
+                2,
                 pools,
                 pool,
                 4);

@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.utils;
 
-import com.samourai.http.client.JavaHttpClient;
 import com.samourai.stomp.client.JavaStompClient;
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.client.Bip84Wallet;
@@ -24,6 +23,7 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
+import com.samourai.whirlpool.server.services.JavaHttpClientService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import java.lang.invoke.MethodHandles;
@@ -81,7 +81,7 @@ public class AssertMultiClientManager extends MultiClientManager {
     CliTorClientService cliTorClientService = new CliTorClientService(new CliConfig());
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
-            new JavaHttpClient(cliTorClientService),
+            new JavaHttpClientService(cliTorClientService),
             new JavaStompClient(cliTorClientService, null), // TODO
             server,
             cryptoService.getNetworkParameters(),

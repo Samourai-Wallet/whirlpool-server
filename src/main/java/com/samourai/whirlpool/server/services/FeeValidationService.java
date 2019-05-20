@@ -16,13 +16,7 @@ import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionOutPoint;
-import org.bitcoinj.core.TransactionOutput;
-import org.bitcoinj.crypto.ChildNumber;
-import org.bitcoinj.crypto.DeterministicKey;
-import org.bitcoinj.crypto.HDKeyDerivation;
+import org.bitcoinj.core.*;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
@@ -132,17 +126,10 @@ public class FeeValidationService {
     return false;
   }
 
-  protected String computeFeeAddress(int x) {
-    DeterministicKey mKey =
-        formatsUtil.createMasterPubKeyFromXPub(serverConfig.getSamouraiFees().getXpub());
-    DeterministicKey cKey =
-        HDKeyDerivation.deriveChildKey(
-            mKey, new ChildNumber(0, false)); // assume external/receive chain
-    DeterministicKey adk = HDKeyDerivation.deriveChildKey(cKey, new ChildNumber(x, false));
-    ECKey feeECKey = ECKey.fromPublicOnly(adk.getPubKey());
-    String feeAddressBech32 =
-        bech32Util.toBech32(feeECKey.getPubKey(), cryptoService.getNetworkParameters());
-    return feeAddressBech32;
+  public String computeFeeAddress(int x) {
+    String feeXpub = serverConfig.getSamouraiFees().getXpub();
+    NetworkParameters params = cryptoService.getNetworkParameters();
+    return Utils.computeXpubAddressBech32(x, feeXpub, params);
   }
 
   private Callback<byte[]> computeCallbackFetchOutpointScriptBytes(TransactionOutPoint outPoint) {

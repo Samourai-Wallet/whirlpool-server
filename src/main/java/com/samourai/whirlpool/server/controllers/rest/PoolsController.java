@@ -1,7 +1,6 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.PoolInfo;
 import com.samourai.whirlpool.protocol.rest.PoolsResponse;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,17 +35,14 @@ public class PoolsController extends AbstractRestController {
   }
 
   @RequestMapping(value = WhirlpoolEndpoint.REST_POOLS, method = RequestMethod.GET)
-  public PoolsResponse pools(@RequestParam(value = "scode", required = false) String scode) {
+  public PoolsResponse pools() {
     PoolInfo[] pools =
         poolService
             .getPools()
             .parallelStream()
             .map(pool -> computePoolInfo(pool))
             .toArray((i) -> new PoolInfo[i]);
-    String feePaymentCode = feeValidationService.getFeePaymentCode();
-    byte[] feePayload = feeValidationService.getFeePayloadByScode(scode);
-    PoolsResponse poolsResponse =
-        new PoolsResponse(pools, feePaymentCode, WhirlpoolProtocol.encodeBytes(feePayload));
+    PoolsResponse poolsResponse = new PoolsResponse(pools);
     return poolsResponse;
   }
 

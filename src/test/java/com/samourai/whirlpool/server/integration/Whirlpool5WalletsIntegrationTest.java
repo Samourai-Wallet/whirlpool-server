@@ -393,7 +393,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             feeValue,
             minerFeeMin,
             minerFeeMaxSoft,
-                minerFeeMaxHard,
+            minerFeeMaxHard,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,

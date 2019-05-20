@@ -23,7 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private static final String[] REST_MIX_ENDPOINTS =
       new String[] {
-        WhirlpoolEndpoint.REST_POOLS, WhirlpoolEndpoint.REST_REGISTER_OUTPUT,
+        WhirlpoolEndpoint.REST_POOLS,
+        WhirlpoolEndpoint.REST_REGISTER_OUTPUT,
+        WhirlpoolEndpoint.REST_TX0_DATA
       };
   private static final String[] STATICS =
       new String[] {"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
