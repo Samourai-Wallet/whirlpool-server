@@ -39,8 +39,8 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     long denomination = 200000000;
     long feeValue = 10000000;
     long minerFeeMin = 100;
-    long minerFeeMaxSoft = 9500;
-    long minerFeeMaxHard = 10000;
+    long minerFeeCap = 9500;
+    long minerFeeMax = 10000;
     long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
     long liquidityTimeout = 60;
     Mix mix =
@@ -48,8 +48,8 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMaxSoft,
-            minerFeeMaxHard,
+            minerFeeCap,
+            minerFeeMax,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -66,7 +66,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     log.info("# Begin connecting " + NB_LIQUIDITIES_CONNECTING + " liquidities...");
     for (int i = 0; i < NB_LIQUIDITIES_CONNECTING; i++) {
       log.info("Connecting liquidity #" + (i + 1) + "/" + NB_LIQUIDITIES_CONNECTING);
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true, cliConfig));
     }
 
     // liquidities should be placed on queue...
@@ -79,7 +79,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     for (int i = NB_LIQUIDITIES_CONNECTING; i < NB_ALL_CONNECTING; i++) {
       log.info("Connecting mustMix #" + (i + 1) + "/" + NB_ALL_CONNECTING);
       final int clientIndice = i;
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, cliConfig));
     }
 
     return multiClientManager;

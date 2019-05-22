@@ -7,6 +7,7 @@ import com.samourai.wallet.util.CryptoTestUtil;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
+import com.samourai.whirlpool.cli.config.CliConfig;
 import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
@@ -96,6 +97,8 @@ public abstract class AbstractIntegrationTest {
 
   protected NetworkParameters params;
 
+  protected CliConfig cliConfig = new CliConfig();
+
   @Before
   public void setUp() throws Exception {
     // enable debug
@@ -130,8 +133,8 @@ public abstract class AbstractIntegrationTest {
       long denomination,
       long feeValue,
       long minerFeeMin,
-      long minerFeeMaxSoft,
-      long minerFeeMaxHard,
+      long minerFeeCap,
+      long minerFeeMax,
       int mustMixMin,
       int anonymitySetTarget,
       int anonymitySetMin,
@@ -145,8 +148,8 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setFeeValue(feeValue);
     poolConfig.setDenomination(denomination);
     poolConfig.setMinerFeeMin(minerFeeMin);
-    poolConfig.setMinerFeeMaxSoft(minerFeeMaxSoft);
-    poolConfig.setMinerFeeMaxHard(minerFeeMaxHard);
+    poolConfig.setMinerFeeCap(minerFeeCap);
+    poolConfig.setMinerFeeMax(minerFeeMax);
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setAnonymitySetTarget(anonymitySetTarget);
     poolConfig.setAnonymitySetMin(anonymitySetMin);
@@ -166,8 +169,8 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setDenomination(copyPool.getDenomination());
     poolConfig.setFeeValue(copyPool.getFeeValue());
     poolConfig.setMinerFeeMin(copyPool.getMinerFeeMin());
-    poolConfig.setMinerFeeMaxSoft(copyPool.getMinerFeeMaxSoft());
-    poolConfig.setMinerFeeMaxHard(copyPool.getMinerFeeMaxHard());
+    poolConfig.setMinerFeeCap(copyPool.getMinerFeeCap());
+    poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setAnonymitySetTarget(anonymitySet);
     poolConfig.setAnonymitySetMin(anonymitySet);

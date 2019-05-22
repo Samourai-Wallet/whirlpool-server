@@ -379,8 +379,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     long denomination = premixer.biUnitReceiveAmount.longValue();
     long feeValue = 500000L;
     long minerFeeMin = mixFee;
-    long minerFeeMaxSoft = mixFee * 10 - 2;
-    long minerFeeMaxHard = mixFee * 10;
+    long minerFeeCap = mixFee * 10 - 2;
+    long minerFeeMax = mixFee * 10;
     int mustMixMin = NB_CLIENTS;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -392,8 +392,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMaxSoft,
-            minerFeeMaxHard,
+            minerFeeCap,
+            minerFeeMax,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -428,7 +428,8 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 null,
                 utxoHash,
                 utxoIndex,
-                premixer.biUnitSpendAmount.longValue());
+                premixer.biUnitSpendAmount.longValue(),
+                cliConfig);
           } catch (Exception e) {
             log.error("", e);
             Assert.assertTrue(false);

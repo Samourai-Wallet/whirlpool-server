@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
+import com.samourai.wallet.api.backend.beans.MultiAddrResponse;
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.Tx0DataResponse;
@@ -49,7 +50,9 @@ public class Tx0Controller extends AbstractRestController {
     } else {
       int feeIndex = 0; // fallback value when backend is not available
       try {
-        this.backendService.fetchAddress(serverConfig.getSamouraiFees().getXpub());
+        MultiAddrResponse.Address address =
+            this.backendService.fetchAddress(serverConfig.getSamouraiFees().getXpub());
+        feeIndex = address.account_index;
       } catch (Exception e) {
         // use fallback value
         log.error("Unable to fetchAddress for samouraiFee => using feeIndex=" + feeIndex);

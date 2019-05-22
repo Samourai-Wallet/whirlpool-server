@@ -248,8 +248,8 @@ public class WhirlpoolServerConfig {
     private long denomination;
     private long feeValue;
     private long minerFeeMin;
-    private long minerFeeMaxSoft;
-    private long minerFeeMaxHard;
+    private long minerFeeCap;
+    private long minerFeeMax;
     private int mustMixMin;
     private int anonymitySetTarget;
     private int anonymitySetMin;
@@ -289,20 +289,20 @@ public class WhirlpoolServerConfig {
       this.minerFeeMin = minerFeeMin;
     }
 
-    public long getMinerFeeMaxSoft() {
-      return minerFeeMaxSoft;
+    public long getMinerFeeCap() {
+      return minerFeeCap;
     }
 
-    public void setMinerFeeMaxSoft(long minerFeeMaxSoft) {
-      this.minerFeeMaxSoft = minerFeeMaxSoft;
+    public void setMinerFeeCap(long minerFeeCap) {
+      this.minerFeeCap = minerFeeCap;
     }
 
-    public long getMinerFeeMaxHard() {
-      return minerFeeMaxHard;
+    public long getMinerFeeMax() {
+      return minerFeeMax;
     }
 
-    public void setMinerFeeMaxHard(long minerFeeMaxHard) {
-      this.minerFeeMaxHard = minerFeeMaxHard;
+    public void setMinerFeeMax(long minerFeeMax) {
+      this.minerFeeMax = minerFeeMax;
     }
 
     public int getMustMixMin() {
@@ -515,9 +515,9 @@ public class WhirlpoolServerConfig {
           ", minerFee=["
               + poolConfig.minerFeeMin
               + "-"
-              + poolConfig.minerFeeMaxSoft
-              + "-"
-              + poolConfig.getMinerFeeMaxHard()
+              + poolConfig.getMinerFeeMax()
+              + ", cap="
+              + poolConfig.getMinerFeeCap()
               + "]";
       poolInfo += ", liquidityTimeout=" + String.valueOf(poolConfig.liquidityTimeout);
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);

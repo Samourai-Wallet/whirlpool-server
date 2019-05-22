@@ -6,6 +6,7 @@ import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.cli.config.CliConfig;
 import com.samourai.whirlpool.cli.services.CliTorClientService;
+import com.samourai.whirlpool.cli.services.JavaHttpClientService;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.mix.MixParams;
 import com.samourai.whirlpool.client.mix.handler.Bip84PostmixHandler;
@@ -23,7 +24,6 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.JavaHttpClientService;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import java.lang.invoke.MethodHandles;
@@ -76,13 +76,14 @@ public class AssertMultiClientManager extends MultiClientManager {
     bip84Wallets = new Bip84Wallet[nbClients];
   }
 
-  private WhirlpoolClient createClient() {
+  private WhirlpoolClient createClient(CliConfig cliConfig) {
     String server = "127.0.0.1:" + port;
     CliTorClientService cliTorClientService = new CliTorClientService(new CliConfig());
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
             new JavaHttpClientService(cliTorClientService),
-            new JavaStompClient(cliTorClientService, null), // TODO
+            new JavaStompClient(cliTorClientService, cliConfig), // TODO
+            new MemoryWalletPersistHandler(),
             server,
             cryptoService.getNetworkParameters(),
             false);
@@ -91,10 +92,11 @@ public class AssertMultiClientManager extends MultiClientManager {
     return WhirlpoolClientImpl.newClient(config);
   }
 
-  private int prepareClientWithMock(long inputBalance) throws Exception {
+  private int prepareClientWithMock(long inputBalance, CliConfig cliConfig) throws Exception {
     SegwitAddress inputAddress = testUtils.generateSegwitAddress();
     Bip84Wallet bip84Wallet = testUtils.generateWallet().getBip84Wallet(0);
-    return prepareClientWithMock(inputAddress, bip84Wallet, null, null, null, inputBalance);
+    return prepareClientWithMock(
+        inputAddress, bip84Wallet, null, null, null, inputBalance, cliConfig);
   }
 
   private int prepareClientWithMock(
@@ -103,7 +105,8 @@ public class AssertMultiClientManager extends MultiClientManager {
       Integer nbConfirmations,
       String utxoHash,
       Integer utxoIndex,
-      long inputBalance)
+      long inputBalance,
+      CliConfig cliConfig)
       throws Exception {
     // prepare input & output and mock input
     TxOutPoint utxo =
@@ -111,12 +114,13 @@ public class AssertMultiClientManager extends MultiClientManager {
             inputAddress, inputBalance, nbConfirmations, utxoHash, utxoIndex);
     ECKey utxoKey = inputAddress.getECKey();
 
-    return prepareClient(utxo, utxoKey, bip84Wallet);
+    return prepareClient(utxo, utxoKey, bip84Wallet, cliConfig);
   }
 
-  private synchronized int prepareClient(TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
+  private synchronized int prepareClient(
+      TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet, CliConfig cliConfig) {
     int i = clients.size();
-    register(createClient());
+    register(createClient(cliConfig));
     bip84Wallets[i] = bip84Wallet;
     inputs[i] = utxo;
     inputKeys[i] = utxoKey;
@@ -128,22 +132,22 @@ public class AssertMultiClientManager extends MultiClientManager {
     return premixBalanceMin;
   }
 
-  public void connectWithMockOrFail(boolean liquidity) {
+  public void connectWithMockOrFail(boolean liquidity, CliConfig cliConfig) {
     long premixBalanceMin = computePremixBalanceMin(liquidity);
-    connectWithMockOrFail(premixBalanceMin);
+    connectWithMockOrFail(premixBalanceMin, cliConfig);
   }
 
-  public void connectWithMockOrFail(long inputBalance) {
+  public void connectWithMockOrFail(long inputBalance, CliConfig cliConfig) {
     try {
-      connectWithMock(inputBalance);
+      connectWithMock(inputBalance, cliConfig);
     } catch (Exception e) {
       log.error("", e);
       Assert.assertTrue(false);
     }
   }
 
-  public void connectWithMock(long inputBalance) throws Exception {
-    int i = prepareClientWithMock(inputBalance);
+  public void connectWithMock(long inputBalance, CliConfig cliConfig) throws Exception {
+    int i = prepareClientWithMock(inputBalance, cliConfig);
     whirlpool(i);
   }
 
@@ -153,16 +157,24 @@ public class AssertMultiClientManager extends MultiClientManager {
       Integer nbConfirmations,
       String utxoHash,
       Integer utxoIndex,
-      long inputBalance)
+      long inputBalance,
+      CliConfig cliConfig)
       throws Exception {
     int i =
         prepareClientWithMock(
-            inputAddress, bip84Wallet, nbConfirmations, utxoHash, utxoIndex, inputBalance);
+            inputAddress,
+            bip84Wallet,
+            nbConfirmations,
+            utxoHash,
+            utxoIndex,
+            inputBalance,
+            cliConfig);
     whirlpool(i);
   }
 
-  public void connect(TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet) {
-    int i = prepareClient(utxo, utxoKey, bip84Wallet);
+  public void connect(
+      TxOutPoint utxo, ECKey utxoKey, Bip84Wallet bip84Wallet, CliConfig cliConfig) {
+    int i = prepareClient(utxo, utxoKey, bip84Wallet, cliConfig);
     whirlpool(i);
   }
 

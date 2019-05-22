@@ -315,7 +315,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void registerInput_shouldRegisterInputWhenBalanceSoftTooHighButHardOk() throws Exception {
+  public void registerInput_shouldRegisterInputWhenBalanceCapTooHighButMaxOk() throws Exception {
     Mix mix = __getCurrentMix();
     String poolId = mix.getPool().getPoolId();
     String username = "user1";
@@ -326,7 +326,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance =
-        mix.getPool().computePremixBalanceMaxSoft(false) + 1; // BALANCE SOFT TOO HIGH BUT HARD OK
+        mix.getPool().computePremixBalanceCap(false) + 1; // BALANCE CAP TOO HIGH BUT MAX OK
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST
@@ -335,7 +335,6 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
 
     // VERIFY
     testUtils.assertMix(0, 1, mix); // mustMix confirming
-    testUtils.assertMixEmpty(mix);
   }
 
   @Test
@@ -349,7 +348,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
         new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
-    long inputBalance = mix.getPool().computePremixBalanceMaxHard(false) + 1; // BALANCE TOO HIGH
+    long inputBalance = mix.getPool().computePremixBalanceMax(false) + 1; // BALANCE TOO HIGH
     TxOutPoint txOutPoint = rpcClientService.createAndMockTxOutPoint(inputAddress, inputBalance);
 
     // TEST

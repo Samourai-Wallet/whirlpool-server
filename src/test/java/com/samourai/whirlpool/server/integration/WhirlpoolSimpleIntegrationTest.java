@@ -88,7 +88,13 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
 
     AssertMultiClientManager multiClientManager = multiClientManager(1, mix);
     multiClientManager.connectWithMock(
-        inputP2SH_P2WPKH, bip84Wallet, null, utxo.getHash(), (int) utxo.getIndex(), inputBalance);
+        inputP2SH_P2WPKH,
+        bip84Wallet,
+        null,
+        utxo.getHash(),
+        (int) utxo.getIndex(),
+        inputBalance,
+        cliConfig);
 
     // register inputs...
     multiClientManager.assertMixStatusConfirmInput(1, false);

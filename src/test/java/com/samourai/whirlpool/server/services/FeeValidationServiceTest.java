@@ -3,14 +3,13 @@ package com.samourai.whirlpool.server.services;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 import com.samourai.wallet.client.Bip84Wallet;
-import com.samourai.wallet.client.indexHandler.IIndexHandler;
 import com.samourai.wallet.client.indexHandler.MemoryIndexHandler;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.tx0.Tx0;
 import com.samourai.whirlpool.client.tx0.Tx0Service;
 import com.samourai.whirlpool.client.whirlpool.beans.Pool;
-import com.samourai.whirlpool.client.whirlpool.beans.Pools;
+import com.samourai.whirlpool.client.whirlpool.beans.Tx0Data;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
@@ -155,29 +154,26 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     pool.setMinAnonymitySet(1);
     pool.setMixAnonymitySet(2);
     pool.setMinMustMix(1);
-    List<Pool> poolItems = new ArrayList<>();
-    poolItems.add(pool);
 
-    String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
-    String feePaymentCode = feeValidationService.getFeePaymentCode();
-    int feeIndice = 123456;
-    IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD); // valid feePayload
-    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+    String feePaymentCode = feeValidationService.getFeePaymentCode();
+    String feeAddress = "tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0";
+    int feeIndex = 123456;
+
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params, xpubSamouraiFee)
+        new Tx0Service(params)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
                 depositWallet,
                 premixWallet,
-                feeIndexHandler,
                 2,
                 2,
-                pools,
                 pool,
-                4);
+                4,
+                tx0Data);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
@@ -213,26 +209,25 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     List<Pool> poolItems = new ArrayList<>();
     poolItems.add(pool);
 
-    String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
-    int feeIndice = 123456;
-    IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = new byte[] {01, 23}; // invalid feePayload
-    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+    String feeAddress = "tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0";
+    int feeIndex = 123456;
+
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params, xpubSamouraiFee)
+        new Tx0Service(params)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
                 depositWallet,
                 premixWallet,
-                feeIndexHandler,
                 2,
                 2,
-                pools,
                 pool,
-                4);
+                4,
+                tx0Data);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
@@ -283,29 +278,28 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     List<Pool> poolItems = new ArrayList<>();
     poolItems.add(pool);
 
-    String xpubSamouraiFee = serverConfig.getSamouraiFees().getXpub();
     String feePaymentCode = feeValidationService.getFeePaymentCode();
-    int feeIndice = 123456;
-    IIndexHandler feeIndexHandler = new MemoryIndexHandler(feeIndice);
     byte[] feePayload = null; // no feePayload
-    Pools pools = new Pools(poolItems, feePaymentCode, feePayload);
+    String feeAddress = "tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0";
+    int feeIndex = 123456;
+
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params, xpubSamouraiFee)
+        new Tx0Service(params)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
                 depositWallet,
                 premixWallet,
-                feeIndexHandler,
                 2,
                 2,
-                pools,
                 pool,
-                4);
+                4,
+                tx0Data);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
-    Assert.assertEquals(feeIndice, feeData.getFeeIndice());
+    Assert.assertEquals(feeIndex, feeData.getFeeIndice());
     Assert.assertArrayEquals(feePayload, feeData.getFeePayload());
     Assert.assertTrue(feeValidationService.isValidTx0(tx0.getTx(), feeData, FEES_VALID));
   }

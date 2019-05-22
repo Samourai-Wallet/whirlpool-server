@@ -25,8 +25,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long denomination = 200000000;
     long feeValue = 10000000;
     long minerFeeMin = 100;
-    long minerFeeMaxSoft = 9500;
-    long minerFeeMaxHard = 10000;
+    long minerFeeCap = 9500;
+    long minerFeeMax = 10000;
     int mustMixMin = NB_CLIENTS;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -38,8 +38,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMaxSoft,
-            minerFeeMaxHard,
+            minerFeeCap,
+            minerFeeMax,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -52,7 +52,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     // connect all clients except one, to stay in CONFIRM_INPUT
     log.info("# Connect first clients...");
     for (int i = 0; i < NB_CLIENTS - 1; i++) {
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, cliConfig));
     }
 
     // connected clients should have registered their inputs...
@@ -60,7 +60,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
     // connect last client
     log.info("# Connect last client...");
-    taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false));
+    taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, cliConfig));
 
     // all clients should have registered their inputs
     // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
@@ -76,8 +76,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long denomination = 1000000;
     long feeValue = 50000;
     long minerFeeMin = 100;
-    long minerFeeMaxSoft = 9500;
-    long minerFeeMaxHard = 10000;
+    long minerFeeCap = 9500;
+    long minerFeeMax = 10000;
     int mustMixMin = NB_CLIENTS;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -89,8 +89,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMaxSoft,
-            minerFeeMaxHard,
+            minerFeeCap,
+            minerFeeMax,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -105,7 +105,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     log.info("# Connect first clients...");
     for (int i = 0; i < NB_CLIENTS - 1; i++) {
       long inputBalance = premixBalanceMin + (100 * i); // mixed amounts
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(inputBalance));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(inputBalance, cliConfig));
     }
 
     // connected clients should have registered their inputs...
@@ -113,7 +113,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
     // connect last client
     log.info("# Connect last client...");
-    taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false));
+    taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(false, cliConfig));
 
     // all clients should have registered their inputs
     // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
@@ -135,8 +135,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long denomination = 1000000;
     long feeValue = 50000;
     long minerFeeMin = 100;
-    long minerFeeMaxSoft = 9500;
-    long minerFeeMaxHard = 10000;
+    long minerFeeCap = 9500;
+    long minerFeeMax = 10000;
     int mustMixMin = 3;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
@@ -148,8 +148,8 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             denomination,
             feeValue,
             minerFeeMin,
-            minerFeeMaxSoft,
-            minerFeeMaxHard,
+            minerFeeCap,
+            minerFeeMax,
             mustMixMin,
             anonymitySetTarget,
             anonymitySetMin,
@@ -166,7 +166,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
       long premixBalanceMin = mix.getPool().computePremixBalanceMin(liquidity);
       long inputBalance =
           (liquidity ? premixBalanceMin : premixBalanceMin + (100 * i)); // mixed amounts
-      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(inputBalance));
+      taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(inputBalance, cliConfig));
     }
 
     // connected clients should have registered their inputs...
@@ -174,7 +174,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
 
     // connect last client
     log.info("# Connect last client...");
-    taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true));
+    taskExecutor.execute(() -> multiClientManager.connectWithMockOrFail(true, cliConfig));
 
     // all clients should have registered their inputs
     // mix automatically switches to REGISTER_OUTPUTS, then SIGNING
