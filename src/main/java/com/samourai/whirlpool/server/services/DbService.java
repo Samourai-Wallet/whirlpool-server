@@ -37,7 +37,7 @@ public class DbService {
     this.tx0WhitelistRepository = tx0WhitelistRepository;
     this.mixOutputRepository = mixOutputRepository;
     this.mixTxidRepository = mixTxidRepository;
-    __reset(); // TODO
+    this.blames = new ArrayList<>();
   }
 
   public void saveBlame(ConfirmedInput confirmedInput, BlameReason blameReason, String mixId) {
@@ -55,12 +55,16 @@ public class DbService {
 
   public MixStats getMixStats() {
     if (mixStats == null) {
-      long nbMixs = mixRepository.countByMixStatus(MixStatus.SUCCESS);
-      long sumMustMix = mixRepository.sumMustMixByMixStatus(MixStatus.SUCCESS);
-      long sumAmountOut = mixRepository.sumAmountOutByMixStatus(MixStatus.SUCCESS);
+      long nbMixs = zeroIfNull(mixRepository.countByMixStatus(MixStatus.SUCCESS));
+      long sumMustMix = zeroIfNull(mixRepository.sumMustMixByMixStatus(MixStatus.SUCCESS));
+      long sumAmountOut = zeroIfNull(mixRepository.sumAmountOutByMixStatus(MixStatus.SUCCESS));
       mixStats = new MixStats(nbMixs, sumMustMix, sumAmountOut);
     }
     return mixStats;
+  }
+
+  private long zeroIfNull(Long value) {
+    return value != null ? value : 0;
   }
 
   // tx0Whitelist
@@ -96,6 +100,7 @@ public class DbService {
   }
 
   public void __reset() {
+    // TODO for tests only!
     blames = new ArrayList<>();
     mixRepository.deleteAll();
     tx0WhitelistRepository.deleteAll();
