@@ -1,5 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+
 import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.client.indexHandler.MemoryIndexHandler;
 import com.samourai.wallet.hd.HD_Wallet;
@@ -13,6 +15,8 @@ import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.utils.Utils;
+import java.lang.invoke.MethodHandles;
+import java.util.*;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutPoint;
@@ -23,11 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.lang.invoke.MethodHandles;
-import java.util.*;
-
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
@@ -118,21 +117,22 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   @Test
   public void isTx0FeePaid_feeAccept() throws Exception {
     String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
-    Map<Long,Long> feeAccept = new HashMap<>();
+    Map<Long, Long> feeAccept = new HashMap<>();
     feeAccept.put(FEES_VALID, 11111111L);
 
     // reject when no feeAccept
-    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID+10, 1, null));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 10, 1, null));
 
     // accept when tx0BlockHeight <= feeAccept.maxBlockHeight
-    Assert.assertTrue(doIsTx0FeePaid(txid, 11111110L, FEES_VALID+10, 1, feeAccept));
-    Assert.assertTrue(doIsTx0FeePaid(txid, 11110L, FEES_VALID+10, 1, feeAccept));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 11111110L, FEES_VALID + 10, 1, feeAccept));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 11110L, FEES_VALID + 10, 1, feeAccept));
 
     // reject when tx0BlockHeight > feeAccept.maxBlockHeight
-    Assert.assertFalse(doIsTx0FeePaid(txid, 11111112L, FEES_VALID+10, 1, feeAccept));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 11111112L, FEES_VALID + 10, 1, feeAccept));
   }
 
-  private boolean doIsTx0FeePaid(String txid, long txBlockHeight, long minFees, int xpubIndice, Map<Long,Long> feeAccept) {
+  private boolean doIsTx0FeePaid(
+      String txid, long txBlockHeight, long minFees, int xpubIndice, Map<Long, Long> feeAccept) {
     PoolFee poolFee = new PoolFee(minFees, feeAccept);
     return feeValidationService.isTx0FeePaid(getTx(txid), txBlockHeight, xpubIndice, poolFee);
   }
@@ -333,16 +333,16 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     ECKey input0Key = new ECKey();
     String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
     TransactionOutPoint input0OutPoint =
-            cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, 99000000, params);
+        cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, 99000000, params);
     HD_Wallet bip84w =
-            hdWalletFactory.restoreWallet(
-                    "all all all all all all all all all all all all", "test", 1, params);
+        hdWalletFactory.restoreWallet(
+            "all all all all all all all all all all all all", "test", 1, params);
 
     Bip84Wallet depositWallet =
-            new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(bip84w, 0, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet premixWallet =
-            new Bip84Wallet(
-                    bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -365,17 +365,17 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-            new Tx0Service(params)
-                    .tx0(
-                            input0Key.getPrivKeyBytes(),
-                            input0OutPoint,
-                            depositWallet,
-                            premixWallet,
-                            2,
-                            2,
-                            pool,
-                            4,
-                            tx0Data);
+        new Tx0Service(params)
+            .tx0(
+                input0Key.getPrivKeyBytes(),
+                input0OutPoint,
+                depositWallet,
+                premixWallet,
+                2,
+                2,
+                pool,
+                4,
+                tx0Data);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(feeIndex, feeData.getFeeIndice());
