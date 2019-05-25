@@ -3,10 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.ConfirmInputMixStatusNotification;
-import com.samourai.whirlpool.server.beans.InputPool;
-import com.samourai.whirlpool.server.beans.Mix;
-import com.samourai.whirlpool.server.beans.Pool;
-import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -62,6 +59,7 @@ public class PoolService {
       String poolId = poolConfig.getId();
       long denomination = poolConfig.getDenomination();
       long feeValue = poolConfig.getFeeValue();
+      Map<Long, Long> feeAccept = poolConfig.getFeeAccept();
       long minerFeeMin = poolConfig.getMinerFeeMin();
       long minerFeeCap = poolConfig.getMinerFeeCap();
       long minerFeeMax = poolConfig.getMinerFeeMax();
@@ -74,11 +72,12 @@ public class PoolService {
 
       Assert.notNull(poolId, "Pool configuration: poolId must not be NULL");
       Assert.isTrue(!pools.containsKey(poolId), "Pool configuration: poolId must not be duplicate");
+      PoolFee poolFee = new PoolFee(feeValue, feeAccept);
       Pool pool =
           new Pool(
               poolId,
               denomination,
-              feeValue,
+              poolFee,
               minerFeeMin,
               minerFeeCap,
               minerFeeMax,

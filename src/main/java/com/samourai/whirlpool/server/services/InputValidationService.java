@@ -2,6 +2,9 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
+import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.beans.PoolFee;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -36,7 +39,7 @@ public class InputValidationService {
   }
 
   public TxOutPoint validateProvenance(
-      TxOutPoint txOutPoint, Transaction tx, boolean liquidity, boolean testMode, long poolFeeValue)
+      TxOutPoint txOutPoint, RpcTransaction tx, boolean liquidity, boolean testMode, Pool pool)
       throws IllegalInputException {
 
     // provenance verification can be disabled with testMode
@@ -46,14 +49,14 @@ public class InputValidationService {
     }
 
     // check tx0Whitelist
-    String txid = tx.getHashAsString();
+    String txid = tx.getTx().getHashAsString();
     if (dbService.hasTx0Whitelist(txid)) {
       log.warn("tx0 check disabled by whitelist for txid=" + txid);
       return txOutPoint;
     }
 
     // verify input comes from a valid tx0 or previous mix
-    boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue(), poolFeeValue);
+    boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue(), pool.getPoolFee());
     if (!isLiquidity && liquidity) {
       throw new IllegalInputException("Input rejected: joined as liquidity but is a mustMix");
     }
@@ -63,8 +66,9 @@ public class InputValidationService {
     return txOutPoint;
   }
 
-  protected boolean checkInputProvenance(Transaction tx, long inputValue, long poolFeeValue)
+  protected boolean checkInputProvenance(RpcTransaction rpcTx, long inputValue, PoolFee poolFee)
       throws IllegalInputException {
+    Transaction tx = rpcTx.getTx();
     // is it a tx0?
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx);
     if (feeData != null) {
@@ -84,7 +88,8 @@ public class InputValidationService {
       }
 
       // check fees paid
-      if (!feeValidationService.isValidTx0(tx, feeData, poolFeeValue)) {
+      if (!feeValidationService.isValidTx0(
+          rpcTx.getTx(), rpcTx.getBlockHeight(), feeData, poolFee)) {
         throw new IllegalInputException(
             "Input rejected (invalid fee for tx0="
                 + tx.getHashAsString()

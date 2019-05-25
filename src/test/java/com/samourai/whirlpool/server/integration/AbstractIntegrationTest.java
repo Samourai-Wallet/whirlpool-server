@@ -167,7 +167,8 @@ public abstract class AbstractIntegrationTest {
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
     poolConfig.setId(Utils.generateUniqueString());
     poolConfig.setDenomination(copyPool.getDenomination());
-    poolConfig.setFeeValue(copyPool.getFeeValue());
+    poolConfig.setFeeValue(copyPool.getPoolFee().getFeeValue());
+    poolConfig.setFeeAccept(copyPool.getPoolFee().getFeeAccept());
     poolConfig.setMinerFeeMin(copyPool.getMinerFeeMin());
     poolConfig.setMinerFeeCap(copyPool.getMinerFeeCap());
     poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());

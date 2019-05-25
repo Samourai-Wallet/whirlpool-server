@@ -85,7 +85,7 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
         return Optional.empty();
       }
       RpcRawTransactionResponse rpcTxResponse =
-          new RpcRawTransactionResponse(rawTx.hex(), rawTx.confirmations());
+          new RpcRawTransactionResponse(rawTx.hex(), rawTx.confirmations(), rawTx.height());
       return Optional.of(rpcTxResponse);
     } catch (Exception e) {
       log.error("getRawTransaction error", e);

@@ -8,6 +8,7 @@ import org.bitcoinj.core.Utils;
 
 public class RpcTransaction {
   private int confirmations;
+  private long blockHeight;
 
   @JsonIgnore private Transaction tx;
 
@@ -15,10 +16,15 @@ public class RpcTransaction {
     // parse tx with bitcoinj
     this.tx = new Transaction(params, Utils.HEX.decode(rpcRawTransaction.getHex()));
     this.confirmations = rpcRawTransaction.getConfirmations();
+    this.blockHeight = rpcRawTransaction.getBlockHeight();
   }
 
   public int getConfirmations() {
     return confirmations;
+  }
+
+  public long getBlockHeight() {
+    return blockHeight;
   }
 
   public Transaction getTx() {

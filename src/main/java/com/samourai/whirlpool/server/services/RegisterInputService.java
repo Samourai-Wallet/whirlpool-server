@@ -73,9 +73,8 @@ public class RegisterInputService {
 
       // verify input is a valid mustMix or liquidity
       Pool pool = poolService.getPool(poolId);
-      long poolFeeValue = pool.getFeeValue();
       inputValidationService.validateProvenance(
-          txOutPoint, rpcTransaction.getTx(), liquidity, testMode, poolFeeValue);
+          txOutPoint, rpcTransaction, liquidity, testMode, pool);
 
       // register input to pool
       poolService.registerInput(poolId, username, liquidity, txOutPoint, true);

@@ -9,6 +9,7 @@ import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
+import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig.SecretWalletConfig;
@@ -16,7 +17,10 @@ import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.bitcoinj.core.*;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
@@ -92,17 +96,18 @@ public class FeeValidationService {
     return secretAccountBip47.getPaymentCode();
   }
 
-  public boolean isValidTx0(Transaction tx0, WhirlpoolFeeData feeData, long poolFeeValue) {
+  public boolean isValidTx0(
+      Transaction tx0, long tx0BlockHeight, WhirlpoolFeeData feeData, PoolFee poolFee) {
     // validate feePayload
     if (isValidFeePayload(feeData.getFeePayload())) {
       return true;
     } else {
       // validate for feeIndice
-      return isTx0FeePaid(tx0, feeData.getFeeIndice(), poolFeeValue);
+      return isTx0FeePaid(tx0, tx0BlockHeight, feeData.getFeeIndice(), poolFee);
     }
   }
 
-  protected boolean isTx0FeePaid(Transaction tx0, int x, long poolFeeValue) {
+  protected boolean isTx0FeePaid(Transaction tx0, long tx0BlockHeight, int x, PoolFee poolFee) {
     if (x < 0) {
       log.error("Invalid samouraiFee indice: " + x);
       return false;
@@ -113,16 +118,42 @@ public class FeeValidationService {
 
     // make sure tx contains an output to samourai fees
     for (TransactionOutput txOutput : tx0.getOutputs()) {
-      if (txOutput.getValue().getValue() >= poolFeeValue) {
-        // is this the fees payment output?
-        String toAddress =
-            Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());
-        if (toAddress != null && feesAddressBech32.equals(toAddress)) {
-          // ok, this is the fees payment output
+      // is this the fees payment output?
+      String toAddress =
+          Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());
+      if (toAddress != null && feesAddressBech32.equals(toAddress)) {
+        // ok, this is the fees payment output
+        long feePaid = txOutput.getValue().getValue();
+        if (poolFee.checkTx0FeePaid(feePaid, tx0BlockHeight)) {
           return true;
+        } else {
+          log.warn(
+              "Tx0: invalid feePaid="
+                  + feePaid
+                  + " for tx0="
+                  + tx0.getHashAsString()
+                  + ", tx0BlockHeight="
+                  + tx0BlockHeight
+                  + ", x="
+                  + x
+                  + ", poolFee="
+                  + poolFee
+                  + ",  feesAddressBech32="
+                  + feesAddressBech32);
         }
       }
     }
+    log.warn(
+        "Tx0: no valid fee payment found for tx0="
+            + tx0.getHashAsString()
+            + ", tx0BlockHeight="
+            + tx0BlockHeight
+            + ", x="
+            + x
+            + ", poolFee="
+            + poolFee
+            + ",  feesAddressBech32="
+            + feesAddressBech32);
     return false;
   }
 

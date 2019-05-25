@@ -20,15 +20,26 @@ server.rpc-client.password = CONFIGURE-ME
 The bitcoin node should be running on the same network (main or test).<br/>
 The node will be used to verify UTXO and broadcast tx.
 
-### UTXO amounts
+### Pool: UTXO amounts
 ```
-server.mix.denomination: amount in satoshis
-server.mix.miner-fee-min: minimum miner-fee to pay by mustMix
-server.mix.miner-fee-max: maximum miner-fee to pay
+server.pools[x].denomination: amount in satoshis
+server.pools[x].miner-fee-min: minimum miner-fee accepted for mustMix
+server.pools[x].miner-fee-max: maximum miner-fee accepted for mustMix
+server.pools[x].miner-fee-cap: "soft cap" miner-fee recommended for a new mustMix (should be <= miner-fee-max)
 ```
 UTXO should be founded with:<br/>
 for mustMix: (*server.mix.denomination* + *server.mix.miner-fee-min*) to (*server.mix.denomination* + *server.mix.miner-fee-max*)<br/>
 for liquidities: (*server.mix.denomination*) to (*server.mix.denomination* + *server.mix.miner-fee-max*)
+
+
+### Pool: TX0 fees
+```
+server.pools[x].fee-value: server fee (in satoshis) for each tx0
+server.pools[x].fee-accept: alternate fee values accepted (key=fee in sats, value=maxBlockHeight)
+```
+Standard fee configuration is through *fee-value*.
+*fee-accept* is useful when changing *fee-value*, to still accept unspent tx0s <= maxBlockHeight with previous fee-value.
+
 
 ### UTXO confirmations
 ```
@@ -51,21 +62,21 @@ Each scode is mapped in configuration to a short value (-32,768 to 32,767) which
 Multiple scode can be mapped to same short value.
 Forbidden short value is '0', which is mapped to WhirlpoolFeeData.feePayload=NULL.
 
-### Mix limits
+### Pool: Mix limits
 ```
-server.mix.anonymity-set-target = 10
-server.mix.anonymity-set-min = 6
-server.mix.anonymity-set-max = 20
-server.mix.anonymity-set-adjust-timeout = 120
+server.pools[x].anonymity-set-target = 10
+server.pools[x].anonymity-set-min = 6
+server.pools[x].anonymity-set-max = 20
+server.pools[x].anonymity-set-adjust-timeout = 120
 
-server.mix.must-mix-min = 1
-server.mix.liquidity-timeout = 60
+server.pools[x].must-mix-min = 1
+server.pools[x].liquidity-timeout = 60
 ```
-Mix will start when *server.mix.anonymity-set-target* (mustMix + liquidities) are registered.<br/>
-If this target is not met after *server.mix.anonymity-set-adjust-timeout*, it will be gradually decreased to *server.mix.anonymity-set-min*.<br/>
+Mix will start when *anonymity-set-target* (mustMix + liquidities) are registered.<br/>
+If this target is not met after *anonymity-set-adjust-timeout*, it will be gradually decreased to *anonymity-set-min*.<br/>
 
 At the beginning of the mix, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
-After *server.mix.liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *server.mix.must-mix-min* is reached, up to *server.mix.anonymity-set-max* inputs for the mix.
+After *liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *must-mix-min* is reached, up to *anonymity-set-max* inputs for the mix.
 
 ### Exports
 Each mix success/fail is appended to a CSV file:

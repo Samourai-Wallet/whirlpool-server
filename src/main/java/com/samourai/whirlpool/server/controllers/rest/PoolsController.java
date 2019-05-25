@@ -58,7 +58,7 @@ public class PoolsController extends AbstractRestController {
         new PoolInfo(
             pool.getPoolId(),
             pool.getDenomination(),
-            pool.getFeeValue(),
+            pool.getPoolFee().getFeeValue(),
             pool.computeMustMixBalanceMin(),
             pool.computeMustMixBalanceCap(),
             pool.computeMustMixBalanceMax(),

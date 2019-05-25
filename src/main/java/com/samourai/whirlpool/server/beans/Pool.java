@@ -5,7 +5,7 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 public class Pool {
   private String poolId;
   private long denomination; // in satoshis
-  private long feeValue; // in satoshis
+  private PoolFee poolFee;
   private long minerFeeMin; // in satoshis
   private long minerFeeCap; // in satoshis
   private long minerFeeMax; // in satoshis
@@ -23,7 +23,7 @@ public class Pool {
   public Pool(
       String poolId,
       long denomination,
-      long feeValue,
+      PoolFee poolFee,
       long minerFeeMin,
       long minerFeeCap,
       long minerFeeMax,
@@ -35,7 +35,7 @@ public class Pool {
       long liquidityTimeout) {
     this.poolId = poolId;
     this.denomination = denomination;
-    this.feeValue = feeValue;
+    this.poolFee = poolFee;
     this.minerFeeMin = minerFeeMin;
     this.minerFeeCap = minerFeeCap;
     this.minerFeeMax = minerFeeMax;
@@ -90,8 +90,8 @@ public class Pool {
     return denomination;
   }
 
-  public long getFeeValue() {
-    return feeValue;
+  public PoolFee getPoolFee() {
+    return poolFee;
   }
 
   public long getMinerFeeMin() {

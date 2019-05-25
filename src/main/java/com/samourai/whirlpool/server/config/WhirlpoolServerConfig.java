@@ -247,6 +247,7 @@ public class WhirlpoolServerConfig {
     private String id;
     private long denomination;
     private long feeValue;
+    private Map<Long, Long> feeAccept;
     private long minerFeeMin;
     private long minerFeeCap;
     private long minerFeeMax;
@@ -279,6 +280,14 @@ public class WhirlpoolServerConfig {
 
     public void setFeeValue(long feeValue) {
       this.feeValue = feeValue;
+    }
+
+    public Map<Long, Long> getFeeAccept() {
+      return feeAccept;
+    }
+
+    public void setFeeAccept(Map<Long, Long> feeAccept) {
+      this.feeAccept = feeAccept;
     }
 
     public long getMinerFeeMin() {
@@ -504,6 +513,8 @@ public class WhirlpoolServerConfig {
       poolInfo +=
           ", feeValue="
               + Utils.satoshisToBtc(poolConfig.feeValue)
+              + ", feeAccept="
+              + (poolConfig.feeAccept != null ? poolConfig.feeAccept : null)
               + ", anonymitySet="
               + poolConfig.anonymitySetTarget
               + "["

@@ -97,5 +97,9 @@ public class DbService {
 
   public void __reset() {
     blames = new ArrayList<>();
+    mixRepository.deleteAll();
+    tx0WhitelistRepository.deleteAll();
+    mixOutputRepository.deleteAll();
+    mixTxidRepository.deleteAll();
   }
 }

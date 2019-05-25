@@ -52,11 +52,13 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
   @Test
   public void testInstanciate() throws Exception {
     int CONFIRMATIONS = 1234;
+    long BLOCK_HEIGHT = 900000;
     for (Map.Entry<String, String> entry : expectedHexs.entrySet()) {
       String txid = entry.getKey();
       String txhex = entry.getValue();
 
-      RpcRawTransactionResponse rawTxResponse = new RpcRawTransactionResponse(txhex, CONFIRMATIONS);
+      RpcRawTransactionResponse rawTxResponse =
+          new RpcRawTransactionResponse(txhex, CONFIRMATIONS, BLOCK_HEIGHT);
 
       // TEST
       RpcTransaction rpcTransaction =
@@ -78,6 +80,7 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
   @Test
   public void testBitcoinj() throws Exception {
     int CONFIRMATIONS = 123;
+    long BLOCK_HEIGHT = 900000;
     for (Map.Entry<String, String> entry : expectedHexs.entrySet()) {
       String txid = entry.getKey();
       String txhex = entry.getValue();
@@ -92,7 +95,8 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
       Assert.assertEquals(txhex, Utils.HEX.encode(tx.bitcoinSerialize()));
 
       // verify structure
-      RpcRawTransactionResponse rawTxResponse = new RpcRawTransactionResponse(txhex, CONFIRMATIONS);
+      RpcRawTransactionResponse rawTxResponse =
+          new RpcRawTransactionResponse(txhex, CONFIRMATIONS, BLOCK_HEIGHT);
       RpcTransaction rpcTransaction =
           new RpcTransaction(rawTxResponse, cryptoService.getNetworkParameters());
 

@@ -48,7 +48,8 @@ public class StatusWebController {
               Map<String, Object> poolAttributes = new HashMap<>();
               poolAttributes.put("poolId", pool.getPoolId());
               poolAttributes.put("denomination", pool.getDenomination());
-              poolAttributes.put("feeValue", pool.getFeeValue());
+              poolAttributes.put("feeValue", pool.getPoolFee().getFeeValue());
+              poolAttributes.put("feeAccept", pool.getPoolFee().getFeeAccept());
               poolAttributes.put("mixStatus", mix.getMixStatus());
               poolAttributes.put("targetAnonymitySet", mix.getTargetAnonymitySet());
               poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());

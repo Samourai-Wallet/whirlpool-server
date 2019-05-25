@@ -2,13 +2,16 @@ package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
+import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
 import java.util.NoSuchElementException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +24,8 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long FEES_VALID = 975000;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @BeforeEach
+  public void beforeEach() {
     dbService.__reset();
   }
 
@@ -79,7 +81,13 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
 
   @Test
   public void checkInput_noFeePayload() throws Exception {
-    String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
+    // register as valid whirlpool txid
+    String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
+    long denomination = 1000000;
+    try {
+      dbService.saveMixTxid(txid, denomination);
+    } catch (Exception e) {
+    } // ignore duplicate
 
     // accept when valid mustMix, paid exact fee
     for (int i = 0; i < 8; i++) {
@@ -121,8 +129,9 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
             .getRpcTransaction(utxoHash)
             .orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
     long inputValue = rpcTransaction.getTx().getOutput(utxoIndex).getValue().getValue();
+    PoolFee poolFee = new PoolFee(FEES_VALID, null);
     boolean isLiquidity =
-        inputValidationService.checkInputProvenance(rpcTransaction.getTx(), inputValue, FEES_VALID);
+        inputValidationService.checkInputProvenance(rpcTransaction, inputValue, poolFee);
     return isLiquidity;
   }
 }
