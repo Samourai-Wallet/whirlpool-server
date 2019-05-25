@@ -123,18 +123,18 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     // reject when no feeAccept
     Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 10, 1, null));
 
-    // accept when tx0BlockHeight <= feeAccept.maxBlockHeight
+    // accept when tx0Time <= feeAccept.maxTime
     Assert.assertTrue(doIsTx0FeePaid(txid, 11111110L, FEES_VALID + 10, 1, feeAccept));
     Assert.assertTrue(doIsTx0FeePaid(txid, 11110L, FEES_VALID + 10, 1, feeAccept));
 
-    // reject when tx0BlockHeight > feeAccept.maxBlockHeight
+    // reject when tx0Time > feeAccept.maxTime
     Assert.assertFalse(doIsTx0FeePaid(txid, 11111112L, FEES_VALID + 10, 1, feeAccept));
   }
 
   private boolean doIsTx0FeePaid(
-      String txid, long txBlockHeight, long minFees, int xpubIndice, Map<Long, Long> feeAccept) {
+      String txid, long txTime, long minFees, int xpubIndice, Map<Long, Long> feeAccept) {
     PoolFee poolFee = new PoolFee(minFees, feeAccept);
-    return feeValidationService.isTx0FeePaid(getTx(txid), txBlockHeight, xpubIndice, poolFee);
+    return feeValidationService.isTx0FeePaid(getTx(txid), txTime, xpubIndice, poolFee);
   }
 
   private Transaction getTx(String txid) {

@@ -97,17 +97,17 @@ public class FeeValidationService {
   }
 
   public boolean isValidTx0(
-      Transaction tx0, long tx0BlockHeight, WhirlpoolFeeData feeData, PoolFee poolFee) {
+      Transaction tx0, long tx0Time, WhirlpoolFeeData feeData, PoolFee poolFee) {
     // validate feePayload
     if (isValidFeePayload(feeData.getFeePayload())) {
       return true;
     } else {
       // validate for feeIndice
-      return isTx0FeePaid(tx0, tx0BlockHeight, feeData.getFeeIndice(), poolFee);
+      return isTx0FeePaid(tx0, tx0Time, feeData.getFeeIndice(), poolFee);
     }
   }
 
-  protected boolean isTx0FeePaid(Transaction tx0, long tx0BlockHeight, int x, PoolFee poolFee) {
+  protected boolean isTx0FeePaid(Transaction tx0, long tx0Time, int x, PoolFee poolFee) {
     if (x < 0) {
       log.error("Invalid samouraiFee indice: " + x);
       return false;
@@ -124,7 +124,7 @@ public class FeeValidationService {
       if (toAddress != null && feesAddressBech32.equals(toAddress)) {
         // ok, this is the fees payment output
         long feePaid = txOutput.getValue().getValue();
-        if (poolFee.checkTx0FeePaid(feePaid, tx0BlockHeight)) {
+        if (poolFee.checkTx0FeePaid(feePaid, tx0Time)) {
           return true;
         } else {
           log.warn(
@@ -132,8 +132,8 @@ public class FeeValidationService {
                   + feePaid
                   + " for tx0="
                   + tx0.getHashAsString()
-                  + ", tx0BlockHeight="
-                  + tx0BlockHeight
+                  + ", tx0Time="
+                  + tx0Time
                   + ", x="
                   + x
                   + ", poolFee="
@@ -146,8 +146,8 @@ public class FeeValidationService {
     log.warn(
         "Tx0: no valid fee payment found for tx0="
             + tx0.getHashAsString()
-            + ", tx0BlockHeight="
-            + tx0BlockHeight
+            + ", tx0Time="
+            + tx0Time
             + ", x="
             + x
             + ", poolFee="

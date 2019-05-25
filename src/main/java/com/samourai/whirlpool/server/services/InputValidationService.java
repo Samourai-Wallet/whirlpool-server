@@ -88,8 +88,7 @@ public class InputValidationService {
       }
 
       // check fees paid
-      if (!feeValidationService.isValidTx0(
-          rpcTx.getTx(), rpcTx.getBlockHeight(), feeData, poolFee)) {
+      if (!feeValidationService.isValidTx0(rpcTx.getTx(), rpcTx.getTxTime(), feeData, poolFee)) {
         throw new IllegalInputException(
             "Input rejected (invalid fee for tx0="
                 + tx.getHashAsString()

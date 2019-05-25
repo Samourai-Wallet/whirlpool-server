@@ -40,25 +40,25 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
 
     expectedJson.put(
         "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187",
-        "{\"confirmations\":1234}");
+        "{\"confirmations\":1234,\"txTime\":900000}");
     expectedJson.put(
         "7ea75da574ebabf8d17979615b059ab53aae3011926426204e730d164a0d0f16",
-        "{\"confirmations\":1234}");
+        "{\"confirmations\":1234,\"txTime\":900000}");
     expectedJson.put(
         "96cebec97115f59339a9053b6084aab5869adeefdbdbe974b74bfdbf3b8eaac3",
-        "{\"confirmations\":1234}");
+        "{\"confirmations\":1234,\"txTime\":900000}");
   }
 
   @Test
   public void testInstanciate() throws Exception {
     int CONFIRMATIONS = 1234;
-    long BLOCK_HEIGHT = 900000;
+    long TX_TIME = 900000;
     for (Map.Entry<String, String> entry : expectedHexs.entrySet()) {
       String txid = entry.getKey();
       String txhex = entry.getValue();
 
       RpcRawTransactionResponse rawTxResponse =
-          new RpcRawTransactionResponse(txhex, CONFIRMATIONS, BLOCK_HEIGHT);
+          new RpcRawTransactionResponse(txhex, CONFIRMATIONS, TX_TIME);
 
       // TEST
       RpcTransaction rpcTransaction =
@@ -80,7 +80,7 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
   @Test
   public void testBitcoinj() throws Exception {
     int CONFIRMATIONS = 123;
-    long BLOCK_HEIGHT = 900000;
+    long TX_TIME = 900000;
     for (Map.Entry<String, String> entry : expectedHexs.entrySet()) {
       String txid = entry.getKey();
       String txhex = entry.getValue();
@@ -96,7 +96,7 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
 
       // verify structure
       RpcRawTransactionResponse rawTxResponse =
-          new RpcRawTransactionResponse(txhex, CONFIRMATIONS, BLOCK_HEIGHT);
+          new RpcRawTransactionResponse(txhex, CONFIRMATIONS, TX_TIME);
       RpcTransaction rpcTransaction =
           new RpcTransaction(rawTxResponse, cryptoService.getNetworkParameters());
 

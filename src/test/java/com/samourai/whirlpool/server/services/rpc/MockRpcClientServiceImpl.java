@@ -36,7 +36,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
   private Map<String, RpcRawTransactionResponse> mockTransactions;
 
   public static final int MOCK_TX_CONFIRMATIONS = 99;
-  private static final long MOCK_TX_BLOCKHEIGHT = 900000;
+  private static final long MOCK_TX_TIME = 900000;
 
   public MockRpcClientServiceImpl(
       TestUtils testUtils, CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
@@ -78,14 +78,14 @@ public class MockRpcClientServiceImpl implements RpcClientService {
       return Optional.empty();
     }
     RpcRawTransactionResponse rpcTxResponse =
-        new RpcRawTransactionResponse(rpcTxHex.get(), MOCK_TX_CONFIRMATIONS, MOCK_TX_BLOCKHEIGHT);
+        new RpcRawTransactionResponse(rpcTxHex.get(), MOCK_TX_CONFIRMATIONS, MOCK_TX_TIME);
     return Optional.of(rpcTxResponse);
   }
 
   public void mock(String txid, String rawTxHex, int confirmations) {
     log.info("mock tx: " + txid);
     RpcRawTransactionResponse rawTxResponse =
-        new RpcRawTransactionResponse(rawTxHex, confirmations, MOCK_TX_BLOCKHEIGHT);
+        new RpcRawTransactionResponse(rawTxHex, confirmations, MOCK_TX_TIME);
     mockTransactions.put(txid, rawTxResponse);
   }
 

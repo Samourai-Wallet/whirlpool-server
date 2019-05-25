@@ -35,10 +35,10 @@ for liquidities: (*server.mix.denomination*) to (*server.mix.denomination* + *se
 ### Pool: TX0 fees
 ```
 server.pools[x].fee-value: server fee (in satoshis) for each tx0
-server.pools[x].fee-accept: alternate fee values accepted (key=fee in sats, value=maxBlockHeight)
+server.pools[x].fee-accept: alternate fee values accepted (key=fee in sats, value=maxTx0Time)
 ```
 Standard fee configuration is through *fee-value*.
-*fee-accept* is useful when changing *fee-value*, to still accept unspent tx0s <= maxBlockHeight with previous fee-value.
+*fee-accept* is useful when changing *fee-value*, to still accept unspent tx0s <= maxTx0Time with previous fee-value.
 
 
 ### UTXO confirmations

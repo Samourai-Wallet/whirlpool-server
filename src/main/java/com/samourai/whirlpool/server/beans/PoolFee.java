@@ -9,29 +9,29 @@ import org.slf4j.LoggerFactory;
 public class PoolFee {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private long feeValue; // in satoshis
-  private Map<Long, Long> feeAccept; // key=sats, value=maxBlockHeight
+  private Map<Long, Long> feeAccept; // key=sats, value=maxTx0Time
 
   public PoolFee(long feeValue, Map<Long, Long> feeAccept) {
     this.feeValue = feeValue;
     this.feeAccept = (feeAccept != null ? feeAccept : new HashMap<>());
   }
 
-  public boolean checkTx0FeePaid(long tx0FeePaid, long tx0BlockHeight) {
+  public boolean checkTx0FeePaid(long tx0FeePaid, long tx0Time) {
     if (tx0FeePaid >= feeValue) {
       return true;
     }
-    Long maxBlockHeight = feeAccept.get(tx0FeePaid);
-    if (maxBlockHeight != null) {
-      if (tx0BlockHeight <= maxBlockHeight) {
+    Long maxTxTime = feeAccept.get(tx0FeePaid);
+    if (maxTxTime != null) {
+      if (tx0Time <= maxTxTime) {
         return true;
       } else {
         log.warn(
             "checkTx0FeePaid: invalid fee payment: feeAccept found for "
                 + tx0FeePaid
-                + " but tx0BlockHeight="
-                + tx0BlockHeight
-                + " > maxBlockHeight="
-                + tx0BlockHeight);
+                + " but tx0Time="
+                + tx0Time
+                + " > maxTxTime="
+                + maxTxTime);
       }
     }
     log.warn("checkTx0FeePaid: invalid fee payment: " + tx0FeePaid + " < " + feeValue);
