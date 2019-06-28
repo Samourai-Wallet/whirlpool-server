@@ -4,7 +4,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
-import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,15 +27,57 @@ public class UtilsTest extends AbstractIntegrationTest {
 
   @Test
   public void feePayloadShortToBytes() throws Exception {
-    Assert.assertEquals("0001", Hex.toHexString(Utils.feePayloadShortToBytes((short) 1)));
-    Assert.assertEquals("04d2", Hex.toHexString(Utils.feePayloadShortToBytes((short) 1234)));
-    Assert.assertEquals("162e", Hex.toHexString(Utils.feePayloadShortToBytes((short) 5678)));
+    Assert.assertEquals(
+        "00000000 00000001", Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) 1)));
+    Assert.assertEquals(
+        "00000100 11010010", Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) 1234)));
+    Assert.assertEquals(
+        "00010110 00101110", Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) 5678)));
+
+    Assert.assertEquals(
+        "11111111 11111011", Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) -5)));
+    Assert.assertEquals(
+        "10000000 00000000",
+        Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) -32768)));
+    Assert.assertEquals(
+        "01111111 11111111",
+        Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) 32767)));
   }
 
   @Test
   public void feePayloadBytesToShort() throws Exception {
-    Assert.assertEquals(1, Utils.feePayloadBytesToShort(Hex.decode("0001")));
-    Assert.assertEquals(1234, Utils.feePayloadBytesToShort(Hex.decode("04d2")));
-    Assert.assertEquals(5678, Utils.feePayloadBytesToShort(Hex.decode("162e")));
+    Assert.assertEquals(
+        1, Utils.feePayloadBytesToShort(Utils.bytesFromBinaryString("00000000 00000001")));
+    Assert.assertEquals(
+        1234, Utils.feePayloadBytesToShort(Utils.bytesFromBinaryString("00000100 11010010")));
+    Assert.assertEquals(
+        5678, Utils.feePayloadBytesToShort(Utils.bytesFromBinaryString("00010110 00101110")));
+
+    Assert.assertEquals(
+        -5, Utils.feePayloadBytesToShort(Utils.bytesFromBinaryString("11111111 11111011")));
+    Assert.assertEquals(
+        -32768, Utils.feePayloadBytesToShort(Utils.bytesFromBinaryString("10000000 00000000")));
+    Assert.assertEquals(
+        32767, Utils.feePayloadBytesToShort(Utils.bytesFromBinaryString("01111111 11111111")));
+  }
+
+  @Test
+  public void bytesToBinaryString() {
+    Assert.assertEquals("00000000", Utils.bytesToBinaryString(new byte[] {0}));
+    Assert.assertEquals("00000001", Utils.bytesToBinaryString(new byte[] {1}));
+    Assert.assertEquals("00000001 00000000", Utils.bytesToBinaryString(new byte[] {1, 0}));
+    Assert.assertEquals(
+        "00000001 00001010 00001000 00001111",
+        Utils.bytesToBinaryString(new byte[] {1, 10, 8, 15}));
+  }
+
+  @Test
+  public void bytesFromBinaryString() {
+    Assert.assertArrayEquals(new byte[] {0}, Utils.bytesFromBinaryString("00000000"));
+    Assert.assertArrayEquals(new byte[] {1}, Utils.bytesFromBinaryString("00000001"));
+    Assert.assertArrayEquals(new byte[] {1, 0}, Utils.bytesFromBinaryString("00000001 00000000"));
+    Assert.assertArrayEquals(
+        new byte[] {1, 10, 8, 15},
+        Utils.bytesFromBinaryString("00000001 00001010 00001000 00001111"));
   }
 }

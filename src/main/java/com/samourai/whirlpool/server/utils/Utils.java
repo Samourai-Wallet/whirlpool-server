@@ -12,11 +12,9 @@ import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.bitcoinj.core.*;
@@ -151,5 +149,24 @@ public class Utils {
     String feeAddressBech32 =
         Bech32UtilGeneric.getInstance().toBech32(feeECKey.getPubKey(), params);
     return feeAddressBech32;
+  }
+
+  public static String bytesToBinaryString(byte[] bytes) {
+    List<String> strs = new ArrayList<>();
+    for (byte b : bytes) {
+      String str = String.format("%8s", Integer.toBinaryString((b + 256) % 256)).replace(' ', '0');
+      strs.add(str);
+    }
+    return StringUtils.join(strs.toArray(), " ");
+  }
+
+  public static byte[] bytesFromBinaryString(String str) {
+    String[] bytesStrs = str.split(" ");
+    byte[] result = new byte[bytesStrs.length];
+    for (int i = 0; i < bytesStrs.length; i++) {
+      String byteStr = bytesStrs[i];
+      result[i] = (byte) (int) (Integer.valueOf(byteStr, 2));
+    }
+    return result;
   }
 }
