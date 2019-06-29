@@ -38,6 +38,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   private static final short SCODE_FOO_PAYLOAD = 1234;
   private static final String SCODE_BAR = "bar";
   private static final short SCODE_BAR_PAYLOAD = 5678;
+  private static final String SCODE_MIN = "min";
+  private static final short SCODE_MIN_PAYLOAD = -32768;
+  private static final String SCODE_MAX = "max";
+  private static final short SCODE_MAX_PAYLOAD = 32767;
 
   @Override
   public void setUp() throws Exception {
@@ -48,6 +52,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Map<String, Short> feePayloadByScode = new HashMap<>();
     feePayloadByScode.put(SCODE_FOO, SCODE_FOO_PAYLOAD);
     feePayloadByScode.put(SCODE_BAR, SCODE_BAR_PAYLOAD);
+    feePayloadByScode.put(SCODE_MIN, SCODE_MIN_PAYLOAD);
+    feePayloadByScode.put(SCODE_MAX, SCODE_MAX_PAYLOAD);
     serverConfig.getSamouraiFees().setFeePayloadByScode(feePayloadByScode);
   }
 
@@ -393,6 +399,12 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Assert.assertEquals(
         SCODE_BAR_PAYLOAD,
         Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_BAR)));
+    Assert.assertEquals(
+            SCODE_MIN_PAYLOAD,
+            Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MIN)));
+    Assert.assertEquals(
+            SCODE_MAX_PAYLOAD,
+            Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MAX)));
     Assert.assertEquals(null, feeValidationService.getFeePayloadByScode("invalid"));
   }
 
@@ -404,6 +416,12 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Assert.assertEquals(
         SCODE_BAR,
         feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_BAR_PAYLOAD)));
+    Assert.assertEquals(
+            SCODE_MIN,
+            feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MIN_PAYLOAD)));
+    Assert.assertEquals(
+            SCODE_MAX,
+            feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MAX_PAYLOAD)));
 
     Assert.assertEquals(
         null, feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes((short) 0)));

@@ -36,9 +36,13 @@ public class UtilsTest extends AbstractIntegrationTest {
 
     Assert.assertEquals(
         "11111111 11111011", Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) -5)));
+
+    // min
     Assert.assertEquals(
         "10000000 00000000",
         Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) -32768)));
+
+    // max
     Assert.assertEquals(
         "01111111 11111111",
         Utils.bytesToBinaryString(Utils.feePayloadShortToBytes((short) 32767)));
