@@ -45,7 +45,8 @@ public class RegisterInputService {
       String utxoHash,
       long utxoIndex,
       boolean liquidity,
-      boolean testMode)
+      boolean testMode,
+      String ip)
       throws IllegalInputException, MixException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
       throw new IllegalInputException("Invalid utxoHash");

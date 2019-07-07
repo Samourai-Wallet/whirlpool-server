@@ -7,6 +7,7 @@ import com.samourai.whirlpool.server.services.WebSocketService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +32,15 @@ public class RegisterInputController extends AbstractWebSocketController {
 
   @MessageMapping(WhirlpoolEndpoint.WS_REGISTER_INPUT)
   public void registerInput(
-      @Payload RegisterInputRequest payload, Principal principal, StompHeaderAccessor headers)
+      @Payload RegisterInputRequest payload,
+      Principal principal,
+      StompHeaderAccessor headers,
+      HttpServletRequest request)
       throws Exception {
     validateHeaders(headers);
 
     String username = principal.getName();
+    String ip = Utils.getClientIp(request);
     if (log.isDebugEnabled()) {
       log.debug(
           "["
@@ -54,7 +59,8 @@ public class RegisterInputController extends AbstractWebSocketController {
         payload.utxoHash,
         payload.utxoIndex,
         payload.liquidity,
-        payload.testMode);
+        payload.testMode,
+        ip);
   }
 
   @MessageExceptionHandler
