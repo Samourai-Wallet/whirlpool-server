@@ -480,11 +480,7 @@ public class WhirlpoolServerConfig {
         rpcClient.getHost() + ":" + rpcClient.getPort() + "," + networkParameters.getId());
     configInfo.put("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
 
-    String feesXpub =
-        samouraiFees.xpub.substring(0, 3)
-            + "..."
-            + samouraiFees.xpub.substring(
-                samouraiFees.xpub.length() - 3, samouraiFees.xpub.length());
+    String feesXpub = Utils.obfuscateString(samouraiFees.xpub, 3);
     int nbSeedWords = samouraiFees.getSecretWallet().getWords().split(" ").length;
     configInfo.put(
         "samouraiFees", "xpub=" + feesXpub + ", secretWallet=(" + nbSeedWords + " seed words)");
@@ -532,6 +528,11 @@ public class WhirlpoolServerConfig {
               + "]";
       poolInfo += ", liquidityTimeout=" + String.valueOf(poolConfig.liquidityTimeout);
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);
+    }
+    for (Map.Entry<String, Short> feePayloadEntry :
+        samouraiFees.getFeePayloadByScode().entrySet()) {
+      String scode = Utils.obfuscateString(feePayloadEntry.getKey(), 1);
+      configInfo.put("scode[" + scode + "]", "enabled");
     }
     return configInfo;
   }

@@ -400,11 +400,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         SCODE_BAR_PAYLOAD,
         Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_BAR)));
     Assert.assertEquals(
-            SCODE_MIN_PAYLOAD,
-            Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MIN)));
+        SCODE_MIN_PAYLOAD,
+        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MIN)));
     Assert.assertEquals(
-            SCODE_MAX_PAYLOAD,
-            Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MAX)));
+        SCODE_MAX_PAYLOAD,
+        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MAX)));
     Assert.assertEquals(null, feeValidationService.getFeePayloadByScode("invalid"));
   }
 
@@ -417,11 +417,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         SCODE_BAR,
         feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_BAR_PAYLOAD)));
     Assert.assertEquals(
-            SCODE_MIN,
-            feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MIN_PAYLOAD)));
+        SCODE_MIN,
+        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MIN_PAYLOAD)));
     Assert.assertEquals(
-            SCODE_MAX,
-            feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MAX_PAYLOAD)));
+        SCODE_MAX,
+        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MAX_PAYLOAD)));
 
     Assert.assertEquals(
         null, feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes((short) 0)));

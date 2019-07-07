@@ -169,4 +169,11 @@ public class Utils {
     }
     return result;
   }
+
+  public static String obfuscateString(String str, int offset) {
+    if (str == null || str.length() <= offset) {
+      return str;
+    }
+    return str.substring(0, offset) + "***" + str.substring(str.length() - offset, str.length());
+  }
 }
