@@ -34,7 +34,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     String txid = "7d14d7d85eeda1efe7593d89cc8b61940c4a17b9390ae471577bbdc489c542eb";
 
     // invalid
-    Assert.assertFalse(isWhirlpoolTx(txid, 1000000));
+    Assert.assertFalse(hasMixTxid(txid, 1000000));
 
     // reject when invalid
     thrown.expect(IllegalInputException.class);
@@ -53,7 +53,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     } // ignore duplicate
 
     // reject when invalid denomination
-    Assert.assertFalse(isWhirlpoolTx(txid, denomination)); // invalid
+    Assert.assertFalse(hasMixTxid(txid, denomination)); // invalid
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Input rejected (not a premix or whirlpool input)");
     doCheckInput(txid, 0);
@@ -70,12 +70,12 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     } // ignore duplicate
 
     // accept when valid
-    Assert.assertTrue(isWhirlpoolTx(txid, denomination)); // valid
+    Assert.assertTrue(hasMixTxid(txid, denomination)); // valid
     Assert.assertTrue(doCheckInput(txid, 0)); // liquidity
   }
 
-  private boolean isWhirlpoolTx(String utxoHash, long denomination) {
-    return inputValidationService.isWhirlpoolTx(utxoHash, denomination);
+  private boolean hasMixTxid(String utxoHash, long denomination) {
+    return dbService.hasMixTxid(utxoHash, denomination);
   }
 
   @Test
@@ -129,8 +129,10 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
             .orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
     long inputValue = rpcTransaction.getTx().getOutput(utxoIndex).getValue().getValue();
     PoolFee poolFee = new PoolFee(FEES_VALID, null);
+    boolean hasMixTxid = hasMixTxid(utxoHash, inputValue);
     boolean isLiquidity =
-        inputValidationService.checkInputProvenance(rpcTransaction, inputValue, poolFee);
+        inputValidationService.checkInputProvenance(
+            rpcTransaction, inputValue, poolFee, hasMixTxid);
     return isLiquidity;
   }
 }

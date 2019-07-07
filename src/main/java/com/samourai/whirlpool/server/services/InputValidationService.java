@@ -22,7 +22,6 @@ public class InputValidationService {
   private FeeValidationService feeValidationService;
   private WhirlpoolServerConfig whirlpoolServerConfig;
   private CryptoService cryptoService;
-  private DbService dbService;
   private MessageSignUtilGeneric messageSignUtil;
 
   public InputValidationService(
@@ -34,12 +33,16 @@ public class InputValidationService {
     this.feeValidationService = feeValidationService;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.cryptoService = cryptoService;
-    this.dbService = dbService;
     this.messageSignUtil = messageSignUtil;
   }
 
   public TxOutPoint validateProvenance(
-      TxOutPoint txOutPoint, RpcTransaction tx, boolean liquidity, boolean testMode, Pool pool)
+      TxOutPoint txOutPoint,
+      RpcTransaction tx,
+      boolean liquidity,
+      boolean testMode,
+      Pool pool,
+      boolean hasMixTxid)
       throws IllegalInputException {
 
     // provenance verification can be disabled with testMode
@@ -48,15 +51,9 @@ public class InputValidationService {
       return txOutPoint;
     }
 
-    // check tx0Whitelist
-    String txid = tx.getTx().getHashAsString();
-    if (dbService.hasTx0Whitelist(txid)) {
-      log.warn("tx0 check disabled by whitelist for txid=" + txid);
-      return txOutPoint;
-    }
-
     // verify input comes from a valid tx0 or previous mix
-    boolean isLiquidity = checkInputProvenance(tx, txOutPoint.getValue(), pool.getPoolFee());
+    boolean isLiquidity =
+        checkInputProvenance(tx, txOutPoint.getValue(), pool.getPoolFee(), hasMixTxid);
     if (!isLiquidity && liquidity) {
       throw new IllegalInputException("Input rejected: joined as liquidity but is a mustMix");
     }
@@ -66,7 +63,8 @@ public class InputValidationService {
     return txOutPoint;
   }
 
-  protected boolean checkInputProvenance(RpcTransaction rpcTx, long inputValue, PoolFee poolFee)
+  protected boolean checkInputProvenance(
+      RpcTransaction rpcTx, long inputValue, PoolFee poolFee, boolean hasMixTxid)
       throws IllegalInputException {
     Transaction tx = rpcTx.getTx();
     // is it a tx0?
@@ -110,16 +108,11 @@ public class InputValidationService {
                 + ": feeData=null");
       }
 
-      boolean isWhirlpoolTx = isWhirlpoolTx(tx.getHashAsString(), inputValue);
-      if (!isWhirlpoolTx) {
+      if (!hasMixTxid) { // not a whirlpool tx
         throw new IllegalInputException("Input rejected (not a premix or whirlpool input)");
       }
       return true; // liquidity
     }
-  }
-
-  protected boolean isWhirlpoolTx(String txid, long denomination) {
-    return dbService.hasMixTxid(txid, denomination);
   }
 
   public ECKey validateSignature(TxOutPoint txOutPoint, String message, String signature)

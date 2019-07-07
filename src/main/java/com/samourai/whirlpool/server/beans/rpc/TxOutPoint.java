@@ -1,5 +1,7 @@
 package com.samourai.whirlpool.server.beans.rpc;
 
+import com.samourai.whirlpool.server.utils.Utils;
+
 public class TxOutPoint {
   private String hash;
   private long index;
@@ -48,7 +50,7 @@ public class TxOutPoint {
   }
 
   public String toKey() {
-    return hash + ":" + index;
+    return Utils.computeInputId(this);
   }
 
   @Override

@@ -643,7 +643,7 @@ public class MixService {
                 input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername()))
             .collect(Collectors.toSet());
     for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
-      blameService.blame(confirmedInputToBlame, BlameReason.NO_REGISTER_OUTPUT, mixId);
+      blameService.blame(confirmedInputToBlame, BlameReason.REGISTER_OUTPUT, mixId);
     }
     // reset mix
     String outpointKeysToBlameStr = computeOutpointKeysToBlame(confirmedInputsToBlame);
@@ -700,20 +700,31 @@ public class MixService {
 
         confirmedInputs.forEach(
             confirmedInput -> {
-              log.info(
-                  " • ["
-                      + mixId
-                      + "] unregistered "
-                      + (confirmedInput.getRegisteredInput().isLiquidity()
-                          ? "liquidity"
-                          : "mustMix")
-                      + " from registered inputs, username="
-                      + username);
               mix.unregisterInput(confirmedInput);
 
               if (mixAlreadyStarted) {
+                log.warn(
+                        " • ["
+                                + mixId
+                                + "] unregistered "
+                                + (confirmedInput.getRegisteredInput().isLiquidity()
+                                ? "liquidity"
+                                : "mustMix")
+                                + " from registered inputs (MIX ALREADY STARTED), username="
+                                + username);
+
                 // blame
                 blameService.blame(confirmedInput, BlameReason.DISCONNECT, mixId);
+              } else {
+                log.info(
+                        " • ["
+                                + mixId
+                                + "] unregistered "
+                                + (confirmedInput.getRegisteredInput().isLiquidity()
+                                ? "liquidity"
+                                : "mustMix")
+                                + " from registered inputs (mix not started yet), username="
+                                + username);
               }
             });
 

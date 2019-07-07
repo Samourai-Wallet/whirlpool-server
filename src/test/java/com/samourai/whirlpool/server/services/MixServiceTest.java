@@ -56,12 +56,14 @@ public class MixServiceTest extends AbstractIntegrationTest {
 
     // 1 mustMix => false
     mix.registerInput(
-        new ConfirmedInput(new RegisteredInput("mustMix1", false, generateOutPoint()), null));
+        new ConfirmedInput(
+            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"), null));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 2 mustMix => true
     mix.registerInput(
-        new ConfirmedInput(new RegisteredInput("mustMix2", false, generateOutPoint()), null));
+        new ConfirmedInput(
+            new RegisteredInput("mustMix2", false, generateOutPoint(), "127.0.0.1"), null));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
 
@@ -98,17 +100,20 @@ public class MixServiceTest extends AbstractIntegrationTest {
 
     // 1 liquidity => false
     mix.registerInput(
-        new ConfirmedInput(new RegisteredInput("liquidity1", true, generateOutPoint()), null));
+        new ConfirmedInput(
+            new RegisteredInput("liquidity1", true, generateOutPoint(), "127.0.0.1"), null));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 2 liquidity => false : minMustMix not reached
     mix.registerInput(
-        new ConfirmedInput(new RegisteredInput("liquidity2", true, generateOutPoint()), null));
+        new ConfirmedInput(
+            new RegisteredInput("liquidity2", true, generateOutPoint(), "127.0.0.1"), null));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 1 mustMix => true : minMustMix reached
     mix.registerInput(
-        new ConfirmedInput(new RegisteredInput("mustMix1", false, generateOutPoint()), null));
+        new ConfirmedInput(
+            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"), null));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
 

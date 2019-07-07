@@ -121,7 +121,8 @@ public class PoolService {
       String username,
       boolean liquidity,
       TxOutPoint txOutPoint,
-      boolean inviteIfPossible)
+      boolean inviteIfPossible,
+      String ip)
       throws IllegalInputException {
     Pool pool = getPool(poolId);
 
@@ -140,7 +141,7 @@ public class PoolService {
               + ")");
     }
 
-    RegisteredInput registeredInput = new RegisteredInput(username, liquidity, txOutPoint);
+    RegisteredInput registeredInput = new RegisteredInput(username, liquidity, txOutPoint, ip);
 
     // verify confirmations
     if (!isUtxoConfirmed(txOutPoint, liquidity)) {

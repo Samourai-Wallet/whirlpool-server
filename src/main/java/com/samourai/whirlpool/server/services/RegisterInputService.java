@@ -20,7 +20,7 @@ public class RegisterInputService {
   private BlockchainDataService blockchainDataService;
   private InputValidationService inputValidationService;
   private BlameService blameService;
-  private MixService mixService;
+  private DbService dbService;
 
   @Autowired
   public RegisterInputService(
@@ -29,13 +29,13 @@ public class RegisterInputService {
       BlockchainDataService blockchainDataService,
       InputValidationService inputValidationService,
       BlameService blameService,
-      MixService mixService) {
+      DbService dbService) {
     this.poolService = poolService;
     this.cryptoService = cryptoService;
     this.blockchainDataService = blockchainDataService;
     this.inputValidationService = inputValidationService;
     this.blameService = blameService;
-    this.mixService = mixService;
+    this.dbService = dbService;
   }
 
   public synchronized void registerInput(
@@ -57,8 +57,8 @@ public class RegisterInputService {
 
     // verify UTXO not banned
     if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
-      log.warn("Rejecting banned UTXO: " + utxoHash + ":" + utxoIndex);
-      throw new IllegalInputException("Banned from service");
+      log.warn("Rejecting banned UTXO: " + utxoHash + ":" + utxoIndex + ", ip=" + ip);
+      throw new IllegalInputException("Banned from service. Contact us.");
     }
 
     try {
@@ -72,13 +72,20 @@ public class RegisterInputService {
       // verify signature
       inputValidationService.validateSignature(txOutPoint, poolId, signature);
 
-      // verify input is a valid mustMix or liquidity
-      Pool pool = poolService.getPool(poolId);
-      inputValidationService.validateProvenance(
-          txOutPoint, rpcTransaction, liquidity, testMode, pool);
+      // check tx0Whitelist
+      String txid = rpcTransaction.getTx().getHashAsString();
+      if (!dbService.hasTx0Whitelist(txid)) {
+        // verify input is a valid mustMix or liquidity
+        Pool pool = poolService.getPool(poolId);
+        boolean hasMixTxid = dbService.hasMixTxid(txid, txOutPoint.getValue());
+        inputValidationService.validateProvenance(
+            txOutPoint, rpcTransaction, liquidity, testMode, pool, hasMixTxid);
+      } else {
+        log.warn("tx0 check disabled by whitelist for txid=" + txid);
+      }
 
       // register input to pool
-      poolService.registerInput(poolId, username, liquidity, txOutPoint, true);
+      poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip);
     } catch (IllegalInputException e) {
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;

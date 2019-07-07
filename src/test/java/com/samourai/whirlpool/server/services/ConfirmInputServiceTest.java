@@ -52,7 +52,14 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
             999);
 
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), false, true);
+        poolId,
+        username,
+        signature,
+        txOutPoint.getHash(),
+        txOutPoint.getIndex(),
+        false,
+        true,
+        "127.0.0.1");
   }
 
   @Test

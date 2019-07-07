@@ -298,7 +298,7 @@ public class MixLimitsService {
             .collect(Collectors.toSet());
     List<String> outpointKeysToBlame = new ArrayList<>();
     for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
-      blameService.blame(confirmedInputToBlame, BlameReason.NO_SIGNING, mixId);
+      blameService.blame(confirmedInputToBlame, BlameReason.SIGNING, mixId);
       outpointKeysToBlame.add(confirmedInputToBlame.getRegisteredInput().getOutPoint().toKey());
     }
 

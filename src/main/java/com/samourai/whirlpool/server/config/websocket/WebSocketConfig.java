@@ -80,7 +80,11 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
-    registry.addEndpoint(WEBSOCKET_ENDPOINTS).setAllowedOrigins("*").withSockJS();
+    registry
+        .addEndpoint(WEBSOCKET_ENDPOINTS)
+        .setAllowedOrigins("*")
+        .addInterceptors(new IpHandshakeInterceptor())
+        .withSockJS();
   }
 
   @Override

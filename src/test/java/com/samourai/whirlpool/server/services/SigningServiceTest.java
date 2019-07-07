@@ -119,7 +119,8 @@ public class SigningServiceTest extends AbstractIntegrationTest {
             testUtils.generateSegwitAddress(), inputBalance, 10);
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput(firstUsername, false, firstTxOutPoint), new byte[] {}));
+            new RegisteredInput(firstUsername, false, firstTxOutPoint, "127.0.0.1"),
+            new byte[] {}));
     mix.registerOutput(testUtils.generateSegwitAddress().getBech32AsString());
 
     // prepare input
@@ -239,7 +240,14 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // register input
     String signature = premixHandler.signMessage(poolId);
     registerInputService.registerInput(
-        poolId, username, signature, txOutPoint.getHash(), txOutPoint.getIndex(), liquidity, true);
+        poolId,
+        username,
+        signature,
+        txOutPoint.getHash(),
+        txOutPoint.getIndex(),
+        liquidity,
+        true,
+        "127.0.0.1");
 
     // confirm input
     RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();

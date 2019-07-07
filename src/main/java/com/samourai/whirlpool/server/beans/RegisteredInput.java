@@ -6,11 +6,13 @@ public class RegisteredInput {
   private String username;
   private TxOutPoint outPoint;
   private boolean liquidity;
+  private String ip;
 
-  public RegisteredInput(String username, boolean liquidity, TxOutPoint outPoint) {
+  public RegisteredInput(String username, boolean liquidity, TxOutPoint outPoint, String ip) {
     this.username = username;
     this.liquidity = liquidity;
     this.outPoint = outPoint;
+    this.ip = ip;
   }
 
   public void changeUsername(String username) {
@@ -27,5 +29,9 @@ public class RegisteredInput {
 
   public TxOutPoint getOutPoint() {
     return outPoint;
+  }
+
+  public String getIp() {
+    return ip;
   }
 }
