@@ -6,6 +6,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @MappedSuperclass
 public abstract class EntityCreatedUpdatedTO extends EntityCreatedTO {
+  public static final String UPDATED = "updated";
 
   @UpdateTimestamp private Timestamp updated;
 

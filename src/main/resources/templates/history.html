@@ -14,7 +14,8 @@
 
         <strong th:text="${mixStats.nbMixs}"/> mixs •
         <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumMustMix)+'btc'}"/> mixed •
-        <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumAmountOut)+'btc'}"/> volume
+        <strong th:text="${@templateUtil.satoshisToBtc(mixStats.sumAmountOut)+'btc'}"/> volume •
+        <span th:text="${#dates.format(now, 'dd-MMM-yyyy HH:mm:ss')}"/>
         <div class="table-responsive">
         <table class="table table-sm history">
             <thead>
