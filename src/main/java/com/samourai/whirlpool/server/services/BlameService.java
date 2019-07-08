@@ -7,11 +7,11 @@ import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
+import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.samourai.whirlpool.server.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +26,11 @@ public class BlameService {
   private BlockchainDataService blockchainDataService;
 
   @Autowired
-  public BlameService(DbService dbService, WhirlpoolServerConfig whirlpoolServerConfig,
-                      FeeValidationService feeValidationService,
-                      BlockchainDataService blockchainDataService) {
+  public BlameService(
+      DbService dbService,
+      WhirlpoolServerConfig whirlpoolServerConfig,
+      FeeValidationService feeValidationService,
+      BlockchainDataService blockchainDataService) {
     this.dbService = dbService;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.feeValidationService = feeValidationService;
@@ -53,30 +55,26 @@ public class BlameService {
   protected boolean isBannedUTXO(String identifier) {
     int maxBlames = whirlpoolServerConfig.getBan().getBlames();
 
-    List<BlameTO> blames = dbService.findBlamesOrderByCreatedAsc(identifier);
-    if (blames.size() < maxBlames) {
-      return false;
-    }
-
     long blamePeriodMs = whirlpoolServerConfig.getBan().getPeriod() * 1000;
     long blameExpirationMs = whirlpoolServerConfig.getBan().getExpiration() * 1000;
-    long blameExpirationMinTime =
-        System.currentTimeMillis() - (Math.max(blamePeriodMs, blameExpirationMs));
+    Timestamp blameExpirationMinTime =
+        new Timestamp(System.currentTimeMillis() - (Math.max(blamePeriodMs, blameExpirationMs)));
 
     // ignore expired blames
     List<BlameTO> blamesNotExpired =
-        blames
-            .stream()
-            .filter(blameTO -> blameTO.getCreated().getTime() >= blameExpirationMinTime)
-            .collect(Collectors.toList());
+        dbService.findBlamesByDateMin(identifier, blameExpirationMinTime);
 
-    if (log.isDebugEnabled()) {
-      log.debug(blames.size() + " blames found, " + blamesNotExpired.size() + " not expired (blameExpirationMinTime="+blameExpirationMinTime+")");
-    }
     if (blamesNotExpired.size() < maxBlames) {
+      // not banned yet
+      if (blamesNotExpired.size() > 0) {
+        if (log.isDebugEnabled()) {
+          log.debug(blamesNotExpired.size() + " blames found for " + identifier);
+        }
+      }
       return false;
     }
 
+    // check period
     for (BlameTO blameNotExpired : blamesNotExpired) {
       // find blames in same period
       long periodMinTime = blameNotExpired.getCreated().getTime();
@@ -84,10 +82,19 @@ public class BlameService {
       List<BlameTO> blamesInPeriod =
           blamesNotExpired
               .stream()
-              .filter(blameTO -> blameTO.getCreated().getTime() <= periodMaxTime && blameTO.getCreated().getTime() >= periodMinTime)
+              .filter(
+                  blameTO ->
+                      blameTO.getCreated().getTime() <= periodMaxTime
+                          && blameTO.getCreated().getTime() >= periodMinTime)
               .collect(Collectors.toList());
       if (blamesInPeriod.size() >= maxBlames) {
-        log.warn(blamesInPeriod.size() + " blames found for period ["+periodMinTime+";"+periodMaxTime+"]");
+        log.warn(
+            blamesInPeriod.size()
+                + " blames found for period ["
+                + periodMinTime
+                + ";"
+                + periodMaxTime
+                + "]");
         if (log.isDebugEnabled()) {
           int i = 0;
           for (BlameTO b : blamesInPeriod) {
@@ -96,10 +103,6 @@ public class BlameService {
           }
         }
         return true;
-      } else {
-        if (log.isDebugEnabled()) {
-          log.warn("Blame(not in period): " + blameNotExpired);
-        }
       }
     }
     return false;
@@ -113,9 +116,9 @@ public class BlameService {
     // is it a tx0?
     try {
       RpcTransaction tx =
-              blockchainDataService
-                      .getRpcTransaction(utxoHash)
-                      .orElseThrow(() -> new Exception("utxoHash not found: " + utxoHash));
+          blockchainDataService
+              .getRpcTransaction(utxoHash)
+              .orElseThrow(() -> new Exception("utxoHash not found: " + utxoHash));
 
       WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx.getTx());
       if (feeData != null) {

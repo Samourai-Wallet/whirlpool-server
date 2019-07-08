@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.utils;
 
-import com.samourai.stomp.client.JavaStompClient;
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;

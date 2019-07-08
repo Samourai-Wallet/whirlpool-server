@@ -1,17 +1,14 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.*;
-import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
-import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.persistence.repositories.*;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.persistence.to.MixOutputTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.persistence.to.MixTxidTO;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
+import java.sql.Timestamp;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,8 +102,9 @@ public class DbService {
     return blameRepository.save(blameTO);
   }
 
-  public List<BlameTO> findBlamesOrderByCreatedAsc(String identifier) {
-    return blameRepository.findByIdentifierOrderByCreatedAsc(identifier);
+  public List<BlameTO> findBlamesByDateMin(String identifier, Timestamp createdMin) {
+    return blameRepository.findBlamesByIdentifierAndCreatedAfterOrderByCreatedAsc(
+        identifier, createdMin);
   }
 
   public void __reset() {
