@@ -7,6 +7,7 @@ import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.cli.config.CliConfig;
 import com.samourai.whirlpool.cli.services.CliTorClientService;
 import com.samourai.whirlpool.cli.services.JavaHttpClientService;
+import com.samourai.whirlpool.cli.services.JavaStompClientService;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.mix.MixParams;
 import com.samourai.whirlpool.client.mix.handler.Bip84PostmixHandler;
@@ -81,8 +82,8 @@ public class AssertMultiClientManager extends MultiClientManager {
     CliTorClientService cliTorClientService = new CliTorClientService(new CliConfig());
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
-            new JavaHttpClientService(cliTorClientService),
-            new JavaStompClient(cliTorClientService, cliConfig), // TODO
+            new JavaHttpClientService(cliTorClientService, cliConfig),
+            new JavaStompClientService(cliTorClientService, cliConfig),
             new MemoryWalletPersistHandler(),
             server,
             cryptoService.getNetworkParameters(),

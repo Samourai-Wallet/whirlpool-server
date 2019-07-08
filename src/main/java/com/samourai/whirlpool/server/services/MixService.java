@@ -704,27 +704,27 @@ public class MixService {
 
               if (mixAlreadyStarted) {
                 log.warn(
-                        " • ["
-                                + mixId
-                                + "] unregistered "
-                                + (confirmedInput.getRegisteredInput().isLiquidity()
-                                ? "liquidity"
-                                : "mustMix")
-                                + " from registered inputs (MIX ALREADY STARTED), username="
-                                + username);
+                    " • ["
+                        + mixId
+                        + "] unregistered "
+                        + (confirmedInput.getRegisteredInput().isLiquidity()
+                            ? "liquidity"
+                            : "mustMix")
+                        + " from registered inputs (MIX ALREADY STARTED), username="
+                        + username);
 
                 // blame
                 blameService.blame(confirmedInput, BlameReason.DISCONNECT, mixId);
               } else {
                 log.info(
-                        " • ["
-                                + mixId
-                                + "] unregistered "
-                                + (confirmedInput.getRegisteredInput().isLiquidity()
-                                ? "liquidity"
-                                : "mustMix")
-                                + " from registered inputs (mix not started yet), username="
-                                + username);
+                    " • ["
+                        + mixId
+                        + "] unregistered "
+                        + (confirmedInput.getRegisteredInput().isLiquidity()
+                            ? "liquidity"
+                            : "mustMix")
+                        + " from registered inputs (mix not started yet), username="
+                        + username);
               }
             });
 

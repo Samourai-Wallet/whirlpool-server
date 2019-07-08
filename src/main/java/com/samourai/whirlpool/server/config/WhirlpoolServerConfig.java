@@ -201,6 +201,7 @@ public class WhirlpoolServerConfig {
   public static class BanConfig {
     private int blames;
     private long period;
+    private long expiration;
 
     public int getBlames() {
       return blames;
@@ -216,6 +217,14 @@ public class WhirlpoolServerConfig {
 
     public void setPeriod(long period) {
       this.period = period;
+    }
+
+    public long getExpiration() {
+      return expiration;
+    }
+
+    public void setExpiration(long expiration) {
+      this.expiration = expiration;
     }
   }
 
@@ -512,7 +521,14 @@ public class WhirlpoolServerConfig {
             + String.valueOf(revealOutput.timeout);
     configInfo.put("timeouts", timeoutInfo);
     configInfo.put("export.mixs", export.mixs.directory + " -> " + export.mixs.filename);
-    configInfo.put("ban", "blames=" + String.valueOf(ban.blames) + ", period=" + ban.period);
+    configInfo.put(
+        "ban",
+        "blames="
+            + String.valueOf(ban.blames)
+            + ", period="
+            + ban.period
+            + ", expiration="
+            + ban.expiration);
     for (PoolConfig poolConfig : pools) {
       String poolInfo = "denomination=" + Utils.satoshisToBtc(poolConfig.denomination);
       poolInfo +=

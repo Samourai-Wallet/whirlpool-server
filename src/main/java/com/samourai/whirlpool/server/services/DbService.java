@@ -29,24 +29,18 @@ public class DbService {
   private MixTxidRepository mixTxidRepository;
   private MixStats mixStats; // cached value
   private BlameRepository blameRepository;
-  private FeeValidationService feeValidationService;
-  private BlockchainDataService blockchainDataService;
 
   public DbService(
       MixRepository mixRepository,
       Tx0WhitelistRepository tx0WhitelistRepository,
       MixOutputRepository mixOutputRepository,
       MixTxidRepository mixTxidRepository,
-      BlameRepository blameRepository,
-      FeeValidationService feeValidationService,
-      BlockchainDataService blockchainDataService) {
+      BlameRepository blameRepository) {
     this.mixRepository = mixRepository;
     this.tx0WhitelistRepository = tx0WhitelistRepository;
     this.mixOutputRepository = mixOutputRepository;
     this.mixTxidRepository = mixTxidRepository;
     this.blameRepository = blameRepository;
-    this.feeValidationService = feeValidationService;
-    this.blockchainDataService = blockchainDataService;
   }
 
   // mix
@@ -105,42 +99,14 @@ public class DbService {
 
   // blame
 
-  public void saveBlame(
-      ConfirmedInput confirmedInput, BlameReason reason, String mixId, String ip) {
-    TxOutPoint txOutPoint = confirmedInput.getRegisteredInput().getOutPoint();
-    String identifier = computeBlameIdentitifer(txOutPoint.getHash(), txOutPoint.getIndex());
+  public BlameTO saveBlame(String identifier, BlameReason reason, String mixId, String ip) {
     BlameTO blameTO = new BlameTO(identifier, reason, mixId, ip);
     log.warn("+blame: " + blameTO);
-    blameRepository.save(blameTO);
+    return blameRepository.save(blameTO);
   }
 
-  public List<BlameTO> findBlames(String utxoHash, long utxoIndex) {
-    String identifier = computeBlameIdentitifer(utxoHash, utxoIndex);
-    return blameRepository.findByIdentifier(identifier);
-  }
-
-  private String computeBlameIdentitifer(String myUtxoHash, long utxoIndex) {
-    // ban UTXO by default
-    final String utxoHash = myUtxoHash.trim().toLowerCase();
-    String blameIdentifier = Utils.computeInputId(utxoHash, utxoIndex);
-
-    // is it a tx0?
-    try {
-      RpcTransaction tx =
-          blockchainDataService
-              .getRpcTransaction(utxoHash)
-              .orElseThrow(() -> new Exception("utxoHash not found: " + utxoHash));
-
-      WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx.getTx());
-      if (feeData != null) {
-        // this is a tx0 => ban tx0
-        blameIdentifier = utxoHash;
-      }
-    } catch (Exception e) {
-      // system error
-      log.error("", e);
-    }
-    return blameIdentifier;
+  public List<BlameTO> findBlamesOrderByCreatedAsc(String identifier) {
+    return blameRepository.findByIdentifierOrderByCreatedAsc(identifier);
   }
 
   public void __reset() {

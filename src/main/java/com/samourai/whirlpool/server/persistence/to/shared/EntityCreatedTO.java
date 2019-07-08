@@ -15,4 +15,9 @@ public abstract class EntityCreatedTO extends EntityTO {
   public Timestamp getCreated() {
     return created;
   }
+
+  // for tests only
+  public void __setCreated(Timestamp created) {
+    this.created = created;
+  }
 }

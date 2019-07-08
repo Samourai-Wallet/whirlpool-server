@@ -13,15 +13,7 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.services.BlockchainDataService;
-import com.samourai.whirlpool.server.services.CacheService;
-import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.services.DbService;
-import com.samourai.whirlpool.server.services.FeeValidationService;
-import com.samourai.whirlpool.server.services.InputValidationService;
-import com.samourai.whirlpool.server.services.MixLimitsService;
-import com.samourai.whirlpool.server.services.MixService;
-import com.samourai.whirlpool.server.services.PoolService;
+import com.samourai.whirlpool.server.services.*;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import com.samourai.whirlpool.server.utils.AssertMultiClientManager;
 import com.samourai.whirlpool.server.utils.TestUtils;
@@ -88,6 +80,8 @@ public abstract class AbstractIntegrationTest {
   @Autowired protected CryptoTestUtil cryptoTestUtil;
 
   @Autowired protected HD_WalletFactoryJava hdWalletFactory;
+
+  @Autowired protected BlameService blameService;
 
   protected MessageSignUtilGeneric messageSignUtil = MessageSignUtilGeneric.getInstance();
 

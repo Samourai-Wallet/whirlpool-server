@@ -6,5 +6,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface BlameRepository extends CrudRepository<BlameTO, Long> {
 
-  List<BlameTO> findByIdentifier(String identifier);
+  List<BlameTO> findByIdentifierOrderByCreatedAsc(String identifier);
 }
