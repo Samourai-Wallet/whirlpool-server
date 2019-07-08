@@ -363,8 +363,8 @@ public class MixService {
   }
 
   protected synchronized boolean isRevealOutputReady(Mix mix) {
-    return (mix.getNbRevealedOutputs()
-        == mix.getNbInputs()); // TODO -1 to not wait for the one who didn't sign?
+    // don't wait for the last one who didn't sign
+    return (mix.getNbRevealedOutputs() == mix.getNbInputs() - 1);
   }
 
   public synchronized void registerSignature(String mixId, String username, String[] witness60)
@@ -696,7 +696,10 @@ public class MixService {
                       confirmedInput.getRegisteredInput().getUsername().equals(username))
               .collect(Collectors.toList());
       if (!confirmedInputs.isEmpty()) {
-        boolean mixAlreadyStarted = !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus());
+        boolean mixAlreadyStarted =
+            !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())
+                && !MixStatus.FAIL.equals(mix.getMixStatus())
+                && !MixStatus.SUCCESS.equals(mix.getMixStatus());
 
         confirmedInputs.forEach(
             confirmedInput -> {
