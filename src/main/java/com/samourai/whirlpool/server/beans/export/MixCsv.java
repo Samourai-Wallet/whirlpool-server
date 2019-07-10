@@ -98,7 +98,8 @@ public class MixCsv {
   public MixCsv(MixTO to) {
     this.id = to.getId();
     this.created = to.getCreated();
-    this.updated = to.getUpdated();
+    // us current date for 'updated', as the TO was just saved and may not be up-to-date
+    this.updated = new Timestamp(System.currentTimeMillis());
 
     this.poolId = to.getPoolId();
     this.mixId = to.getMixId();
