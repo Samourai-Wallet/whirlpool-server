@@ -23,10 +23,7 @@ import org.springframework.context.ApplicationContext;
 public class Application implements ApplicationRunner {
   private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-  private static final String SETUP_SQL_FILENAME = "classpath:setup.sql";
-
   private static final String ARG_DEBUG = "debug";
-  private static final String ARG_SETUP = "setup";
 
   private ApplicationArguments args;
 
@@ -45,11 +42,6 @@ public class Application implements ApplicationRunner {
   @Override
   public void run(ApplicationArguments args) {
     this.args = args;
-
-    if (args.containsOption(ARG_SETUP)) {
-      setup();
-      exit();
-    }
 
     if (args.containsOption(ARG_DEBUG)) {
       // enable debug logs
@@ -83,18 +75,5 @@ public class Application implements ApplicationRunner {
     final int exitCode = 1;
     SpringApplication.exit(applicationContext, () -> exitCode);
     System.exit(exitCode);
-  }
-
-  private void setup() {
-    try {
-      log.info("ENTERING SETUP...");
-
-      // setup database
-      dbUtils.runSqlFile(SETUP_SQL_FILENAME);
-
-      log.info("SETUP SUCCESS.");
-    } catch (Exception e) {
-      log.error("SETUP ERROR", e);
-    }
   }
 }
