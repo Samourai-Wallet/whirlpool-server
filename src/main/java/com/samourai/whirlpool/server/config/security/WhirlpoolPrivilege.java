@@ -4,5 +4,6 @@ public enum WhirlpoolPrivilege {
   ALL,
   HISTORY,
   STATUS,
-  CONFIG
+  CONFIG,
+  BAN
 }

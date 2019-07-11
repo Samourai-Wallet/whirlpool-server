@@ -2,10 +2,7 @@ package com.samourai.whirlpool.server.config.security;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
-import com.samourai.whirlpool.server.controllers.web.ConfigWebController;
-import com.samourai.whirlpool.server.controllers.web.HistoryWebController;
-import com.samourai.whirlpool.server.controllers.web.LoginWebController;
-import com.samourai.whirlpool.server.controllers.web.StatusWebController;
+import com.samourai.whirlpool.server.controllers.web.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +25,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         WhirlpoolEndpoint.REST_TX0_DATA
       };
   private static final String[] STATICS =
-      new String[] {"/css/**.css", "/webjars/bootstrap/**", "/webjars/jquery/**"};
+      new String[] {"/css/**.css", "/img/**", "/webjars/bootstrap/**", "/webjars/jquery/**"};
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -63,6 +60,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .hasAnyAuthority(WhirlpoolPrivilege.HISTORY.toString(), WhirlpoolPrivilege.ALL.toString())
         .antMatchers(ConfigWebController.ENDPOINT)
         .hasAnyAuthority(WhirlpoolPrivilege.CONFIG.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(BanWebController.ENDPOINT)
+        .hasAnyAuthority(WhirlpoolPrivilege.BAN.toString(), WhirlpoolPrivilege.ALL.toString())
 
         // reject others
         .anyRequest()

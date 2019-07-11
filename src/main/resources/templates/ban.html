@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{decorators/dashboard}"
+      th:with="currentPage = 'ban'">
+<head>
+    <title>Banned inputs</title>
+    <link rel="stylesheet" href="/css/history.css" />
+</head>
+<body>
+    <div layout:fragment="main">
+        <h1 class="h2">Banned inputs</h1>
+
+        <strong th:text="${page.getTotalElements()}"/> inputs banned •
+        <span th:text="${#dates.format(now, 'dd-MMM-yyyy HH:mm:ss')}"/>
+        <div class="table-responsive">
+        <table class="table table-sm history">
+            <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Input / TX0</th>
+                <th scope="col">Expiration</th>
+                <th scope="col">Response</th>
+                <th scope="col">Private notes</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr th:each="ban : ${page.content}">
+                    <td class="created"><span th:text="${#dates.format(ban.created, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
+                    <td class="identifier"><a th:href="${urlExplorer + ban.identifier}" target="_blank"><span th:text="${ban.identifier}"/></a></td>
+                    <td class="expiration"><span th:text="${ban.expiration!=null ? #dates.format(ban.expiration, 'dd-MMM-yyyy HH:mm:ss') : 'permanent'}"/></td>
+                    <td class="response"><span th:text="${ban.computeBanMessage()}"/></td>
+                    <td class="notes"><span th:text="${ban.notes!=null ? ban.notes : '-'}"/> </td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <nav>
+            <ul class="pagination">
+                <li class="page-item" th:if="${page.hasPrevious()}">
+                    <a class="page-link" th:href="@{${ENDPOINT}(page=${page.number-1},size=${page.size})}">
+                        <span>&laquo;</span>
+                    </a>
+                </li>
+                <th:block th:each="i: ${#numbers.sequence(0, page.totalPages - 1)}">
+                    <li th:class="${'page-item' + (page.number == i?' active':'')}">
+                        <a class="page-link" th:href="@{${ENDPOINT}(page=${i},size=${page.size})}">[[${i}+1]]</a>
+                    </li>
+                </th:block>
+                <li class="page-item" th:if="${page.hasNext()}">
+                    <a class="page-link" th:href="@{${ENDPOINT}(page=${page.number+1},size=${page.size})}">
+                        <span>&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</body>
+
+</html>

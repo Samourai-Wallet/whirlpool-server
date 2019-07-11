@@ -10,17 +10,17 @@ public class BanTO extends EntityCreatedTO {
 
   private Timestamp expiration;
 
-  private String message;
+  private String response;
 
   private String notes;
 
   public BanTO() {}
 
-  public BanTO(String identifier, Timestamp expiration, String message, String notes) {
+  public BanTO(String identifier, Timestamp expiration, String response, String notes) {
     super();
     this.identifier = identifier;
     this.expiration = expiration;
-    this.message = message;
+    this.response = response;
     this.notes = notes;
   }
 
@@ -32,12 +32,20 @@ public class BanTO extends EntityCreatedTO {
     return expiration;
   }
 
-  public String getMessage() {
-    return message;
-  }
+  /*public String getResponse() {
+    return response;
+  }*/
 
   public String getNotes() {
     return notes;
+  }
+
+  public String computeBanMessage() {
+    if (response == null) {
+      response = "Contact us.";
+    }
+    String banMessage = "Banned from service. " + response;
+    return banMessage;
   }
 
   @Override
@@ -46,8 +54,8 @@ public class BanTO extends EntityCreatedTO {
         + identifier
         + ", expiration="
         + (expiration != null ? expiration : "null")
-        + ", message="
-        + (message != null ? message : "null")
+        + ", response="
+        + (response != null ? response : "null")
         + ", notes="
         + (notes != null ? notes : "null")
         + ", created="

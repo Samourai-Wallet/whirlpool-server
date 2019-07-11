@@ -1,10 +1,9 @@
 package com.samourai.whirlpool.server.controllers.web;
 
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.persistence.to.MixLogTO;
-import com.samourai.whirlpool.server.persistence.to.MixTO;
-import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedUpdatedTO;
-import com.samourai.whirlpool.server.services.DbService;
+import com.samourai.whirlpool.server.persistence.to.BanTO;
+import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedTO;
+import com.samourai.whirlpool.server.services.BanService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
@@ -21,17 +20,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
-public class HistoryWebController {
+public class BanWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  public static final String ENDPOINT = "/status/history";
+  public static final String ENDPOINT = "/status/ban";
   private static final int PAGE_SIZE = 100;
 
-  private DbService dbService;
+  private BanService banService;
   private WhirlpoolServerConfig whirlpoolServerConfig;
 
   @Autowired
-  public HistoryWebController(DbService dbService, WhirlpoolServerConfig whirlpoolServerConfig) {
-    this.dbService = dbService;
+  public BanWebController(BanService banService, WhirlpoolServerConfig whirlpoolServerConfig) {
+    this.banService = banService;
     this.whirlpoolServerConfig = whirlpoolServerConfig;
   }
 
@@ -40,34 +39,26 @@ public class HistoryWebController {
       Model model,
       @PageableDefault(
               size = PAGE_SIZE,
-              sort = EntityCreatedUpdatedTO.UPDATED,
+              sort = EntityCreatedTO.CREATED,
               direction = Sort.Direction.DESC)
           Pageable pageable)
       throws Exception {
-    Page<MixTO> page = dbService.findMixs(pageable);
+    Page<BanTO> page = banService.findActiveBans(pageable);
     model.addAttribute("page", page);
     model.addAttribute("urlExplorer", Utils.computeUrlExplorer(whirlpoolServerConfig));
-    model.addAttribute("mixStats", dbService.getMixStats());
     model.addAttribute("ENDPOINT", ENDPOINT);
     model.addAttribute("now", new Timestamp(System.currentTimeMillis()));
 
     // getters used in template
     if (false) {
-      for (MixTO mixTO : page) {
-        mixTO.getMixId();
-        mixTO.getAnonymitySet();
-        mixTO.getNbMustMix();
-        mixTO.getNbLiquidities();
-        mixTO.getFeesAmount();
-        mixTO.getFeesPrice();
-        mixTO.getMixStatus();
-        mixTO.getFailReason();
-        mixTO.getFailInfo();
-        MixLogTO mixLogTO = mixTO.getMixLog();
-        mixLogTO.getTxid();
-        mixLogTO.getRawTx();
+      for (BanTO banTO : page) {
+        banTO.computeBanMessage();
+        banTO.getCreated();
+        banTO.getExpiration();
+        banTO.getIdentifier();
+        banTO.getNotes();
       }
     }
-    return "history";
+    return "ban";
   }
 }

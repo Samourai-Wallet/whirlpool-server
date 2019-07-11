@@ -7,6 +7,7 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import java.lang.invoke.MethodHandles;
@@ -35,6 +36,9 @@ public class Utils {
   private static int BTC_TO_SATOSHIS = 100000000;
   public static final String PROFILE_TEST = "test";
   public static final String PROFILE_DEFAULT = "default";
+
+  private static final String URL_EXPLORER_TESTNET = "https://blockstream.info/testnet/tx/";
+  private static final String URL_EXPLORER_MAINNET = "https://blockstream.info/tx/";
 
   public static String getRandomString(int length) {
     RandomStringGenerator randomStringGenerator =
@@ -200,5 +204,9 @@ public class Utils {
     // comes from previous mix => ban UTXO
     String utxo = Utils.computeInputId(utxoHash, utxoIndex);
     return utxo;
+  }
+
+  public static String computeUrlExplorer(WhirlpoolServerConfig serverConfig) {
+    return serverConfig.isTestnet() ? URL_EXPLORER_TESTNET : URL_EXPLORER_MAINNET;
   }
 }

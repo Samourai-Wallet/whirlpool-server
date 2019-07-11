@@ -110,8 +110,8 @@ public class DbService {
 
   // ban
 
-  public BanTO saveBan(String identifier, Timestamp expiration, String message, String notes) {
-    BanTO banTO = new BanTO(identifier, expiration, message, notes);
+  public BanTO saveBan(String identifier, Timestamp expiration, String response, String notes) {
+    BanTO banTO = new BanTO(identifier, expiration, response, notes);
     log.warn("+ban: " + banTO);
     return banRepository.save(banTO);
   }
@@ -119,6 +119,10 @@ public class DbService {
   public List<BanTO> findByIdentifierAndExpirationAfterOrNull(
       String identifier, Timestamp expirationMin) {
     return banRepository.findByIdentifierAndExpirationAfterOrNull(identifier, expirationMin);
+  }
+
+  public Page<BanTO> findByExpirationAfterOrNull(Timestamp expirationMin, Pageable pageable) {
+    return banRepository.findByExpirationAfterOrNull(expirationMin, pageable);
   }
 
   public void __reset() {

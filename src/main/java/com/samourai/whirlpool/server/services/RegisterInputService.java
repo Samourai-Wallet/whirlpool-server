@@ -61,7 +61,7 @@ public class RegisterInputService {
     Optional<BanTO> banTO = banService.findActiveBan(utxoHash, utxoIndex);
     if (banTO.isPresent()) {
       log.warn("Rejecting banned UTXO: [" + banTO.get() + "], ip=" + ip);
-      String banMessage = banService.computeBanMessage(banTO.get());
+      String banMessage = banTO.get().computeBanMessage();
       throw new IllegalInputException(banMessage);
     }
 

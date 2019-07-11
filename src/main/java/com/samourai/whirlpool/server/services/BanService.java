@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,22 +28,23 @@ public class BanService {
     this.serverConfig = serverConfig;
   }
 
-  public void banTemporary(String identifier, String message, String notes) {
+  public void banTemporary(String identifier, String response, String notes) {
     long expirationDelay = serverConfig.getBan().getExpiration() * 1000;
-    banTemporary(identifier, message, notes, expirationDelay);
+    banTemporary(identifier, response, notes, expirationDelay);
   }
 
-  private void banTemporary(String identifier, String message, String notes, long expirationDelay) {
+  private void banTemporary(
+      String identifier, String response, String notes, long expirationDelay) {
     Timestamp expiration = new Timestamp(System.currentTimeMillis() + expirationDelay);
-    ban(identifier, message, notes, expiration);
+    ban(identifier, response, notes, expiration);
   }
 
-  public void banPermanent(String identifier, String message, String notes) {
-    ban(identifier, message, notes, null);
+  public void banPermanent(String identifier, String response, String notes) {
+    ban(identifier, response, notes, null);
   }
 
-  private void ban(String identifier, String message, String notes, Timestamp expiration) {
-    dbService.saveBan(identifier, expiration, message, notes);
+  private void ban(String identifier, String response, String notes, Timestamp expiration) {
+    dbService.saveBan(identifier, expiration, response, notes);
   }
 
   public Optional<BanTO> findActiveBan(String utxoHash, long utxoIndex) {
@@ -67,6 +70,12 @@ public class BanService {
   protected Optional<BanTO> findActiveBan(String identifier, Timestamp now) {
     List<BanTO> activeBans = dbService.findByIdentifierAndExpirationAfterOrNull(identifier, now);
     return (!activeBans.isEmpty() ? Optional.of(activeBans.get(0)) : Optional.empty());
+  }
+
+  public Page<BanTO> findActiveBans(Pageable pageable) {
+    Timestamp now = new Timestamp(System.currentTimeMillis());
+    Page<BanTO> bans = dbService.findByExpirationAfterOrNull(now, pageable);
+    return bans;
   }
 
   public void onBlame(String identifier, List<BlameTO> blames) {
@@ -113,14 +122,5 @@ public class BanService {
         identifier,
         null,
         countActiveBlames + " blames in " + blamePeriodMinutes + " mins: " + blameReasons);
-  }
-
-  public String computeBanMessage(BanTO banTO) {
-    String reason = banTO.getMessage();
-    if (reason == null) {
-      reason = "Contact us.";
-    }
-    String banMessage = "Banned from service. " + reason;
-    return banMessage;
   }
 }
