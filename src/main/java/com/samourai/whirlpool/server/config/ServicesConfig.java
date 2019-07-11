@@ -8,7 +8,6 @@ import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
-import com.samourai.whirlpool.server.services.CryptoService;
 import java.lang.invoke.MethodHandles;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.slf4j.Logger;
@@ -34,11 +33,6 @@ public class ServicesConfig {
   LayoutDialect layoutDialect() {
     // enable layout:decorate for thymeleaf
     return new LayoutDialect();
-  }
-
-  @Bean
-  CryptoService cryptoService() {
-    return new CryptoService(whirlpoolServerConfig.getNetworkParameters());
   }
 
   @Bean

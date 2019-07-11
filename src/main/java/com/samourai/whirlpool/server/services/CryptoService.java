@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
 import java.security.KeyFactory;
@@ -27,8 +28,8 @@ public class CryptoService {
   private static final SecureRandom secureRandom = new SecureRandom();
   private NetworkParameters networkParameters;
 
-  public CryptoService(NetworkParameters networkParameters) {
-    this.networkParameters = networkParameters;
+  public CryptoService(WhirlpoolServerConfig serverConfig) {
+    this.networkParameters = serverConfig.getNetworkParameters();
 
     // initialize bitcoinj context
     new Context(networkParameters);
