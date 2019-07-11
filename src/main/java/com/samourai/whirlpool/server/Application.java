@@ -3,13 +3,11 @@ package com.samourai.whirlpool.server;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.DbUtils;
-import com.samourai.whirlpool.server.utils.LogbackUtils;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.util.Arrays;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -23,7 +21,7 @@ import org.springframework.context.ApplicationContext;
 public class Application implements ApplicationRunner {
   private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-  private static final String ARG_DEBUG = "debug";
+  private static final String ARG_DEBUG = "debugserver";
 
   private ApplicationArguments args;
 
@@ -46,15 +44,6 @@ public class Application implements ApplicationRunner {
     if (args.containsOption(ARG_DEBUG)) {
       // enable debug logs
       Utils.setLoggerDebug("com.samourai.whirlpool.server");
-      // Utils.setLoggerDebug("org.springframework.security");
-
-      // skip noisy logs in debug mode
-      LogbackUtils.setLogLevel(
-          "org.springframework.boot.web.servlet.filter.OrderedRequestContextFilter",
-          Level.INFO.toString());
-      LogbackUtils.setLogLevel(
-          "org.springframework.web.socket.config.WebSocketMessageBrokerStats",
-          Level.ERROR.toString());
     }
 
     if (!rpcClientService.testConnectivity()) {
