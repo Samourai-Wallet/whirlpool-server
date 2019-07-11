@@ -48,6 +48,7 @@ public class BanWebController {
     model.addAttribute("urlExplorer", Utils.computeUrlExplorer(whirlpoolServerConfig));
     model.addAttribute("ENDPOINT", ENDPOINT);
     model.addAttribute("now", new Timestamp(System.currentTimeMillis()));
+    model.addAttribute("banConfig", whirlpoolServerConfig.getBan());
 
     // getters used in template
     if (false) {
@@ -57,6 +58,9 @@ public class BanWebController {
         banTO.getExpiration();
         banTO.getIdentifier();
         banTO.getNotes();
+        whirlpoolServerConfig.getBan().getBlames();
+        whirlpoolServerConfig.getBan().getExpiration();
+        whirlpoolServerConfig.getBan().getPeriod();
       }
     }
     return "ban";
