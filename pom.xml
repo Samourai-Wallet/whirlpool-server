@@ -16,6 +16,12 @@
 			<artifactId>whirlpool-protocol</artifactId>
 			<version>develop-SNAPSHOT</version>
 			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.github.Samourai-Wallet</groupId>
+					<artifactId>extlibj</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>

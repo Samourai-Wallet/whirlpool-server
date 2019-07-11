@@ -5,6 +5,7 @@ import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.rpc.JSONRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
@@ -179,5 +180,25 @@ public class Utils {
       return str;
     }
     return str.substring(0, offset) + "***" + str.substring(str.length() - offset, str.length());
+  }
+
+  public static String computeBlameIdentitifer(ConfirmedInput confirmedInput) {
+    TxOutPoint txOutPoint = confirmedInput.getRegisteredInput().getOutPoint();
+
+    String utxoHash = txOutPoint.getHash().trim().toLowerCase();
+    long utxoIndex = txOutPoint.getIndex();
+    boolean liquidity = confirmedInput.getRegisteredInput().isLiquidity();
+    return computeBlameIdentitifer(utxoHash, utxoIndex, liquidity);
+  }
+
+  public static String computeBlameIdentitifer(String utxoHash, long utxoIndex, boolean liquidity) {
+    if (!liquidity) {
+      // comes from TX0 => ban whole TX0
+      return utxoHash;
+    }
+
+    // comes from previous mix => ban UTXO
+    String utxo = Utils.computeInputId(utxoHash, utxoIndex);
+    return utxo;
   }
 }

@@ -5,7 +5,9 @@ import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
+import com.samourai.whirlpool.server.persistence.to.BanTO;
 import java.lang.invoke.MethodHandles;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ public class RegisterInputService {
   private CryptoService cryptoService;
   private BlockchainDataService blockchainDataService;
   private InputValidationService inputValidationService;
-  private BlameService blameService;
+  private BanService banService;
   private DbService dbService;
 
   @Autowired
@@ -28,13 +30,13 @@ public class RegisterInputService {
       CryptoService cryptoService,
       BlockchainDataService blockchainDataService,
       InputValidationService inputValidationService,
-      BlameService blameService,
+      BanService banService,
       DbService dbService) {
     this.poolService = poolService;
     this.cryptoService = cryptoService;
     this.blockchainDataService = blockchainDataService;
     this.inputValidationService = inputValidationService;
-    this.blameService = blameService;
+    this.banService = banService;
     this.dbService = dbService;
   }
 
@@ -56,9 +58,11 @@ public class RegisterInputService {
     }
 
     // verify UTXO not banned
-    if (blameService.isBannedUTXO(utxoHash, utxoIndex)) {
-      log.warn("Rejecting banned UTXO: " + utxoHash + ":" + utxoIndex + ", ip=" + ip);
-      throw new IllegalInputException("Banned from service. Contact us.");
+    Optional<BanTO> banTO = banService.findActiveBan(utxoHash, utxoIndex);
+    if (banTO.isPresent()) {
+      log.warn("Rejecting banned UTXO: [" + banTO.get() + "], ip=" + ip);
+      String banMessage = banService.computeBanMessage(banTO.get());
+      throw new IllegalInputException(banMessage);
     }
 
     try {

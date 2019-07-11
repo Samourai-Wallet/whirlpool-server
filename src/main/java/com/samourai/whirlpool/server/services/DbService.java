@@ -1,12 +1,11 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
-import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.BlameReason;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.MixStats;
 import com.samourai.whirlpool.server.persistence.repositories.*;
-import com.samourai.whirlpool.server.persistence.to.BlameTO;
-import com.samourai.whirlpool.server.persistence.to.MixOutputTO;
-import com.samourai.whirlpool.server.persistence.to.MixTO;
-import com.samourai.whirlpool.server.persistence.to.MixTxidTO;
+import com.samourai.whirlpool.server.persistence.to.*;
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import java.util.List;
@@ -26,18 +25,21 @@ public class DbService {
   private MixTxidRepository mixTxidRepository;
   private MixStats mixStats; // cached value
   private BlameRepository blameRepository;
+  private BanRepository banRepository;
 
   public DbService(
       MixRepository mixRepository,
       Tx0WhitelistRepository tx0WhitelistRepository,
       MixOutputRepository mixOutputRepository,
       MixTxidRepository mixTxidRepository,
-      BlameRepository blameRepository) {
+      BlameRepository blameRepository,
+      BanRepository banRepository) {
     this.mixRepository = mixRepository;
     this.tx0WhitelistRepository = tx0WhitelistRepository;
     this.mixOutputRepository = mixOutputRepository;
     this.mixTxidRepository = mixTxidRepository;
     this.blameRepository = blameRepository;
+    this.banRepository = banRepository;
   }
 
   // mix
@@ -102,9 +104,21 @@ public class DbService {
     return blameRepository.save(blameTO);
   }
 
-  public List<BlameTO> findBlamesByDateMin(String identifier, Timestamp createdMin) {
-    return blameRepository.findBlamesByIdentifierAndCreatedAfterOrderByCreatedAsc(
-        identifier, createdMin);
+  public List<BlameTO> findBlames(String identifier) {
+    return blameRepository.findBlamesByIdentifierOrderByCreatedAsc(identifier);
+  }
+
+  // ban
+
+  public BanTO saveBan(String identifier, Timestamp expiration, String message, String notes) {
+    BanTO banTO = new BanTO(identifier, expiration, message, notes);
+    log.warn("+ban: " + banTO);
+    return banRepository.save(banTO);
+  }
+
+  public List<BanTO> findByIdentifierAndExpirationAfterOrNull(
+      String identifier, Timestamp expirationMin) {
+    return banRepository.findByIdentifierAndExpirationAfterOrNull(identifier, expirationMin);
   }
 
   public void __reset() {
@@ -114,5 +128,6 @@ public class DbService {
     mixOutputRepository.deleteAll();
     mixTxidRepository.deleteAll();
     blameRepository.deleteAll();
+    banRepository.deleteAll();
   }
 }

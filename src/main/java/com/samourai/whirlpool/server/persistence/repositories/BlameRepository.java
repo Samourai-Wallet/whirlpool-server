@@ -1,12 +1,10 @@
 package com.samourai.whirlpool.server.persistence.repositories;
 
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
-import java.sql.Timestamp;
 import java.util.List;
 import org.springframework.data.repository.CrudRepository;
 
 public interface BlameRepository extends CrudRepository<BlameTO, Long> {
 
-  List<BlameTO> findBlamesByIdentifierAndCreatedAfterOrderByCreatedAsc(
-      String identifier, Timestamp createdMin);
+  List<BlameTO> findBlamesByIdentifierOrderByCreatedAsc(String identifier);
 }

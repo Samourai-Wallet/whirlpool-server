@@ -6,8 +6,11 @@ import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.CryptoTestUtil;
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -138,5 +141,12 @@ public class TestUtils {
     writer.close();
     String pem = new String(os.toByteArray());
     return pem;
+  }
+
+  public ConfirmedInput computeConfirmedInput(String utxoHash, long utxoIndex, boolean liquidity) {
+    TxOutPoint outPoint = new TxOutPoint(utxoHash, utxoIndex, 1234, 99, null, "fakeReceiveAddress");
+    RegisteredInput registeredInput = new RegisteredInput("foo", liquidity, outPoint, "127.0.0.1");
+    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, null);
+    return confirmedInput;
   }
 }

@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.utils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
+import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import java.lang.invoke.MethodHandles;
 import org.junit.Assert;
@@ -83,5 +84,29 @@ public class UtilsTest extends AbstractIntegrationTest {
     Assert.assertArrayEquals(
         new byte[] {1, 10, 8, 15},
         Utils.bytesFromBinaryString("00000001 00001010 00001000 00001111"));
+  }
+
+  @Test
+  public void computeBlameIdentitifer_mustmix() {
+    ConfirmedInput confirmedInput =
+        testUtils.computeConfirmedInput(
+            "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187", 2, false);
+
+    // mustmix => should ban TX0
+    String expected = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
+    String actual = Utils.computeBlameIdentitifer(confirmedInput);
+    Assert.assertEquals(actual, actual);
+  }
+
+  @Test
+  public void computeBlameIdentitifer_liquidity() {
+    ConfirmedInput confirmedInput =
+        testUtils.computeConfirmedInput(
+            "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187", 2, true);
+
+    // liquidity => should ban UTXO
+    String expected = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187:2";
+    String actual = Utils.computeBlameIdentitifer(confirmedInput);
+    Assert.assertEquals(actual, actual);
   }
 }
