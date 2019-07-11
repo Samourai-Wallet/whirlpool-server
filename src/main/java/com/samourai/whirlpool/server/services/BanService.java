@@ -117,10 +117,14 @@ public class BanService {
     long blamePeriodMinutes = blamePeriodMs / 1000 / 60;
     String blameReasons =
         String.join(
-            ", " + activeBlames.stream().map(blameTO -> blameTO.getReason().name()).toArray());
+            ", ",
+            activeBlames
+                .stream()
+                .map(blameTO -> blameTO.getReason().name())
+                .collect(Collectors.toList()));
     banTemporary(
         identifier,
         null,
-        countActiveBlames + " blames in " + blamePeriodMinutes + " mins: " + blameReasons);
+        countActiveBlames + " blames in " + blamePeriodMinutes + "min: " + blameReasons);
   }
 }
