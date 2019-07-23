@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.services.rpc;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
-import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -11,13 +10,10 @@ import java.lang.invoke.MethodHandles;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutput;
-import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,13 +91,8 @@ public class MockRpcClientServiceImpl implements RpcClientService {
 
   // ------------
 
-  public TxOutPoint createAndMockTxOutPoint(
-      SegwitAddress address,
-      long amount,
-      Integer nbConfirmations,
-      String utxoHash,
-      Integer utxoIndex)
-      throws Exception {
+  public RpcTransaction createAndMockTx(
+      SegwitAddress address, long amount, Integer nbConfirmations, int nbOuts) throws Exception {
     // generate transaction with bitcoinj
     Transaction transaction = new Transaction(params);
 
@@ -109,20 +100,15 @@ public class MockRpcClientServiceImpl implements RpcClientService {
       nbConfirmations = MOCK_TX_CONFIRMATIONS;
     }
 
-    if (utxoIndex != null) {
-      for (int i = 0; i < utxoIndex; i++) {
-        transaction.addOutput(Coin.valueOf(amount), testUtils.generateSegwitAddress().getAddress());
-      }
-    }
+    // add outputs
     String addressBech32 = address.getBech32AsString();
-    TransactionOutput transactionOutput =
-        bech32Util.getTransactionOutput(addressBech32, amount, params);
-    transaction.addOutput(transactionOutput);
-    if (utxoIndex == null) {
-      utxoIndex = transactionOutput.getIndex();
-    } else {
-      Assert.assertEquals((long) utxoIndex, transactionOutput.getIndex());
+    for (int i = 0; i < nbOuts; i++) {
+      TransactionOutput transactionOutput =
+          bech32Util.getTransactionOutput(addressBech32, amount, params);
+      transaction.addOutput(transactionOutput);
+      Assert.assertEquals((long) i, transactionOutput.getIndex());
     }
+    int utxoIndex = nbOuts - 1;
 
     // add coinbase input
     int txCounter = 1;
@@ -132,9 +118,6 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     transaction.addInput(transactionInput);
 
     // mock tx
-    if (utxoHash != null) {
-      transaction.setHash(Sha256Hash.wrap(Hex.decode(utxoHash))); // TODO
-    }
     String txid = transaction.getHashAsString();
     mock(txid, org.bitcoinj.core.Utils.HEX.encode(transaction.bitcoinSerialize()), nbConfirmations);
     log.info("mocked txid=" + txid + ":\n" + transaction.toString());
@@ -147,23 +130,6 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     Assert.assertEquals(
         addressBech32, bech32Util.getAddressFromScript(txOutput.getScriptPubKey(), params));
 
-    TxOutPoint txOutPoint =
-        new TxOutPoint(
-            txid,
-            utxoIndex,
-            amount,
-            rpcTransaction.getConfirmations(),
-            transactionOutput.getScriptBytes(),
-            addressBech32);
-    return txOutPoint;
-  }
-
-  public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount) throws Exception {
-    return createAndMockTxOutPoint(address, amount, null, null, null);
-  }
-
-  public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, int nbConfirmations)
-      throws Exception {
-    return createAndMockTxOutPoint(address, amount, nbConfirmations, null, null);
+    return rpcTransaction;
   }
 }

@@ -205,6 +205,21 @@ public class Mix {
         .findFirst();
   }
 
+  public Optional<ConfirmedInput> getInputByAddress(String address) {
+    return inputsById
+        .values()
+        .stream()
+        .filter(
+            confirmedInput ->
+                confirmedInput
+                    .getRegisteredInput()
+                    .getOutPoint()
+                    .getToAddress()
+                    .toLowerCase()
+                    .equals(address.toLowerCase()))
+        .findFirst();
+  }
+
   public int getNbInputs() {
     return inputsById.size();
   }

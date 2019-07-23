@@ -84,15 +84,14 @@ public class WhirlpoolSimpleIntegrationTest extends AbstractIntegrationTest {
 
     // mock TransactionOutPoint
     long inputBalance = mix.getPool().computePremixBalanceMin(false);
-    TxOutPoint utxo = rpcClientService.createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
+    TxOutPoint utxo = createAndMockTxOutPoint(inputP2SH_P2WPKH, inputBalance);
 
     AssertMultiClientManager multiClientManager = multiClientManager(1, mix);
     multiClientManager.connectWithMock(
         inputP2SH_P2WPKH,
         bip84Wallet,
         null,
-        utxo.getHash(),
-        (int) utxo.getIndex(),
+        (int) utxo.getIndex(), // TODO wrong n
         inputBalance,
         cliConfig);
 

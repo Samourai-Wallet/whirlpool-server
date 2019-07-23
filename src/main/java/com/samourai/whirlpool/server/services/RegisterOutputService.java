@@ -31,7 +31,7 @@ public class RegisterOutputService {
     this.serverConfig = serverConfig;
   }
 
-  public void registerOutput(
+  public synchronized void registerOutput(
       String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
     // validate
     validate(unblindedSignedBordereau, receiveAddress);

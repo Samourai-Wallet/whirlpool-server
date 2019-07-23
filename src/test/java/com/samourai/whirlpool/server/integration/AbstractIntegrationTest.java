@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.integration;
 
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
+import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.CryptoTestUtil;
 import com.samourai.wallet.util.FormatsUtilGeneric;
@@ -11,6 +12,8 @@ import com.samourai.whirlpool.cli.config.CliConfig;
 import com.samourai.whirlpool.client.utils.ClientCryptoService;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
+import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.services.*;
@@ -198,10 +201,34 @@ public abstract class AbstractIntegrationTest {
             cryptoService,
             rpcClientService,
             mixLimitsService,
-            bip47Util,
+            blockchainDataService,
             port);
     multiClientManager.setTestMode(serverConfig.isTestMode());
     multiClientManager.setSsl(false);
     return multiClientManager;
+  }
+
+  public TxOutPoint createAndMockTxOutPoint(
+      SegwitAddress address, long amount, Integer nbConfirmations, Integer utxoIndex)
+      throws Exception {
+
+    if (utxoIndex == null) {
+      utxoIndex = 0;
+    }
+    Integer nbOuts = utxoIndex + 1;
+    RpcTransaction rpcTransaction =
+        rpcClientService.createAndMockTx(address, amount, nbConfirmations, nbOuts);
+
+    TxOutPoint txOutPoint = blockchainDataService.getOutPoint(rpcTransaction, utxoIndex);
+    return txOutPoint;
+  }
+
+  public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount) throws Exception {
+    return createAndMockTxOutPoint(address, amount, null, null);
+  }
+
+  public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, int nbConfirmations)
+      throws Exception {
+    return createAndMockTxOutPoint(address, amount, nbConfirmations, null);
   }
 }

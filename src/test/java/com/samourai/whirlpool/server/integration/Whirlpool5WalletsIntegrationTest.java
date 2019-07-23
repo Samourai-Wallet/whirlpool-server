@@ -426,8 +426,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
                 segwitAddress,
                 bip84Wallet,
                 null,
-                utxoHash,
-                utxoIndex,
+                utxoIndex, // TODO wrong
                 premixer.biUnitSpendAmount.longValue(),
                 cliConfig);
           } catch (Exception e) {

@@ -154,6 +154,15 @@ public class MixService {
           registeredInput,
           mix.getPool().getPoolId());
     }
+
+    // verify no input address reuse with other inputs
+    String inputAddress = confirmedInput.getRegisteredInput().getOutPoint().getToAddress();
+    if (mix.getInputByAddress(inputAddress).isPresent()) {
+      throw new QueueInputException(
+          "Current mix is full for inputs with same address",
+          registeredInput,
+          mix.getPool().getPoolId());
+    }
   }
 
   public synchronized byte[] confirmInput(String mixId, String username, byte[] blindedBordereau)
@@ -286,6 +295,11 @@ public class MixService {
     if (!cryptoService.verifyUnblindedSignedBordereau(
         receiveAddress, unblindedSignedBordereau, mix.getKeyPair())) {
       throw new IllegalInputException("Invalid unblindedSignedBordereau");
+    }
+
+    // verify no output address reuse with inputs
+    if (mix.getInputByAddress(receiveAddress).isPresent()) {
+      throw new IllegalInputException("receiveAddress already registered as input");
     }
 
     log.info(" • registered output: " + receiveAddress);

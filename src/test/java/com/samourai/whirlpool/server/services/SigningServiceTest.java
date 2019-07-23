@@ -56,8 +56,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     boolean liquidity = false;
     long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
-        rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
+        createAndMockTxOutPoint(new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // valid signature
     UtxoWithBalance utxoWithBalance =
@@ -83,8 +82,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     boolean liquidity = false;
     long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
-        rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
+        createAndMockTxOutPoint(new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // valid signature
     UtxoWithBalance utxoWithBalance =
@@ -115,8 +113,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // trick to simulate one first user registered
     String firstUsername = "firstUser";
     TxOutPoint firstTxOutPoint =
-        rpcClientService.createAndMockTxOutPoint(
-            testUtils.generateSegwitAddress(), inputBalance, 10);
+        createAndMockTxOutPoint(testUtils.generateSegwitAddress(), inputBalance, 10);
     mix.registerInput(
         new ConfirmedInput(
             new RegisteredInput(firstUsername, false, firstTxOutPoint, "127.0.0.1"),
@@ -126,8 +123,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // prepare input
     ECKey ecKey = new ECKey();
     TxOutPoint txOutPoint =
-        rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
+        createAndMockTxOutPoint(new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // valid signature
     UtxoWithBalance utxoWithBalance =
@@ -159,8 +155,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     boolean liquidity = false;
     long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
-        rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
+        createAndMockTxOutPoint(new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // invalid signature (invalid signed amount)
     UtxoWithBalance utxoWithBalance =
@@ -198,8 +193,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     boolean liquidity = false;
     long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
     TxOutPoint txOutPoint =
-        rpcClientService.createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
+        createAndMockTxOutPoint(new SegwitAddress(ecKey.getPubKey(), params), inputBalance, 10);
 
     // invalid signature (invalid key)
     UtxoWithBalance utxoWithBalance =
