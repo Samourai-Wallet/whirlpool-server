@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.Samourai-Wallet</groupId>
 	<artifactId>whirlpool-server</artifactId>
-	<version>develop-SNAPSHOT</version>
+	<version>0.21.6</version>
 	<name>whirlpool-server</name>
 	<properties>
 		<spring-boot.version>2.1.6.RELEASE</spring-boot.version>
@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>whirlpool-protocol</artifactId>
-			<version>develop-SNAPSHOT</version>
+			<version>0.21.1</version>
 			<scope>compile</scope>
 			<exclusions>
 				<exclusion>
@@ -114,7 +114,7 @@
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>whirlpool-client-cli</artifactId>
-			<version>develop-SNAPSHOT</version>
+			<version>0.7.2</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -220,6 +220,6 @@
 	</repositories>
 	<scm>
 		<connection>scm:git:https://github.com/Samourai-Wallet/whirlpool-server.git</connection>
-		<tag>HEAD</tag>
+		<tag>0.21.6</tag>
 	</scm>
 </project>
