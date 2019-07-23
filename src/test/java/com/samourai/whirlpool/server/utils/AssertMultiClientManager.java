@@ -78,18 +78,18 @@ public class AssertMultiClientManager extends MultiClientManager {
   }
 
   private WhirlpoolClient createClient(CliConfig cliConfig) {
-    String server = "127.0.0.1:" + port;
+    String server = "http://127.0.0.1:" + port;
     CliTorClientService cliTorClientService = new CliTorClientService(new CliConfig());
+    JavaHttpClientService httpClientService =
+        new JavaHttpClientService(cliTorClientService, cliConfig);
     WhirlpoolClientConfig config =
         new WhirlpoolClientConfig(
-            new JavaHttpClientService(cliTorClientService, cliConfig),
-            new JavaStompClientService(cliTorClientService, cliConfig),
+            httpClientService,
+            new JavaStompClientService(cliTorClientService, cliConfig, httpClientService),
             new MemoryWalletPersistHandler(),
             server,
-            cryptoService.getNetworkParameters(),
-            false);
+            cryptoService.getNetworkParameters());
     config.setTestMode(testMode);
-    config.setSsl(ssl);
     return WhirlpoolClientImpl.newClient(config);
   }
 
