@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
+import com.samourai.whirlpool.server.exceptions.BannedInputException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.persistence.to.BanTO;
@@ -62,7 +63,7 @@ public class RegisterInputService {
     if (banTO.isPresent()) {
       log.warn("Rejecting banned UTXO: [" + banTO.get() + "], ip=" + ip);
       String banMessage = banTO.get().computeBanMessage();
-      throw new IllegalInputException(banMessage);
+      throw new BannedInputException(banMessage);
     }
 
     try {

@@ -1,11 +1,13 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
+import com.samourai.whirlpool.server.exceptions.BannedInputException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -31,8 +33,18 @@ public abstract class AbstractWebSocketController {
     }
   }
 
+  private boolean noStackTrace(Exception e) {
+    Class[] noStackTraceClasses = new Class[] {BannedInputException.class};
+    return ArrayUtils.contains(noStackTraceClasses, e.getClass());
+  }
+
   protected void handleException(Exception e, Principal principal) {
-    log.error("handleException", e);
+    if (noStackTrace(e)) {
+      log.warn("handleException: " + e.getMessage());
+    } else {
+      log.error("handleException", e);
+    }
+
     NotifiableException notifiable = NotifiableException.computeNotifiableException(e);
     String message = notifiable.getMessage();
     String username = principal.getName();
