@@ -20,6 +20,7 @@ public class WhirlpoolServerConfig {
   private boolean testMode;
   private int port;
   private boolean testnet;
+  private boolean mixEnabled;
   private NetworkParameters networkParameters;
   private RpcClientConfig rpcClient;
   private RegisterInputConfig registerInput;
@@ -44,6 +45,14 @@ public class WhirlpoolServerConfig {
 
   public void setTestMode(boolean testMode) {
     this.testMode = testMode;
+  }
+
+  public boolean isMixEnabled() {
+    return mixEnabled;
+  }
+
+  public void setMixEnabled(boolean mixEnabled) {
+    this.mixEnabled = mixEnabled;
   }
 
   public int getPort() {

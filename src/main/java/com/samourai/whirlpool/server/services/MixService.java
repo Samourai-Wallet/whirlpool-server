@@ -218,6 +218,11 @@ public class MixService {
   }
 
   private void checkConfirmInputReady(Mix mix, boolean allowGracePeriod) {
+    if (!whirlpoolServerConfig.isMixEnabled()) {
+      // mix disabled by server configuration
+      return;
+    }
+
     if (MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus()) && isRegisterInputReady(mix)) {
 
       // ready to go REGISTER_OUTPUT
