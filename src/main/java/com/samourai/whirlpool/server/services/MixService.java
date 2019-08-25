@@ -798,7 +798,7 @@ public class MixService {
     logMixStatus(mix);
 
     // add queued mustMixs if any
-    poolService.inviteAllToMix(mix, false);
+    poolService.inviteToMixAll(mix, false);
   }
 
   public MixLimitsService __getMixLimitsService() {

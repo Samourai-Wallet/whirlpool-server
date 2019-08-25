@@ -14,7 +14,6 @@ public class Pool {
   private int minAnonymitySet;
   private int maxAnonymitySet;
   private long timeoutAdjustAnonymitySet; // wait X seconds for decreasing anonymitySet
-  private long liquidityTimeout; // wait X seconds for accepting liquidities
 
   private Mix currentMix;
   private InputPool mustMixQueue;
@@ -31,8 +30,7 @@ public class Pool {
       int targetAnonymitySet,
       int minAnonymitySet,
       int maxAnonymitySet,
-      long timeoutAdjustAnonymitySet,
-      long liquidityTimeout) {
+      long timeoutAdjustAnonymitySet) {
     this.poolId = poolId;
     this.denomination = denomination;
     this.poolFee = poolFee;
@@ -44,7 +42,6 @@ public class Pool {
     this.minAnonymitySet = minAnonymitySet;
     this.maxAnonymitySet = maxAnonymitySet;
     this.timeoutAdjustAnonymitySet = timeoutAdjustAnonymitySet;
-    this.liquidityTimeout = liquidityTimeout;
     this.mustMixQueue = new InputPool();
     this.liquidityQueue = new InputPool();
   }
@@ -124,10 +121,6 @@ public class Pool {
 
   public long getTimeoutAdjustAnonymitySet() {
     return timeoutAdjustAnonymitySet;
-  }
-
-  public long getLiquidityTimeout() {
-    return liquidityTimeout;
   }
 
   public Mix getCurrentMix() {

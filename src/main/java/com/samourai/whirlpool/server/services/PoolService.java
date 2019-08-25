@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.services;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.ConfirmInputMixStatusNotification;
+import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
@@ -68,7 +69,6 @@ public class PoolService {
       int minAnonymitySet = poolConfig.getAnonymitySetMin();
       int maxAnonymitySet = poolConfig.getAnonymitySetMax();
       long mustMixAdjustTimeout = poolConfig.getAnonymitySetAdjustTimeout();
-      long liquidityTimeout = poolConfig.getLiquidityTimeout();
 
       Assert.notNull(poolId, "Pool configuration: poolId must not be NULL");
       Assert.isTrue(!pools.containsKey(poolId), "Pool configuration: poolId must not be duplicate");
@@ -85,8 +85,7 @@ public class PoolService {
               targetAnonymitySet,
               minAnonymitySet,
               maxAnonymitySet,
-              mustMixAdjustTimeout,
-              liquidityTimeout);
+              mustMixAdjustTimeout);
       pools.put(poolId, pool);
     }
   }
@@ -149,11 +148,13 @@ public class PoolService {
     }
 
     Mix currentMix = pool.getCurrentMix();
-    if (inviteIfPossible && currentMix.isInvitationOpen(liquidity)) {
-      // mix invitation open => directly invite to mix
+    if (inviteIfPossible
+        && !liquidity
+        && MixStatus.CONFIRM_INPUT.equals(currentMix.getMixStatus())) {
+      // directly invite mustMix to mix
       inviteToMix(currentMix, registeredInput);
     } else {
-      // enqueue in pool
+      // enqueue mustMix/liquidity in pool
       queueToPool(pool, registeredInput);
     }
   }
@@ -199,12 +200,22 @@ public class PoolService {
     webSocketService.sendPrivate(registeredInput.getUsername(), confirmInputMixStatusNotification);
   }
 
-  public synchronized int inviteAllToMix(Mix mix, boolean liquidity) {
+  public int inviteToMixAll(Mix mix, boolean liquidity) {
+    return inviteToMix(mix, liquidity, null);
+  }
+
+  public synchronized int inviteToMix(Mix mix, boolean liquidity, Integer maxInvites) {
     InputPool queue =
         (liquidity ? mix.getPool().getLiquidityQueue() : mix.getPool().getMustMixQueue());
     Optional<RegisteredInput> registeredInput;
     int nbInvited = 0;
     while ((registeredInput = queue.removeRandom()).isPresent()) {
+      // stop when enough invites
+      if (maxInvites != null && nbInvited >= maxInvites) {
+        return nbInvited;
+      }
+
+      // invite one more
       inviteToMix(mix, registeredInput.get());
       nbInvited++;
     }

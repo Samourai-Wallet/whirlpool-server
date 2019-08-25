@@ -70,13 +70,14 @@ server.pools[x].anonymity-set-max = 20
 server.pools[x].anonymity-set-adjust-timeout = 120
 
 server.pools[x].must-mix-min = 1
-server.pools[x].liquidity-timeout = 60
+server.pools[x].liquidity-interval = 10
 ```
 Mix will start when *anonymity-set-target* (mustMix + liquidities) are registered.<br/>
 If this target is not met after *anonymity-set-adjust-timeout*, it will be gradually decreased to *anonymity-set-min*.<br/>
 
 At the beginning of the mix, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
-After *liquidity-timeout* or when current *anonymity-set-target* is reached, liquidities are added as soon as *must-mix-min* is reached, up to *anonymity-set-max* inputs for the mix.
+Liquidities are added as soon as *must-mix-min* is reached, up to *anonymity-set-max* inputs for the mix.
+Liquidities are added by batch every *liquidity-interval*.
 
 ### Exports
 Each mix success/fail is appended to a CSV file:

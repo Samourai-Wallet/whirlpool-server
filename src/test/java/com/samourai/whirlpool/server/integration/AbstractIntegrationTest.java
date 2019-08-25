@@ -152,7 +152,6 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setAnonymitySetMin(anonymitySetMin);
     poolConfig.setAnonymitySetMax(anonymitySetMax);
     poolConfig.setAnonymitySetAdjustTimeout(anonymitySetAdjustTimeout);
-    poolConfig.setLiquidityTimeout(liquidityTimeout);
 
     // run new mix for the pool
     return __nextMix(poolConfig);
@@ -174,7 +173,6 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setAnonymitySetMin(anonymitySet);
     poolConfig.setAnonymitySetMax(anonymitySet);
     poolConfig.setAnonymitySetAdjustTimeout(copyPool.getTimeoutAdjustAnonymitySet());
-    poolConfig.setLiquidityTimeout(copyPool.getLiquidityTimeout());
 
     // run new mix for the pool
     return __nextMix(poolConfig);

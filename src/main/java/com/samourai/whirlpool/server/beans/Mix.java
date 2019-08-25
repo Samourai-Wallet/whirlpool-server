@@ -33,7 +33,6 @@ public class Mix {
 
   private Pool pool;
   private int targetAnonymitySet;
-  private boolean acceptLiquidities;
 
   private MixStatus mixStatus;
   private InputPool confirmingInputs;
@@ -63,7 +62,6 @@ public class Mix {
 
     this.pool = pool;
     this.targetAnonymitySet = pool.getTargetAnonymitySet();
-    this.acceptLiquidities = false;
 
     this.mixStatus = MixStatus.CONFIRM_INPUT;
     this.confirmingInputs = new InputPool();
@@ -149,14 +147,6 @@ public class Mix {
 
   public void setTargetAnonymitySet(int targetAnonymitySet) {
     this.targetAnonymitySet = targetAnonymitySet;
-  }
-
-  public boolean isAcceptLiquidities() {
-    return acceptLiquidities;
-  }
-
-  public void setAcceptLiquidities(boolean acceptLiquidities) {
-    this.acceptLiquidities = acceptLiquidities;
   }
 
   public MixStatus getMixStatus() {
@@ -336,16 +326,9 @@ public class Mix {
     return failInfo;
   }
 
-  public boolean isInvitationOpen(boolean liquidity) {
-    return MixStatus.CONFIRM_INPUT.equals(mixStatus) && (!liquidity || isRegisterLiquiditiesOpen());
-  }
-
   public boolean isRegisterLiquiditiesOpen() {
     if (!hasMinMustMixReached()) {
       // wait to get enough mustMix before accepting liquidities
-      return false;
-    }
-    if (!isAcceptLiquidities()) {
       return false;
     }
     return true;

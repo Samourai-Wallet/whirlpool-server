@@ -145,6 +145,7 @@ public class WhirlpoolServerConfig {
     private int minConfirmationsMustMix;
     private int minConfirmationsLiquidity;
     private int maxInputsSameHash;
+    private long liquidityInterval;
 
     public int getMinConfirmationsMustMix() {
       return minConfirmationsMustMix;
@@ -168,6 +169,14 @@ public class WhirlpoolServerConfig {
 
     public void setMaxInputsSameHash(int maxInputsSameHash) {
       this.maxInputsSameHash = maxInputsSameHash;
+    }
+
+    public long getLiquidityInterval() {
+      return liquidityInterval;
+    }
+
+    public void setLiquidityInterval(long liquidityInterval) {
+      this.liquidityInterval = liquidityInterval;
     }
   }
 
@@ -283,7 +292,6 @@ public class WhirlpoolServerConfig {
     private int anonymitySetMin;
     private int anonymitySetMax;
     private long anonymitySetAdjustTimeout;
-    private long liquidityTimeout;
 
     public String getId() {
       return id;
@@ -379,14 +387,6 @@ public class WhirlpoolServerConfig {
 
     public void setAnonymitySetAdjustTimeout(long anonymitySetAdjustTimeout) {
       this.anonymitySetAdjustTimeout = anonymitySetAdjustTimeout;
-    }
-
-    public long getLiquidityTimeout() {
-      return liquidityTimeout;
-    }
-
-    public void setLiquidityTimeout(long liquidityTimeout) {
-      this.liquidityTimeout = liquidityTimeout;
     }
   }
 
@@ -519,7 +519,9 @@ public class WhirlpoolServerConfig {
         "liquidity="
             + registerInput.minConfirmationsLiquidity
             + ", mustMix="
-            + registerInput.minConfirmationsMustMix);
+            + registerInput.minConfirmationsMustMix
+            + ", liquidityInterval="
+            + String.valueOf(registerInput.liquidityInterval));
 
     String timeoutInfo =
         "registerOutput="
@@ -560,7 +562,6 @@ public class WhirlpoolServerConfig {
               + ", cap="
               + poolConfig.getMinerFeeCap()
               + "]";
-      poolInfo += ", liquidityTimeout=" + String.valueOf(poolConfig.liquidityTimeout);
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);
     }
     for (Map.Entry<String, Short> feePayloadEntry :

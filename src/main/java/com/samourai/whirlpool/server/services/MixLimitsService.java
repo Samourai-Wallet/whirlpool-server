@@ -167,29 +167,27 @@ public class MixLimitsService {
           @Override
           public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
             long elapsedTime = timeoutWatcher.computeElapsedTime();
-            long timeToWait = mix.getPool().getLiquidityTimeout() * 1000 - elapsedTime;
+
+            // timeout before adding more liquidities
+            long waitTime = whirlpoolServerConfig.getRegisterInput().getLiquidityInterval();
+            long timeToWait = waitTime * 1000 - elapsedTime;
             return timeToWait;
           }
 
           @Override
           public void onTimeout(TimeoutWatcher timeoutWatcher) {
-            if (log.isDebugEnabled()) {
-              log.debug("liquidityWatcher.onTimeout");
-            }
-            if (MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus()) && !mix.isAcceptLiquidities()) {
-              // accept liquidities
+            if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
               if (log.isDebugEnabled()) {
-                log.debug("accepting liquidities now (liquidityTimeout elapsed)");
+                log.debug("liquidityWatcher.onTimeout => ignored: mixStatus=" + mix.getMixStatus());
               }
-              mix.setAcceptLiquidities(true);
-              addLiquidities(mix);
+              return;
             }
-            timeoutWatcher.stop();
+            // add more liquidities
+            addLiquidities(mix);
           }
         };
-
-    TimeoutWatcher mixLimitsWatcher = new TimeoutWatcher(listener);
-    return mixLimitsWatcher;
+    TimeoutWatcher liquidityWatcher = new TimeoutWatcher(listener);
+    return liquidityWatcher;
   }
 
   // CONFIRM_INPUT
@@ -214,8 +212,8 @@ public class MixLimitsService {
 
     // is mix ready now?
     if (mixService.isRegisterInputReady(mix)) {
-      // add liquidities first
-      checkAddLiquidities(mix);
+      // add max possible liquidities (when maxAnonSet>currentAnonSet)
+      addLiquidities(mix);
 
       // notify mixService - which doesn't know targetAnonymitySet was adjusted
       mixService.checkConfirmInputReady(mix);
@@ -232,49 +230,20 @@ public class MixLimitsService {
       TimeoutWatcher liquidityWatcher = computeLiquidityWatcher(mix);
       this.liquidityWatchers.put(mixId, liquidityWatcher);
     }
-
-    // maybe we can add liquidities now
-    checkAddLiquidities(mix);
-  }
-
-  private void checkAddLiquidities(Mix mix) {
-    // avoid concurrent liquidity management
-    if (mix.getNbInputsLiquidities() == 0) {
-
-      if (!mix.isAcceptLiquidities()) {
-        if (mixService.isRegisterInputReady(mix)) {
-          // mix is ready to start => add liquidities now (up to maxAnonymitySet)
-
-          if (log.isDebugEnabled()) {
-            log.debug("adding liquidities now (mix is ready to start)");
-          }
-          mix.setAcceptLiquidities(true);
-          addLiquidities(mix);
-        }
-      } else {
-        if (mix.hasMinMustMixReached()) {
-          // mix is not ready to start but minMustMix reached and liquidities accepted => add
-          // liquidities now
-          if (log.isDebugEnabled()) {
-            log.debug("adding liquidities now (minMustMix reached and acceptLiquidities=true)");
-          }
-          addLiquidities(mix);
-        }
-      }
-    }
   }
 
   private void addLiquidities(Mix mix) {
-    if (!mix.hasMinMustMixReached()) {
-      // will retry to add on onInputConfirmed
-      log.info("Cannot add liquidities yet, minMustMix not reached");
+    if (!mix.isRegisterLiquiditiesOpen()) {
+      if (log.isDebugEnabled()) {
+        log.debug("Cannot add liquidities yet: minMustMix not reached");
+      }
       return;
     }
 
     int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
     if (liquiditiesToAdd > 0) {
       // add queued liquidities if any
-      poolService.inviteAllToMix(mix, true);
+      poolService.inviteToMix(mix, true, liquiditiesToAdd);
     } else {
       if (log.isDebugEnabled()) {
         log.debug(
