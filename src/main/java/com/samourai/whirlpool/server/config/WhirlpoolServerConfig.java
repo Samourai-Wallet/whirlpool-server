@@ -288,6 +288,7 @@ public class WhirlpoolServerConfig {
     private long minerFeeCap;
     private long minerFeeMax;
     private int mustMixMin;
+    private int liquidityMin;
     private int anonymitySetTarget;
     private int anonymitySetMin;
     private int anonymitySetMax;
@@ -355,6 +356,14 @@ public class WhirlpoolServerConfig {
 
     public void setMustMixMin(int mustMixMin) {
       this.mustMixMin = mustMixMin;
+    }
+
+    public int getLiquidityMin() {
+      return liquidityMin;
+    }
+
+    public void setLiquidityMin(int liquidityMin) {
+      this.liquidityMin = liquidityMin;
     }
 
     public int getAnonymitySetTarget() {
@@ -519,9 +528,9 @@ public class WhirlpoolServerConfig {
         "liquidity="
             + registerInput.minConfirmationsLiquidity
             + ", mustMix="
-            + registerInput.minConfirmationsMustMix
-            + ", liquidityInterval="
-            + String.valueOf(registerInput.liquidityInterval));
+            + registerInput.minConfirmationsMustMix);
+    configInfo.put(
+        "registerInput.liquidityInterval", String.valueOf(registerInput.liquidityInterval));
 
     String timeoutInfo =
         "registerOutput="

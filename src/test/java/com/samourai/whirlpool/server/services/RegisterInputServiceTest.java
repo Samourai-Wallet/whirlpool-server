@@ -9,10 +9,9 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
+import com.samourai.whirlpool.server.integration.AbstractMixIntegrationTest;
 import java.lang.invoke.MethodHandles;
 import java.math.BigInteger;
-import java.util.function.Function;
 import org.bitcoinj.core.ECKey;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,7 +25,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-public class RegisterInputServiceTest extends AbstractIntegrationTest {
+public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   @Autowired private RegisterInputService registerInputService;
@@ -42,50 +41,49 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     serverConfig.setTestMode(true); // TODO
   }
 
-  final Function<Boolean, TxOutPoint> runTestValidInput =
-      (Boolean liquidity) -> {
-        TxOutPoint txOutPoint = null;
-        try {
-          Mix mix = __getCurrentMix();
-          String poolId = mix.getPool().getPoolId();
-          String username = "user1";
+  private TxOutPoint runTestValidInput(boolean liquidity) {
+    TxOutPoint txOutPoint = null;
+    try {
+      Mix mix = __getCurrentMix();
+      String poolId = mix.getPool().getPoolId();
+      String username = "user1";
 
-          ECKey ecKey =
-              ECKey.fromPrivate(
-                  new BigInteger(
-                      "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
-          String signature = ecKey.signMessage(poolId);
+      ECKey ecKey =
+          ECKey.fromPrivate(
+              new BigInteger(
+                  "34069012401142361066035129995856280497224474312925604298733347744482107649210"));
+      String signature = ecKey.signMessage(poolId);
 
-          long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
-          int confirmations = liquidity ? MIN_CONFIRMATIONS_LIQUIDITY : MIN_CONFIRMATIONS_MUSTMIX;
-          txOutPoint =
-              createAndMockTxOutPoint(
-                  new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
-                  inputBalance,
-                  confirmations);
+      long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
+      int confirmations = liquidity ? MIN_CONFIRMATIONS_LIQUIDITY : MIN_CONFIRMATIONS_MUSTMIX;
+      txOutPoint =
+          createAndMockTxOutPoint(
+              new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
+              inputBalance,
+              confirmations);
 
-          // TEST
-          registerInputService.registerInput(
-              poolId,
-              username,
-              signature,
-              txOutPoint.getHash(),
-              txOutPoint.getIndex(),
-              liquidity,
-              true,
-              "127.0.0.1");
+      // TEST
+      registerInputService.registerInput(
+          poolId,
+          username,
+          signature,
+          txOutPoint.getHash(),
+          txOutPoint.getIndex(),
+          liquidity,
+          true,
+          "127.0.0.1");
 
-        } catch (Exception e) {
-          e.printStackTrace();
-          Assert.assertTrue(false);
-        }
-        return txOutPoint;
-      };
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+    return txOutPoint;
+  };
 
   @Test
   public void registerInput_shouldRegisterMustMixWhenValid() throws Exception {
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput.apply(false);
+    TxOutPoint txOutPoint = runTestValidInput(false);
 
     // VERIFY
     Mix mix = __getCurrentMix();
@@ -100,7 +98,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
   @Test
   public void registerInput_shouldQueueLiquidityWhenValid() throws Exception {
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput.apply(true);
+    TxOutPoint txOutPoint = runTestValidInput(true);
 
     // VERIFY
     Mix mix = __getCurrentMix();
@@ -120,7 +118,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT); // mix already started
 
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput.apply(false);
+    TxOutPoint txOutPoint = runTestValidInput(false);
 
     // VERIFY
 
@@ -137,7 +135,7 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT); // mix already started
 
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput.apply(true);
+    TxOutPoint txOutPoint = runTestValidInput(true);
 
     // VERIFY
     InputPool liquidityPool = mix.getPool().getLiquidityQueue();
@@ -424,14 +422,13 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     testUtils.assertMixEmpty(mix);
   }
 
-  @Test
-  public void registerInput_shouldFailWhenZeroConfirmations() throws Exception {
+  private void runShouldFailWhenZeroConfirmations(boolean liquidity) throws Exception {
     Mix mix = __getCurrentMix();
 
     // TEST
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Input is not confirmed");
-    doRegisterInput(0, false);
+    registerInput(mix, "user1", 0, liquidity);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
@@ -439,42 +436,36 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void registerInput_shouldFailWhenLessConfirmations() throws Exception {
+  public void registerInput_shouldFailWhenZeroConfirmationsMustmix() throws Exception {
+    runShouldFailWhenZeroConfirmations(false);
+  }
+
+  @Test
+  public void registerInput_shouldFailWhenZeroConfirmationsLiquidity() throws Exception {
+    runShouldFailWhenZeroConfirmations(true);
+  }
+
+  private void runShouldFailWhenLessConfirmations(boolean liquidity) throws Exception {
     Mix mix = __getCurrentMix();
 
     // TEST
     thrown.expect(IllegalInputException.class);
     thrown.expectMessage("Input is not confirmed");
-    doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX - 1, false);
+    registerInput(mix, "user1", MIN_CONFIRMATIONS_MUSTMIX - 1, liquidity);
 
     // VERIFY
     testUtils.assertPoolEmpty(mix.getPool());
     testUtils.assertMixEmpty(mix);
   }
 
-  private void doRegisterInput(int confirmations, boolean liquidity) throws Exception {
-    Mix mix = __getCurrentMix();
-    String poolId = mix.getPool().getPoolId();
-    String username = "user1";
+  @Test
+  public void registerInput_shouldFailWhenLessConfirmationsMustmix() throws Exception {
+    runShouldFailWhenLessConfirmations(false);
+  }
 
-    ECKey ecKey = new ECKey();
-    SegwitAddress inputAddress =
-        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
-    String signature = ecKey.signMessage(poolId);
-
-    long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
-    // mock input with 0 confirmations
-    TxOutPoint txOutPoint = createAndMockTxOutPoint(inputAddress, inputBalance, confirmations);
-
-    registerInputService.registerInput(
-        poolId,
-        username,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        liquidity,
-        true,
-        "127.0.0.1");
+  @Test
+  public void registerInput_shouldFailWhenLessConfirmationsLiquidity() throws Exception {
+    runShouldFailWhenLessConfirmations(true);
   }
 
   @Test
@@ -485,15 +476,13 @@ public class RegisterInputServiceTest extends AbstractIntegrationTest {
     testUtils.assertMixEmpty(mix);
 
     // mustMix
-    doRegisterInput(MIN_CONFIRMATIONS_MUSTMIX + 1, false);
+    registerInput(mix, "user1", MIN_CONFIRMATIONS_MUSTMIX + 1, false);
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix);
 
     // liquidity
-    doRegisterInput(MIN_CONFIRMATIONS_LIQUIDITY + 1, true);
+    registerInput(mix, "user2", MIN_CONFIRMATIONS_LIQUIDITY + 1, true);
     testUtils.assertPool(0, 1, pool);
     testUtils.assertMix(0, 1, mix);
   }
-
-  // TODO test noSamouraiFeesCheck for liquidities vs feesCheck for mustMix
 }

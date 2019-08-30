@@ -382,6 +382,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     long minerFeeCap = mixFee * 10 - 2;
     long minerFeeMax = mixFee * 10;
     int mustMixMin = NB_CLIENTS;
+    int liquidityMin = 0;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
     int anonymitySetMax = NB_CLIENTS;
@@ -395,6 +396,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             minerFeeCap,
             minerFeeMax,
             mustMixMin,
+            liquidityMin,
             anonymitySetTarget,
             anonymitySetMin,
             anonymitySetMax,

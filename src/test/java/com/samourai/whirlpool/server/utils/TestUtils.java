@@ -107,8 +107,8 @@ public class TestUtils {
     assertPool(0, 0, pool);
   }
 
-  public void assertMix(int nbInputs, int confirming, Mix mix) {
-    Assert.assertEquals(nbInputs, mix.getNbInputs());
+  public void assertMix(int nbInputsConfirmed, int confirming, Mix mix) {
+    Assert.assertEquals(nbInputsConfirmed, mix.getNbInputs());
     Assert.assertEquals(confirming, mix.getNbConfirmingInputs());
   }
 

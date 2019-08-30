@@ -27,6 +27,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
 
   private AssertMultiClientManager runMustmixWithLiquidities(
       int mustMixMin,
+      int liquidityMin,
       int anonymitySetMin,
       int anonymitySetTarget,
       int anonymitySetMax,
@@ -51,6 +52,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
             minerFeeCap,
             minerFeeMax,
             mustMixMin,
+            liquidityMin,
             anonymitySetTarget,
             anonymitySetMin,
             anonymitySetMax,
@@ -91,6 +93,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 5;
     final int NB_LIQUIDITIES_CONNECTING = 5;
     int minMustMix = 5;
+    int minLiquidity = 0;
     int minAnonymitySet = 5;
     int targetAnonymitySet = 5;
     int maxAnonymitySet = 20;
@@ -101,6 +104,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -117,6 +121,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 5;
     final int NB_LIQUIDITIES_CONNECTING = 5;
     int minMustMix = 5;
+    int minLiquidity = 0;
     int minAnonymitySet = 5;
     int targetAnonymitySet = 5;
     int maxAnonymitySet = 8;
@@ -127,6 +132,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -144,6 +150,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 5;
     final int NB_LIQUIDITIES_CONNECTING = 4;
     int minMustMix = 2;
+    int minLiquidity = 0;
     int minAnonymitySet = 5;
     int targetAnonymitySet = 5;
     int maxAnonymitySet = 10;
@@ -154,6 +161,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -171,6 +179,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 7;
     final int NB_LIQUIDITIES_CONNECTING = 7;
     int minMustMix = 5;
+    int minLiquidity = 0;
     int minAnonymitySet = 7;
     int targetAnonymitySet = 7;
     int maxAnonymitySet = 20;
@@ -181,6 +190,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -197,6 +207,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 15;
     final int NB_LIQUIDITIES_CONNECTING = 20;
     int minMustMix = 15;
+    int minLiquidity = 0;
     int minAnonymitySet = 7;
     int targetAnonymitySet = 7;
     int maxAnonymitySet = 40;
@@ -207,6 +218,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -223,6 +235,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 4;
     final int NB_LIQUIDITIES_CONNECTING = 5;
     int minMustMix = 5;
+    int minLiquidity = 0;
     int minAnonymitySet = 5;
     int targetAnonymitySet = 5;
     int maxAnonymitySet = 5;
@@ -233,6 +246,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -250,6 +264,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 5;
     final int NB_LIQUIDITIES_CONNECTING = 5;
     int minMustMix = 6;
+    int minLiquidity = 0;
     int minAnonymitySet = 5;
     int targetAnonymitySet = 7;
     int maxAnonymitySet = 10;
@@ -260,6 +275,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,
@@ -290,6 +306,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     final int NB_MUSTMIX_CONNECTING = 5;
     final int NB_LIQUIDITIES_CONNECTING = 0;
     int minMustMix = 5;
+    int minLiquidity = 0;
     int minAnonymitySet = 5;
     int targetAnonymitySet = 7;
     int maxAnonymitySet = 10;
@@ -301,6 +318,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     AssertMultiClientManager multiClientManager =
         runMustmixWithLiquidities(
             minMustMix,
+            minLiquidity,
             minAnonymitySet,
             targetAnonymitySet,
             maxAnonymitySet,

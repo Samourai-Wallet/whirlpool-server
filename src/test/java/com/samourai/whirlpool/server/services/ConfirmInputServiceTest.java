@@ -8,60 +8,28 @@ import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
-import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
+import com.samourai.whirlpool.server.integration.AbstractMixIntegrationTest;
 import java.lang.invoke.MethodHandles;
 import org.bitcoinj.core.ECKey;
 import org.bouncycastle.crypto.params.RSABlindingParameters;
-import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = DEFINED_PORT)
-public class ConfirmInputServiceTest extends AbstractIntegrationTest {
+public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  @Autowired private RegisterInputService registerInputService;
-
-  @Autowired private ConfirmInputService confirmInputService;
-
-  @Autowired private RegisterOutputService registerOutputService;
 
   @Before
   public void setUp() throws Exception {
     super.setUp();
     serverConfig.setTestMode(true);
-  }
-
-  private void registerInput(Mix mix, String username) throws Exception {
-    String poolId = mix.getPool().getPoolId();
-
-    ECKey ecKey = new ECKey();
-    String signature = ecKey.signMessage(poolId);
-
-    long inputBalance = mix.getPool().computePremixBalanceMin(false);
-    TxOutPoint txOutPoint =
-        createAndMockTxOutPoint(
-            new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters()),
-            inputBalance,
-            999);
-
-    registerInputService.registerInput(
-        poolId,
-        username,
-        signature,
-        txOutPoint.getHash(),
-        txOutPoint.getIndex(),
-        false,
-        true,
-        "127.0.0.1");
   }
 
   @Test
@@ -72,7 +40,7 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
     String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
 
     // REGISTER_INPUT
-    registerInput(mix, username);
+    registerInput(mix, username, 999, false);
     testUtils.assertMix(0, 1, mix); // mustMix confirming
 
     // blind bordereau
@@ -100,13 +68,6 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
     // VERIFY
     testUtils.assertMix(1, 0, mix); // mustMix confirmed
     Thread.sleep(5000);
-  }
-
-  private RSABlindingParameters computeBlindingParams(Mix mix) {
-    RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();
-    RSABlindingParameters blindingParams =
-        clientCryptoService.computeBlindingParams(serverPublicKey);
-    return blindingParams;
   }
 
   @Test
@@ -168,8 +129,55 @@ public class ConfirmInputServiceTest extends AbstractIntegrationTest {
     confirmInputService.confirmInputOrQueuePool(mixId, "user2", blindedBordereau);
 
     // VERIFY
-    testUtils.assertMix(1, 0, mix);
-    // just 1 mustMix confirmed, the other one is queued with "Current mix is full for inputs with
-    // same hash"
+    testUtils.assertMix(1, 0, mix); // 1 mustMix confirmed
+    testUtils.assertPool(1, 0, pool); // 1 mustMix queued
+  }
+
+  @Test
+  public void confirmInput_shouldQueueWhenMaxAnonymitySetReached() throws Exception {
+    Pool pool = __getCurrentMix().getPool();
+    Mix mix = __nextMix(1, 0, 2, pool); // 2 mustMix max
+
+    // 1/2
+    registerInputAndConfirmInput(mix, "user1", 999, false, null, null);
+    testUtils.assertMix(1, 0, mix); // mustMix confirmed
+    testUtils.assertPool(0, 0, pool);
+
+    // 2/2
+    registerInputAndConfirmInput(mix, "user2", 999, false, null, null);
+    testUtils.assertMix(2, 0, mix); // mustMix confirmed
+    testUtils.assertPool(0, 0, pool);
+
+    // 3/2 => queued
+    registerInputAndConfirmInput(mix, "user3", 999, false, null, null);
+    testUtils.assertMix(2, 0, mix); // mustMix queued
+  }
+
+  @Test
+  public void confirmInput_shouldQueueWhenMaxMustMixReached() throws Exception {
+    Mix mix =
+        __nextMix(
+            1, 1, 2, __getCurrentMix().getPool()); // 2 users max - 1 liquidityMin = 1 mustMix max
+    Pool pool = mix.getPool();
+
+    // 1/2 mustMix
+    registerInputAndConfirmInput(mix, "mustMix1", 999, false, null, null);
+    testUtils.assertMix(1, 0, mix); // mustMix confirmed
+    testUtils.assertPool(0, 0, pool);
+
+    // 2/2 mustMix => queued
+    registerInputAndConfirmInput(mix, "mustMix2", 999, false, null, null);
+    testUtils.assertMix(1, 0, mix); // mustMix queued
+    testUtils.assertPool(1, 0, pool);
+
+    // 1/1 liquidity
+    registerInputAndConfirmInput(mix, "liquidity1", 999, true, null, null);
+    testUtils.assertMix(1, 0, mix); // liquidity queued
+    testUtils.assertPool(1, 1, pool);
+
+    // wait for liquidityWatcher to invite liquidity
+    Thread.sleep(serverConfig.getRegisterInput().getLiquidityInterval() * 1000);
+    testUtils.assertMix(1, 1, mix); // liquidity confirming
+    testUtils.assertPool(1, 0, pool);
   }
 }

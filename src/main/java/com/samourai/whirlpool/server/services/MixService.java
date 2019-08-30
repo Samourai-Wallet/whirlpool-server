@@ -119,11 +119,11 @@ public class MixService {
   private void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
       throws QueueInputException, IllegalInputException {
     RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
+    Pool pool = mix.getPool();
 
     // verify mix not full
     if (mix.isFull()) {
-      throw new QueueInputException(
-          "Current mix is full", registeredInput, mix.getPool().getPoolId());
+      throw new QueueInputException("Current mix is full", registeredInput, pool.getPoolId());
     }
 
     // verify not already registered
@@ -131,10 +131,19 @@ public class MixService {
       throw new IllegalInputException("Input already registered for this mix");
     }
 
-    // liquidity: verify liquidities open
-    if (registeredInput.isLiquidity() && !mix.isRegisterLiquiditiesOpen()) {
-      throw new IllegalInputException(
-          "Current mix not opened to liquidities yet"); // should not happen
+    if (registeredInput.isLiquidity()) {
+      // liquidity: verify liquidities open
+      if (!mix.isRegisterLiquiditiesOpen()) {
+        throw new IllegalInputException(
+            "Current mix not opened to liquidities yet"); // should not happen
+      }
+    } else {
+      // mustMix: verify minLiquidity
+      int liquiditySlotsAvailable = pool.getMaxAnonymitySet() - (mix.getNbInputsMustMix() + 1);
+      if (liquiditySlotsAvailable < pool.getMinLiquidity()) {
+        throw new QueueInputException(
+            "Current mix is full for mustMix", registeredInput, pool.getPoolId());
+      }
     }
 
     // verify max-inputs-same-hash
@@ -150,18 +159,14 @@ public class MixService {
         log.debug("already " + countInputsSameHash + " inputs with same hash: " + inputHash);
       }
       throw new QueueInputException(
-          "Current mix is full for inputs with same hash",
-          registeredInput,
-          mix.getPool().getPoolId());
+          "Current mix is full for inputs with same hash", registeredInput, pool.getPoolId());
     }
 
     // verify no input address reuse with other inputs
     String inputAddress = confirmedInput.getRegisteredInput().getOutPoint().getToAddress();
     if (mix.getInputByAddress(inputAddress).isPresent()) {
       throw new QueueInputException(
-          "Current mix is full for inputs with same address",
-          registeredInput,
-          mix.getPool().getPoolId());
+          "Current mix is full for inputs with same address", registeredInput, pool.getPoolId());
     }
   }
 
@@ -286,6 +291,9 @@ public class MixService {
     if (!mix.hasMinMustMixReached()) {
       return false;
     }
+    if (!mix.hasMinLiquidityMixReached()) {
+      return false;
+    }
     if (mix.getNbInputs() < mix.getTargetAnonymitySet()) {
       return false;
     }
@@ -324,6 +332,10 @@ public class MixService {
             + "/"
             + mix.getPool().getMinMustMix()
             + " mustMix, "
+            + mix.getNbInputsLiquidities()
+            + "/"
+            + mix.getPool().getMinLiquidity()
+            + " liquidity, "
             + mix.getNbInputs()
             + "/"
             + mix.getTargetAnonymitySet()

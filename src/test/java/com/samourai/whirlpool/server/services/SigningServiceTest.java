@@ -49,7 +49,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
   @Test
   public void signing_success() throws Exception {
     // mix config
-    Mix mix = __nextMix(1, 1, __getCurrentMix().getPool()); // 1 user
+    Mix mix = __nextMix(1, 0, 1, __getCurrentMix().getPool()); // 1 user
 
     // prepare input
     ECKey ecKey = new ECKey();
@@ -75,7 +75,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
   @Test
   public void signing_failOnUnknownUsername() throws Exception {
     // mix config
-    Mix mix = __nextMix(1, 1, __getCurrentMix().getPool()); // 1 user
+    Mix mix = __nextMix(1, 0, 1, __getCurrentMix().getPool()); // 1 user
 
     // prepare input
     ECKey ecKey = new ECKey();
@@ -106,7 +106,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
   @Test
   public void signing_failOnDuplicate() throws Exception {
     // mix config
-    Mix mix = __nextMix(2, 2, __getCurrentMix().getPool()); // 2 users
+    Mix mix = __nextMix(2, 0, 2, __getCurrentMix().getPool()); // 2 users
     boolean liquidity = false;
     long inputBalance = mix.getPool().computePremixBalanceMin(liquidity);
 
@@ -148,7 +148,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
   @Test
   public void signing_failOnInvalidSignedAmount() throws Exception {
     // mix config
-    Mix mix = __nextMix(1, 1, __getCurrentMix().getPool()); // 1 user
+    Mix mix = __nextMix(1, 0, 1, __getCurrentMix().getPool()); // 1 user
 
     // prepare input
     ECKey ecKey = new ECKey();
@@ -186,7 +186,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
   @Test
   public void signing_failOnInvalidSignature() throws Exception {
     // mix config
-    Mix mix = __nextMix(1, 1, __getCurrentMix().getPool()); // 1 user
+    Mix mix = __nextMix(1, 0, 1, __getCurrentMix().getPool()); // 1 user
 
     // prepare input
     ECKey ecKey = new ECKey();

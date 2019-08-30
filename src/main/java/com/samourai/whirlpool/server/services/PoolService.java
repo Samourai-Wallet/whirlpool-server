@@ -65,6 +65,7 @@ public class PoolService {
       long minerFeeCap = poolConfig.getMinerFeeCap();
       long minerFeeMax = poolConfig.getMinerFeeMax();
       int minMustMix = poolConfig.getMustMixMin();
+      int minLiquidity = poolConfig.getLiquidityMin();
       int targetAnonymitySet = poolConfig.getAnonymitySetTarget();
       int minAnonymitySet = poolConfig.getAnonymitySetMin();
       int maxAnonymitySet = poolConfig.getAnonymitySetMax();
@@ -82,6 +83,7 @@ public class PoolService {
               minerFeeCap,
               minerFeeMax,
               minMustMix,
+              minLiquidity,
               targetAnonymitySet,
               minAnonymitySet,
               maxAnonymitySet,

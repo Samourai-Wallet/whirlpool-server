@@ -123,7 +123,8 @@ public abstract class AbstractIntegrationTest {
       throws IllegalInputException {
     configurePools(poolConfig);
     Pool pool = poolService.getPool(poolConfig.getId());
-    return mixService.__nextMix(pool);
+    Mix mix = mixService.__nextMix(pool);
+    return mix;
   }
 
   protected Mix __nextMix(
@@ -133,6 +134,7 @@ public abstract class AbstractIntegrationTest {
       long minerFeeCap,
       long minerFeeMax,
       int mustMixMin,
+      int liquidityMin,
       int anonymitySetTarget,
       int anonymitySetMin,
       int anonymitySetMax,
@@ -148,6 +150,7 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setMinerFeeCap(minerFeeCap);
     poolConfig.setMinerFeeMax(minerFeeMax);
     poolConfig.setMustMixMin(mustMixMin);
+    poolConfig.setLiquidityMin(liquidityMin);
     poolConfig.setAnonymitySetTarget(anonymitySetTarget);
     poolConfig.setAnonymitySetMin(anonymitySetMin);
     poolConfig.setAnonymitySetMax(anonymitySetMax);
@@ -157,7 +160,7 @@ public abstract class AbstractIntegrationTest {
     return __nextMix(poolConfig);
   }
 
-  protected Mix __nextMix(int mustMixMin, int anonymitySet, Pool copyPool)
+  protected Mix __nextMix(int mustMixMin, int liquidityMin, int anonymitySet, Pool copyPool)
       throws IllegalInputException {
     // create new pool
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
@@ -169,6 +172,7 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setMinerFeeCap(copyPool.getMinerFeeCap());
     poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());
     poolConfig.setMustMixMin(mustMixMin);
+    poolConfig.setLiquidityMin(liquidityMin);
     poolConfig.setAnonymitySetTarget(anonymitySet);
     poolConfig.setAnonymitySetMin(anonymitySet);
     poolConfig.setAnonymitySetMax(anonymitySet);

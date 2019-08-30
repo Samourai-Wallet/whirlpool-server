@@ -28,6 +28,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
     int mustMixMin = NB_CLIENTS;
+    int liquidityMin = 0;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
     int anonymitySetMax = NB_CLIENTS;
@@ -41,6 +42,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             minerFeeCap,
             minerFeeMax,
             mustMixMin,
+            liquidityMin,
             anonymitySetTarget,
             anonymitySetMin,
             anonymitySetMax,
@@ -79,6 +81,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
     int mustMixMin = NB_CLIENTS;
+    int liquidityMin = 0;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
     int anonymitySetMax = NB_CLIENTS;
@@ -92,6 +95,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             minerFeeCap,
             minerFeeMax,
             mustMixMin,
+            liquidityMin,
             anonymitySetTarget,
             anonymitySetMin,
             anonymitySetMax,
@@ -138,6 +142,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
     int mustMixMin = 3;
+    int liquidityMin = 0;
     int anonymitySetTarget = NB_CLIENTS;
     int anonymitySetMin = NB_CLIENTS;
     int anonymitySetMax = NB_CLIENTS;
@@ -151,6 +156,7 @@ public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
             minerFeeCap,
             minerFeeMax,
             mustMixMin,
+            liquidityMin,
             anonymitySetTarget,
             anonymitySetMin,
             anonymitySetMax,

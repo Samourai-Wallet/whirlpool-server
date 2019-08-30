@@ -98,6 +98,10 @@ public class Mix {
     return getNbInputsMustMix() >= pool.getMinMustMix();
   }
 
+  public boolean hasMinLiquidityMixReached() {
+    return getNbInputsLiquidities() >= pool.getMinLiquidity();
+  }
+
   public boolean isFull() {
     return (getNbInputs() >= pool.getMaxAnonymitySet());
   }

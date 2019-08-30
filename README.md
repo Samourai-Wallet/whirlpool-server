@@ -45,7 +45,7 @@ Standard fee configuration is through *fee-value*.
 ```
 server.register-input.min-confirmations-must-mix: minimum confirmations for mustMix inputs
 server.register-input.min-confirmations-liquidity: minimum confirmations for liquidity inputs
-```
+server.register-input.liquidity-interval = 10: liquidities are added by batch at this frequency
 
 ### UTXO rules
 ```
@@ -70,14 +70,13 @@ server.pools[x].anonymity-set-max = 20
 server.pools[x].anonymity-set-adjust-timeout = 120
 
 server.pools[x].must-mix-min = 1
-server.pools[x].liquidity-interval = 10
+server.pools[x].liquidity-min = 1
 ```
 Mix will start when *anonymity-set-target* (mustMix + liquidities) are registered.<br/>
 If this target is not met after *anonymity-set-adjust-timeout*, it will be gradually decreased to *anonymity-set-min*.<br/>
 
-At the beginning of the mix, only mustMix can register. Meanwhile, liquidities connecting are placed on a waiting pool.<br/>
+At the beginning of the mix, only mustMix can register up, to *anonymity-set-max - liquidity-min*. Meanwhile, liquidities are placed on a waiting pool.<br/>
 Liquidities are added as soon as *must-mix-min* is reached, up to *anonymity-set-max* inputs for the mix.
-Liquidities are added by batch every *liquidity-interval*.
 
 ### Exports
 Each mix success/fail is appended to a CSV file:

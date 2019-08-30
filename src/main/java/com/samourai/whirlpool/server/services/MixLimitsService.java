@@ -183,6 +183,9 @@ public class MixLimitsService {
               return;
             }
             // add more liquidities
+            if (log.isDebugEnabled()) {
+              log.debug("liquidityWatcher.onTimeout => adding more liquidities...");
+            }
             addLiquidities(mix);
           }
         };
@@ -243,6 +246,7 @@ public class MixLimitsService {
     int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
     if (liquiditiesToAdd > 0) {
       // add queued liquidities if any
+      liquiditiesToAdd++; // invite one more liquidity to prevent more waiting if one disconnects
       poolService.inviteToMix(mix, true, liquiditiesToAdd);
     } else {
       if (log.isDebugEnabled()) {
