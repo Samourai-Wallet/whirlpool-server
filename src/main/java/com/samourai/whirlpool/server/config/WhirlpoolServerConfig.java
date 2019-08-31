@@ -564,6 +564,11 @@ public class WhirlpoolServerConfig {
               + poolConfig.anonymitySetMax
               + "]";
       poolInfo +=
+          ", mustMixMin="
+              + poolConfig.getMustMixMin()
+              + ", liquidityMin="
+              + poolConfig.getLiquidityMin();
+      poolInfo +=
           ", minerFee=["
               + poolConfig.minerFeeMin
               + "-"

@@ -44,9 +44,9 @@
                     </div>
                 </td>
                 <td>
-                    <span th:text="${pool.nbInputs}" style="font-weight:bold"/> / <span th:text="${pool.targetAnonymitySet}"/> total<br/>
+                    <strong><span th:text="${pool.nbInputs}"/> / <span th:text="${pool.targetAnonymitySet}"/> confirmed</strong><br/>
                     <span th:text="${pool.nbInputsMustMix}" style="font-weight:bold"/> / <span th:text="${pool.minMustMix}"/> mustMix<br/>
-                    <span th:text="${pool.nbInputsLiquidities}" style="font-weight:bold"/> / <span th:text="${pool.minLiquidity}"/> liquidities, <span th:text="${pool.liquiditiesQueued}"/> queued
+                    <span th:text="${pool.nbInputsLiquidities}" style="font-weight:bold"/> / <span th:text="${pool.minLiquidity}"/> liquidities + <span th:text="${pool.liquiditiesQueued}" style="font-weight:bold"/> queued
                 </td>
                 <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
                 <td>

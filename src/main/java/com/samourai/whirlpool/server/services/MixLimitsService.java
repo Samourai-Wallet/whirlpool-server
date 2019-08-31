@@ -183,9 +183,6 @@ public class MixLimitsService {
               return;
             }
             // add more liquidities
-            if (log.isDebugEnabled()) {
-              log.debug("liquidityWatcher.onTimeout => adding more liquidities...");
-            }
             addLiquidities(mix);
           }
         };
@@ -237,8 +234,8 @@ public class MixLimitsService {
 
   private void addLiquidities(Mix mix) {
     if (!mix.isRegisterLiquiditiesOpen()) {
-      if (log.isDebugEnabled()) {
-        log.debug("Cannot add liquidities yet: minMustMix not reached");
+      if (log.isTraceEnabled()) {
+        log.trace("No liquidity to add yet: minMustMix not reached");
       }
       return;
     }
