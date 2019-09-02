@@ -46,6 +46,7 @@ Standard fee configuration is through *fee-value*.
 server.register-input.min-confirmations-must-mix: minimum confirmations for mustMix inputs
 server.register-input.min-confirmations-liquidity: minimum confirmations for liquidity inputs
 server.register-input.liquidity-interval = 10: liquidities are added by batch at this frequency
+```
 
 ### UTXO rules
 ```
