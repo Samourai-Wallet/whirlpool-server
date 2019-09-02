@@ -90,6 +90,14 @@ public class MixLimitsService {
 
         liquidityWatcher.stop();
         liquidityWatchers.remove(mixId);
+
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "stopped liquidityWatcher for mixId="
+                  + mix.getMixId()
+                  + ": liquidityWatchers="
+                  + liquidityWatchers);
+        }
       }
     }
   }
@@ -126,6 +134,11 @@ public class MixLimitsService {
 
               default:
                 // no timer
+                if (log.isDebugEnabled()) {
+                  log.debug(
+                      "limitsWatcher.computeTimeToWait => no timer: mixStatus="
+                          + mix.getMixStatus());
+                }
                 break;
             }
             return timeToWait;
@@ -153,6 +166,11 @@ public class MixLimitsService {
               case SIGNING:
                 blameForSigningAndResetMix(mix);
                 break;
+
+              default:
+                if (log.isDebugEnabled()) {
+                  log.debug("limitsWatcher.onTimeout => ignored: mixStatus=" + mix.getMixStatus());
+                }
             }
           }
         };
@@ -178,7 +196,24 @@ public class MixLimitsService {
           public void onTimeout(TimeoutWatcher timeoutWatcher) {
             if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
               if (log.isDebugEnabled()) {
-                log.debug("liquidityWatcher.onTimeout => ignored: mixStatus=" + mix.getMixStatus());
+                log.debug(
+                    "liquidityWatcher.onTimeout => ignored: mixStatus="
+                        + mix.getMixStatus()
+                        + ", liquidityWatchers="
+                        + liquidityWatchers);
+              }
+
+              // stop
+              String mixId = mix.getMixId();
+              timeoutWatcher.stop();
+              liquidityWatchers.remove(mixId);
+
+              if (log.isDebugEnabled()) {
+                log.debug(
+                    "stopped liquidityWatcher for mixId="
+                        + mix.getMixId()
+                        + ": liquidityWatchers="
+                        + liquidityWatchers);
               }
               return;
             }
