@@ -23,8 +23,8 @@ public class AssignPrincipalChannelInterceptor implements ChannelInterceptor {
     StompHeaderAccessor accessor =
         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (log.isTraceEnabled()) {
+        log.trace(
             "Assigning principal from sessionId: login="
                 + (accessor.getLogin() != null ? accessor.getLogin() : "null")
                 + ",sessionId="

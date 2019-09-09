@@ -29,8 +29,8 @@ public class WebSocketSessionService {
   }
 
   public synchronized void onConnect(String username) {
-    if (log.isDebugEnabled()) {
-      log.debug("(--> " + username + ") : connect");
+    if (log.isTraceEnabled()) {
+      log.trace("(--> " + username + ") : connect");
     }
     if (!sessions.containsKey(username)) {
       sessions.put(username, Boolean.TRUE);
@@ -40,8 +40,8 @@ public class WebSocketSessionService {
   }
 
   public synchronized void onDisconnect(String username) {
-    if (log.isDebugEnabled()) {
-      log.debug("(--> " + username + ") : disconnect");
+    if (log.isTraceEnabled()) {
+      log.trace("(--> " + username + ") : disconnect");
     }
 
     if (sessions.containsKey(username)) {

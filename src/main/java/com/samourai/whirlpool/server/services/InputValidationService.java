@@ -117,8 +117,8 @@ public class InputValidationService {
 
   public ECKey validateSignature(TxOutPoint txOutPoint, String message, String signature)
       throws IllegalInputException {
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (log.isTraceEnabled()) {
+      log.trace(
           "Verifying signature: "
               + signature
               + "\n  for address: "

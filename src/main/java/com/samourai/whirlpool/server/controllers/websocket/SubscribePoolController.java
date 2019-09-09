@@ -37,8 +37,8 @@ public class SubscribePoolController extends AbstractWebSocketController {
     // don't validate headers here, so user is able to receive protocol version mismatch errors
 
     String username = principal.getName();
-    if (log.isDebugEnabled()) {
-      log.debug("[" + username + "] " + headers.getDestination());
+    if (log.isTraceEnabled()) {
+      log.trace("[" + username + "] " + headers.getDestination());
     }
 
     // validate poolId & reply poolStatusNotification

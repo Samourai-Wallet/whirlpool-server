@@ -32,8 +32,8 @@ public class BlockchainDataService {
   }
 
   protected Optional<RpcTransaction> getRpcTransaction(String txid) {
-    if (log.isDebugEnabled()) {
-      log.debug("RPC query: getRawTransaction " + txid);
+    if (log.isTraceEnabled()) {
+      log.trace("RPC query: getRawTransaction " + txid);
     }
     Optional<RpcRawTransactionResponse> queryRawTxHex = rpcClientService.getRawTransaction(txid);
     if (!queryRawTxHex.isPresent()) {
