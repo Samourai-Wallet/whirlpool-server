@@ -399,8 +399,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   public void getFeePayloadByScode() throws Exception {
     long now = System.currentTimeMillis();
     Assert.assertEquals(
-        0,
-        (int) feeValidationService.getScodeConfigByScode(SCODE_FOO_0, now).getFeeValuePercent());
+        0, (int) feeValidationService.getScodeConfigByScode(SCODE_FOO_0, now).getFeeValuePercent());
     Assert.assertEquals(
         25,
         (int) feeValidationService.getScodeConfigByScode(SCODE_BAR_25, now).getFeeValuePercent());
@@ -410,8 +409,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Assert.assertEquals(
         80,
         (int) feeValidationService.getScodeConfigByScode(SCODE_MAX_80, now).getFeeValuePercent());
-    Assert.assertEquals(
-        null, feeValidationService.getScodeConfigByScode("invalid", now));
+    Assert.assertEquals(null, feeValidationService.getScodeConfigByScode("invalid", now));
   }
 
   @Test

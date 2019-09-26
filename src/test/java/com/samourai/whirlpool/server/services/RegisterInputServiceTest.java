@@ -70,7 +70,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
           txOutPoint.getHash(),
           txOutPoint.getIndex(),
           liquidity,
-          true,
           "127.0.0.1");
 
     } catch (Exception e) {
@@ -171,7 +170,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
 
     // VERIFY
@@ -214,7 +212,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
             txOutPoint.getHash(),
             txOutPoint.getIndex(),
             false,
-            true,
             "127.0.0.1");
 
         // VERIFY
@@ -248,7 +245,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
 
     // VERIFY
@@ -280,7 +276,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
 
     // VERIFY
@@ -310,7 +305,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // confirming
@@ -322,7 +316,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // not confirming twice
@@ -352,7 +345,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
 
     // VERIFY
@@ -383,7 +375,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
 
     // VERIFY
@@ -414,7 +405,6 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         false,
-        true,
         "127.0.0.1");
 
     // VERIFY

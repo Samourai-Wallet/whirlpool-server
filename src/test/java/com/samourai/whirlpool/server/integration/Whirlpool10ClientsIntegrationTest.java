@@ -18,6 +18,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class Whirlpool10ClientsIntegrationTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    serverConfig.setTestMode(true);
+  }
+
   @Test
   public void whirlpool_10clients() throws Exception {
     final int NB_CLIENTS = 10;

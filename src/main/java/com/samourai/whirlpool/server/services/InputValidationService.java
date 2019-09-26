@@ -37,16 +37,11 @@ public class InputValidationService {
   }
 
   public TxOutPoint validateProvenance(
-      TxOutPoint txOutPoint,
-      RpcTransaction tx,
-      boolean liquidity,
-      boolean testMode,
-      Pool pool,
-      boolean hasMixTxid)
+      TxOutPoint txOutPoint, RpcTransaction tx, boolean liquidity, Pool pool, boolean hasMixTxid)
       throws IllegalInputException {
 
     // provenance verification can be disabled with testMode
-    if (whirlpoolServerConfig.isTestMode() && testMode) {
+    if (whirlpoolServerConfig.isTestMode()) {
       log.warn("tx0 check disabled by testMode");
       return txOutPoint;
     }

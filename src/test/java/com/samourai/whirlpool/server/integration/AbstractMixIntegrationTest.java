@@ -42,7 +42,6 @@ public abstract class AbstractMixIntegrationTest extends AbstractIntegrationTest
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         liquidity,
-        true,
         "127.0.0.1");
     return txOutPoint;
   }

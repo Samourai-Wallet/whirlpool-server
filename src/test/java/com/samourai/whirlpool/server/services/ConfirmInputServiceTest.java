@@ -103,7 +103,6 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint1.getHash(),
         txOutPoint1.getIndex(),
         false,
-        true,
         "127.0.0.1");
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // confirming
@@ -115,7 +114,6 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
         txOutPoint2.getHash(),
         txOutPoint2.getIndex(),
         false,
-        true,
         "127.0.0.1");
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 2, mix); // confirming

@@ -48,7 +48,6 @@ public class RegisterInputService {
       String utxoHash,
       long utxoIndex,
       boolean liquidity,
-      boolean testMode,
       String ip)
       throws IllegalInputException, MixException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
@@ -84,7 +83,7 @@ public class RegisterInputService {
         Pool pool = poolService.getPool(poolId);
         boolean hasMixTxid = dbService.hasMixTxid(txid, txOutPoint.getValue());
         inputValidationService.validateProvenance(
-            txOutPoint, rpcTransaction, liquidity, testMode, pool, hasMixTxid);
+            txOutPoint, rpcTransaction, liquidity, pool, hasMixTxid);
       } else {
         log.warn("tx0 check disabled by whitelist for txid=" + txid);
       }

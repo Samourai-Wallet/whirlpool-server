@@ -94,7 +94,7 @@ public abstract class AbstractIntegrationTest {
 
   protected NetworkParameters params;
 
-  protected CliConfig cliConfig = new CliConfig();
+  protected CliConfig cliConfig;
 
   @Before
   public void setUp() throws Exception {
@@ -105,6 +105,8 @@ public abstract class AbstractIntegrationTest {
 
     Assert.assertTrue(MockRpcClientServiceImpl.class.isAssignableFrom(rpcClientService.getClass()));
     this.params = cryptoService.getNetworkParameters();
+
+    cliConfig = new CliConfig();
 
     messageSignUtil = MessageSignUtilGeneric.getInstance();
 
@@ -207,8 +209,6 @@ public abstract class AbstractIntegrationTest {
             mixLimitsService,
             blockchainDataService,
             port);
-    multiClientManager.setTestMode(serverConfig.isTestMode());
-    multiClientManager.setSsl(false);
     return multiClientManager;
   }
 

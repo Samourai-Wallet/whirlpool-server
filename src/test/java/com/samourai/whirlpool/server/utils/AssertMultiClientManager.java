@@ -44,8 +44,6 @@ public class AssertMultiClientManager extends MultiClientManager {
   private MixLimitsService mixLimitsService;
   private BlockchainDataService blockchainDataService;
   private int port;
-  private boolean ssl;
-  private boolean testMode;
 
   private Mix mix;
 
@@ -69,8 +67,6 @@ public class AssertMultiClientManager extends MultiClientManager {
     this.mixLimitsService = mixLimitsService;
     this.blockchainDataService = blockchainDataService;
     this.port = port;
-    this.ssl = true;
-    this.testMode = false;
 
     inputs = new TxOutPoint[nbClients];
     inputKeys = new ECKey[nbClients];
@@ -89,7 +85,6 @@ public class AssertMultiClientManager extends MultiClientManager {
             new MemoryWalletPersistHandler(),
             server,
             cryptoService.getNetworkParameters());
-    config.setTestMode(testMode);
     return WhirlpoolClientImpl.newClient(config);
   }
 
@@ -401,13 +396,5 @@ public class AssertMultiClientManager extends MultiClientManager {
         whirlpoolClient.exit();
       }
     }
-  }
-
-  public void setTestMode(boolean testMode) {
-    this.testMode = testMode;
-  }
-
-  public void setSsl(boolean ssl) {
-    this.ssl = ssl;
   }
 }

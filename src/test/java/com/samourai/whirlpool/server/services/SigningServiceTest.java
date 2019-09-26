@@ -240,7 +240,6 @@ public class SigningServiceTest extends AbstractIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         liquidity,
-        true,
         "127.0.0.1");
 
     // confirm input
