@@ -47,8 +47,8 @@ public class PoolFee {
     return feeAccept;
   }
 
-  private long computeFeeValue(int feePercent) {
-    int result = Math.round(feeValue * feePercent / 100);
+  public long computeFeeValue(int feePercent) {
+    long result = Math.round(feeValue * feePercent / 100);
     return result;
   }
 

@@ -505,7 +505,7 @@ public class WhirlpoolServerConfig {
       if (payload == null || payload == 0) {
         throw new Exception("Invalid scode.payload");
       }
-      if (feeValuePercent == null || feeValuePercent < 0 || feeValuePercent > 100) {
+      if (feeValuePercent == null || feeValuePercent < 0 || feeValuePercent > 99) {
         throw new Exception("Invalid scode.feeValuePercent");
       }
       if (expiration != null && expiration <= 0) {

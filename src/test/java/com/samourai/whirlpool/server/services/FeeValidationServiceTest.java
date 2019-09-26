@@ -34,13 +34,13 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long FEES_VALID = 975000;
 
-  private static final String SCODE_FOO_10 = "foo";
+  private static final String SCODE_FOO_0 = "foo";
   private static final short SCODE_FOO_PAYLOAD = 1234;
   private static final String SCODE_BAR_25 = "bar";
   private static final short SCODE_BAR_PAYLOAD = 5678;
   private static final String SCODE_MIN_50 = "min";
   private static final short SCODE_MIN_PAYLOAD = -32768;
-  private static final String SCODE_MAX_100 = "max";
+  private static final String SCODE_MAX_80 = "max";
   private static final short SCODE_MAX_PAYLOAD = 32767;
 
   @Override
@@ -49,10 +49,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     dbService.__reset();
 
     // scodes
-    setScodeConfig(SCODE_FOO_10, SCODE_FOO_PAYLOAD, 0, null);
+    setScodeConfig(SCODE_FOO_0, SCODE_FOO_PAYLOAD, 0, null);
     setScodeConfig(SCODE_BAR_25, SCODE_BAR_PAYLOAD, 25, null);
     setScodeConfig(SCODE_MIN_50, SCODE_MIN_PAYLOAD, 50, null);
-    setScodeConfig(SCODE_MAX_100, SCODE_MAX_PAYLOAD, 100, null);
+    setScodeConfig(SCODE_MAX_80, SCODE_MAX_PAYLOAD, 80, null);
   }
 
   private void assertFeeData(String txid, Integer feeIndice, byte[] feePayload) {
@@ -397,23 +397,21 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
   @Test
   public void getFeePayloadByScode() throws Exception {
+    long now = System.currentTimeMillis();
     Assert.assertEquals(
-        SCODE_FOO_PAYLOAD,
-        Utils.feePayloadBytesToShort(
-            feeValidationService.getFeePayloadByScode(SCODE_FOO_10, 1234)));
+        0,
+        (int) feeValidationService.getScodeConfigByScode(SCODE_FOO_0, now).getFeeValuePercent());
     Assert.assertEquals(
-        SCODE_BAR_PAYLOAD,
-        Utils.feePayloadBytesToShort(
-            feeValidationService.getFeePayloadByScode(SCODE_BAR_25, 1234)));
+        25,
+        (int) feeValidationService.getScodeConfigByScode(SCODE_BAR_25, now).getFeeValuePercent());
     Assert.assertEquals(
-        SCODE_MIN_PAYLOAD,
-        Utils.feePayloadBytesToShort(
-            feeValidationService.getFeePayloadByScode(SCODE_MIN_50, 1234)));
+        50,
+        (int) feeValidationService.getScodeConfigByScode(SCODE_MIN_50, now).getFeeValuePercent());
     Assert.assertEquals(
-        SCODE_MAX_PAYLOAD,
-        Utils.feePayloadBytesToShort(
-            feeValidationService.getFeePayloadByScode(SCODE_MAX_100, 1234)));
-    Assert.assertEquals(null, feeValidationService.getFeePayloadByScode("invalid", 1234));
+        80,
+        (int) feeValidationService.getScodeConfigByScode(SCODE_MAX_80, now).getFeeValuePercent());
+    Assert.assertEquals(
+        null, feeValidationService.getScodeConfigByScode("invalid", now));
   }
 
   @Test

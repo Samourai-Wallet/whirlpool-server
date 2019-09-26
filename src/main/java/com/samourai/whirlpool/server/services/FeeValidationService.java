@@ -255,7 +255,8 @@ public class FeeValidationService {
     return feePayloadEntry.get().getValue();
   }
 
-  public byte[] getFeePayloadByScode(String scode, long tx0Time) {
+  public WhirlpoolServerConfig.ScodeSamouraiFeeConfig getScodeConfigByScode(
+      String scode, long tx0Time) {
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
         serverConfig.getSamouraiFees().getScodes().get(scode);
     if (scodeConfig == null) {
@@ -264,6 +265,6 @@ public class FeeValidationService {
     if (!isScodeValid(scodeConfig, tx0Time)) {
       return null;
     }
-    return Utils.feePayloadShortToBytes(scodeConfig.getPayload());
+    return scodeConfig;
   }
 }
