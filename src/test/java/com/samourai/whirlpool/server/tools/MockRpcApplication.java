@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.tools;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
 import com.samourai.whirlpool.server.integration.AbstractJsonRpcClientTest;
+import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
 import com.samourai.whirlpool.server.services.rpc.RpcRawTransactionResponse;
 import java.util.Optional;
 import org.junit.Assert;
@@ -52,7 +53,8 @@ public class MockRpcApplication extends AbstractJsonRpcClientTest {
     try {
       Optional<RpcRawTransactionResponse> rpcTxResponse = rpcClientService.getRawTransaction(txid);
       Assert.assertTrue(rpcTxResponse.isPresent());
-      testUtils.writeMockRpc(txid, rpcTxResponse.get().getHex());
+      ((MockRpcClientServiceImpl) rpcClientService)
+          .writeMockRpc(txid, rpcTxResponse.get().getHex());
     } catch (Exception e) {
       log.error("", e);
     }

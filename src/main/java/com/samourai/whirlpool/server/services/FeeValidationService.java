@@ -5,7 +5,6 @@ import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.Callback;
-import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
@@ -33,7 +32,6 @@ public class FeeValidationService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private CryptoService cryptoService;
-  private FormatsUtilGeneric formatsUtil;
   private WhirlpoolServerConfig serverConfig;
   private Bech32UtilGeneric bech32Util;
   private HD_WalletFactoryJava hdWalletFactory;
@@ -44,7 +42,6 @@ public class FeeValidationService {
 
   public FeeValidationService(
       CryptoService cryptoService,
-      FormatsUtilGeneric formatsUtil,
       WhirlpoolServerConfig serverConfig,
       Bech32UtilGeneric bech32UtilGeneric,
       HD_WalletFactoryJava hdWalletFactory,
@@ -53,7 +50,6 @@ public class FeeValidationService {
       WhirlpoolFee whirlpoolFee)
       throws Exception {
     this.cryptoService = cryptoService;
-    this.formatsUtil = formatsUtil;
     this.serverConfig = serverConfig;
     this.bech32Util = bech32UtilGeneric;
     this.hdWalletFactory = hdWalletFactory;
@@ -99,15 +95,19 @@ public class FeeValidationService {
   public boolean isValidTx0(
       Transaction tx0, long tx0Time, WhirlpoolFeeData feeData, PoolFee poolFee) {
     // validate feePayload
-    if (isValidFeePayload(feeData.getFeePayload())) {
+    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
+        validateFeePayload(feeData.getFeePayload(), tx0Time);
+    int feePercent = (scodeConfig != null ? scodeConfig.getFeeValuePercent() : 100);
+    if (feePercent == 0) {
+      // no fee
       return true;
-    } else {
-      // validate for feeIndice
-      return isTx0FeePaid(tx0, tx0Time, feeData.getFeeIndice(), poolFee);
     }
+    // validate for feeIndice with feePercent
+    return isTx0FeePaid(tx0, tx0Time, feeData.getFeeIndice(), poolFee, feePercent);
   }
 
-  protected boolean isTx0FeePaid(Transaction tx0, long tx0Time, int x, PoolFee poolFee) {
+  protected boolean isTx0FeePaid(
+      Transaction tx0, long tx0Time, int x, PoolFee poolFee, int feeValuePercent) {
     if (x < 0) {
       log.error("Invalid samouraiFee indice: " + x);
       return false;
@@ -124,7 +124,7 @@ public class FeeValidationService {
       if (toAddress != null && feesAddressBech32.equals(toAddress)) {
         // ok, this is the fees payment output
         long feePaid = txOutput.getValue().getValue();
-        if (poolFee.checkTx0FeePaid(feePaid, tx0Time)) {
+        if (poolFee.checkTx0FeePaid(feePaid, tx0Time, feeValuePercent)) {
           return true;
         } else {
           log.warn(
@@ -138,7 +138,9 @@ public class FeeValidationService {
                   + x
                   + ", poolFee="
                   + poolFee
-                  + ",  feesAddressBech32="
+                  + ", feeValuePercent="
+                  + feeValuePercent
+                  + ", feesAddressBech32="
                   + feesAddressBech32);
         }
       }
@@ -152,6 +154,8 @@ public class FeeValidationService {
             + x
             + ", poolFee="
             + poolFee
+            + ", feeValuePercent="
+            + feeValuePercent
             + ",  feesAddressBech32="
             + feesAddressBech32);
     return false;
@@ -204,37 +208,62 @@ public class FeeValidationService {
     return null;
   }
 
-  private boolean isValidFeePayload(byte[] feePayload) {
+  private WhirlpoolServerConfig.ScodeSamouraiFeeConfig validateFeePayload(
+      byte[] feePayload, long tx0Time) {
     if (feePayload == null || feePayload.length != WhirlpoolFee.FEE_PAYLOAD_LENGTH) {
-      return false;
+      return null;
     }
 
     // search in configuration
-    return getScodeByFeePayload(feePayload) != null;
-  }
-
-  protected String getScodeByFeePayload(byte[] feePayload) {
-    short feePayloadAsShort = Utils.feePayloadBytesToShort(feePayload);
-    Optional<Entry<String, Short>> feePayloadEntry =
-        serverConfig
-            .getSamouraiFees()
-            .getFeePayloadByScode()
-            .entrySet()
-            .stream()
-            .filter(e -> e.getValue() == feePayloadAsShort)
-            .findFirst();
-    if (!feePayloadEntry.isPresent()) {
+    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig = getScodeByFeePayload(feePayload);
+    if (scodeConfig == null) {
       // scode not found
       return null;
     }
-    return feePayloadEntry.get().getKey();
-  }
-
-  public byte[] getFeePayloadByScode(String scode) {
-    Short feePayloadAsShort = serverConfig.getSamouraiFees().getFeePayloadByScode().get(scode);
-    if (feePayloadAsShort == null) {
+    if (!isScodeValid(scodeConfig, tx0Time)) {
+      // scode expired
       return null;
     }
-    return Utils.feePayloadShortToBytes(feePayloadAsShort);
+    return scodeConfig;
+  }
+
+  public boolean isScodeValid(
+      WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig, long tx0Time) {
+    // check expiration
+    if (scodeConfig.getExpiration() != null && tx0Time > scodeConfig.getExpiration()) {
+      log.warn("SCode expired: expiration=" + scodeConfig.getExpiration() + ", tx0Time=" + tx0Time);
+      return false;
+    }
+    return true;
+  }
+
+  protected WhirlpoolServerConfig.ScodeSamouraiFeeConfig getScodeByFeePayload(byte[] feePayload) {
+    short feePayloadAsShort = Utils.feePayloadBytesToShort(feePayload);
+    Optional<Entry<String, WhirlpoolServerConfig.ScodeSamouraiFeeConfig>> feePayloadEntry =
+        serverConfig
+            .getSamouraiFees()
+            .getScodes()
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue().getPayload() == feePayloadAsShort)
+            .findFirst();
+    if (!feePayloadEntry.isPresent()) {
+      // scode not found
+      log.warn("No SCode found for payload=" + Utils.feePayloadBytesToShort(feePayload));
+      return null;
+    }
+    return feePayloadEntry.get().getValue();
+  }
+
+  public byte[] getFeePayloadByScode(String scode, long tx0Time) {
+    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
+        serverConfig.getSamouraiFees().getScodes().get(scode);
+    if (scodeConfig == null) {
+      return null;
+    }
+    if (!isScodeValid(scodeConfig, tx0Time)) {
+      return null;
+    }
+    return Utils.feePayloadShortToBytes(scodeConfig.getPayload());
   }
 }

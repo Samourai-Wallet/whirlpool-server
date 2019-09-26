@@ -101,6 +101,8 @@ public abstract class AbstractIntegrationTest {
     // enable debug
     Utils.setLoggerDebug("com.samourai.whirlpool");
 
+    serverConfig.validate();
+
     Assert.assertTrue(MockRpcClientServiceImpl.class.isAssignableFrom(rpcClientService.getClass()));
     this.params = cryptoService.getNetworkParameters();
 
@@ -232,5 +234,16 @@ public abstract class AbstractIntegrationTest {
   public TxOutPoint createAndMockTxOutPoint(SegwitAddress address, long amount, int nbConfirmations)
       throws Exception {
     return createAndMockTxOutPoint(address, amount, nbConfirmations, null);
+  }
+
+  protected void setScodeConfig(String scode, short payload, int feeValuePercent, Long expiration) {
+    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
+        new WhirlpoolServerConfig.ScodeSamouraiFeeConfig();
+    scodeConfig.setPayload(payload);
+    scodeConfig.setFeeValuePercent(feeValuePercent);
+    if (expiration != null) {
+      scodeConfig.setExpiration(expiration);
+    }
+    serverConfig.getSamouraiFees().getScodes().put(scode, scodeConfig);
   }
 }

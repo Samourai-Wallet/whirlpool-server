@@ -55,13 +55,18 @@ server.register-input.max-inputs-same-hash: max inputs with same hash (same orig
 
 ### SCodes
 ```
-server.samourai-fees.feePayloadByScode[foo] = 12345
-server.samourai-fees.feePayloadByScode[bar] = 23456
+server.samourai-fees.scodes[foo].payload = 12345
+server.samourai-fees.scodes[foo].fee-value-percent = 50
+server.samourai-fees.scodes[foo].expiration = 1569484078 # optional
+
+server.samourai-fees.scodes[bar].payload = 23456
+server.samourai-fees.scodes[bar].fee-value-percent = 0
 ```
-Scodes are special codes usable to enable special rules for tx0.
-Each scode is mapped in configuration to a short value (-32,768 to 32,767) which will be embedded into tx0's OP_RETURN as WhirlpoolFeeData.feePayload.
-Multiple scode can be mapped to same short value.
-Forbidden short value is '0', which is mapped to WhirlpoolFeeData.feePayload=NULL.
+SCodes are special codes usable to enable special rules for tx0.
+Each SCode is mapped to a short value payload (-32,768 to 32,767) which will be embedded into tx0's OP_RETURN as WhirlpoolFeeData.feePayload.
+Payload '0' is forbidden, which is mapped to WhirlpoolFeeData.feePayload=NULL.
+SCode overrides standard fee-value with a percent of this value.
+SCode can expire for tx0s confirmed after a specified time.
 
 ### Pool: Mix limits
 ```
@@ -93,6 +98,8 @@ server.test-mode = false
 ```
 For testing purpose, *server.rpc-client.mock-tx-broadcast* can be enabled to mock txs instead of broadcasting it.
 When enabled, *server.test-mode* allows client to bypass tx0 checks.
+
+java -jar -Dspring.profiles.active=test target/whirlpool-server-develop-SNAPSHOT.jar --debug --spring.config.location=classpath:application.properties,/path/to/application-default.properties
 
 ## Resources
  * [whirlpool](https://github.com/Samourai-Wallet/Whirlpool)

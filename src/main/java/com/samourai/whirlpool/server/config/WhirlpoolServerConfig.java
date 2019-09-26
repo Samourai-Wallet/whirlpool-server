@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.validation.constraints.NotEmpty;
+import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
@@ -459,7 +460,16 @@ public class WhirlpoolServerConfig {
   public static class SamouraiFeeConfig {
     @NotEmpty private String xpub;
     private SecretWalletConfig secretWallet;
-    private Map<String, Short> feePayloadByScode = new HashMap<>(); // -32,768 to 32,767
+    private Map<String, ScodeSamouraiFeeConfig> scodes = new HashMap<>(); // -32,768 to 32,767
+
+    public void validate() throws Exception {
+      for (Map.Entry<String, ScodeSamouraiFeeConfig> scodeEntry : scodes.entrySet()) {
+        if (StringUtils.isEmpty(scodeEntry.getKey())) {
+          throw new Exception("Invalid scode ID: empty");
+        }
+        scodeEntry.getValue().validate();
+      }
+    }
 
     public String getXpub() {
       return xpub;
@@ -477,12 +487,54 @@ public class WhirlpoolServerConfig {
       this.secretWallet = secretWallet;
     }
 
-    public Map<String, Short> getFeePayloadByScode() {
-      return feePayloadByScode;
+    public Map<String, ScodeSamouraiFeeConfig> getScodes() {
+      return scodes;
     }
 
-    public void setFeePayloadByScode(Map<String, Short> feePayloadByScode) {
-      this.feePayloadByScode = feePayloadByScode;
+    public void setScodes(Map<String, ScodeSamouraiFeeConfig> scodes) {
+      this.scodes = scodes;
+    }
+  }
+
+  public static class ScodeSamouraiFeeConfig {
+    @NotEmpty private Short payload;
+    @NotEmpty private Integer feeValuePercent; // 0-100
+    private Long expiration;
+
+    public void validate() throws Exception {
+      if (payload == null || payload == 0) {
+        throw new Exception("Invalid scode.payload");
+      }
+      if (feeValuePercent == null || feeValuePercent < 0 || feeValuePercent > 100) {
+        throw new Exception("Invalid scode.feeValuePercent");
+      }
+      if (expiration != null && expiration <= 0) {
+        throw new Exception("Invalid scode.expiration");
+      }
+    }
+
+    public Short getPayload() {
+      return payload;
+    }
+
+    public void setPayload(Short payload) {
+      this.payload = payload;
+    }
+
+    public Integer getFeeValuePercent() {
+      return feeValuePercent;
+    }
+
+    public void setFeeValuePercent(Integer feeValuePercent) {
+      this.feeValuePercent = feeValuePercent;
+    }
+
+    public Long getExpiration() {
+      return expiration;
+    }
+
+    public void setExpiration(Long expiration) {
+      this.expiration = expiration;
     }
   }
 
@@ -505,6 +557,10 @@ public class WhirlpoolServerConfig {
     public void setPassphrase(String passphrase) {
       this.passphrase = passphrase;
     }
+  }
+
+  public void validate() throws Exception {
+    samouraiFees.validate();
   }
 
   public Map<String, String> getConfigInfo() {
@@ -578,10 +634,15 @@ public class WhirlpoolServerConfig {
               + "]";
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);
     }
-    for (Map.Entry<String, Short> feePayloadEntry :
-        samouraiFees.getFeePayloadByScode().entrySet()) {
+    for (Map.Entry<String, ScodeSamouraiFeeConfig> feePayloadEntry :
+        samouraiFees.getScodes().entrySet()) {
       String scode = Utils.obfuscateString(feePayloadEntry.getKey(), 1);
-      configInfo.put("scode[" + scode + "]", "enabled");
+      ScodeSamouraiFeeConfig scodeConfig = feePayloadEntry.getValue();
+      String scodeInfo = "feeValue=" + scodeConfig.feeValuePercent + "%";
+      if (scodeConfig.expiration != null) {
+        scodeInfo += ", expiration=" + scodeConfig.expiration;
+      }
+      configInfo.put("scode[" + scode + "]", scodeInfo);
     }
     return configInfo;
   }

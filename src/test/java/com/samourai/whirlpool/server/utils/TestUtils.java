@@ -14,15 +14,9 @@ import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.services.CryptoService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.invoke.MethodHandles;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Optional;
-import org.aspectj.util.FileUtil;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
@@ -74,28 +68,6 @@ public class TestUtils {
   public BIP47WalletAndHDWallet generateWallet() throws Exception {
     byte seed[] = cryptoTestUtil.generateSeed();
     return generateWallet(seed, "test");
-  }
-
-  private String getMockFileName(String txid) {
-    return "./src/test/resources/mocks/" + txid + ".txt";
-  }
-
-  public void writeMockRpc(String txid, String rawTxHex) throws Exception {
-    String fileName = getMockFileName(txid);
-    System.out.println("writing " + fileName + ": " + rawTxHex);
-    Files.write(Paths.get(fileName), rawTxHex.getBytes(), StandardOpenOption.CREATE);
-  }
-
-  public Optional<String> loadMockRpc(String txid) {
-    String mockFile = getMockFileName(txid);
-    try {
-      log.info("reading mock: " + mockFile);
-      String rawTx = FileUtil.readAsString(new File(mockFile));
-      return Optional.of(rawTx);
-    } catch (Exception e) {
-      log.info("mock not found: " + mockFile);
-      return Optional.empty();
-    }
   }
 
   public void assertPool(int nbMustMix, int nbLiquidity, Pool pool) {

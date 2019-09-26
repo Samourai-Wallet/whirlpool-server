@@ -89,20 +89,23 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     } // ignore duplicate
 
     // accept when valid mustMix, paid exact fee
+    PoolFee poolFee = new PoolFee(FEES_VALID, null);
     for (int i = 0; i < 8; i++) {
-      Assert.assertFalse(doCheckInput(txid, i));
+      Assert.assertFalse(doCheckInput(txid, i, poolFee));
     }
 
     // accept when valid mustMix, paid more than fee
+    poolFee = new PoolFee(FEES_VALID - 1, null);
     for (int i = 0; i < 8; i++) {
-      Assert.assertFalse(doCheckInput(txid, i));
+      Assert.assertFalse(doCheckInput(txid, i, poolFee));
     }
 
     // reject when paid less than fee
+    poolFee = new PoolFee(FEES_VALID + 1, null);
     for (int i = 0; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
       thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
-      doCheckInput(txid, i);
+      doCheckInput(txid, i, poolFee);
     }
   }
 
@@ -118,17 +121,22 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   @Test
   public void checkInput_feePayload_valid() throws Exception {
     // accept when valid feePayload
-    serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
+    setScodeConfig("myscode", (short) 12345, 0, null);
     doCheckInput("b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3", 2);
   }
 
   private boolean doCheckInput(String utxoHash, long utxoIndex) throws IllegalInputException {
+    PoolFee poolFee = new PoolFee(FEES_VALID, null);
+    return doCheckInput(utxoHash, utxoIndex, poolFee);
+  }
+
+  private boolean doCheckInput(String utxoHash, long utxoIndex, PoolFee poolFee)
+      throws IllegalInputException {
     RpcTransaction rpcTransaction =
         blockchainDataService
             .getRpcTransaction(utxoHash)
             .orElseThrow(() -> new NoSuchElementException(utxoHash + "-" + utxoIndex));
     long inputValue = rpcTransaction.getTx().getOutput(utxoIndex).getValue().getValue();
-    PoolFee poolFee = new PoolFee(FEES_VALID, null);
     boolean hasMixTxid = hasMixTxid(utxoHash, inputValue);
     boolean isLiquidity =
         inputValidationService.checkInputProvenance(

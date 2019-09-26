@@ -34,13 +34,13 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final long FEES_VALID = 975000;
 
-  private static final String SCODE_FOO = "foo";
+  private static final String SCODE_FOO_10 = "foo";
   private static final short SCODE_FOO_PAYLOAD = 1234;
-  private static final String SCODE_BAR = "bar";
+  private static final String SCODE_BAR_25 = "bar";
   private static final short SCODE_BAR_PAYLOAD = 5678;
-  private static final String SCODE_MIN = "min";
+  private static final String SCODE_MIN_50 = "min";
   private static final short SCODE_MIN_PAYLOAD = -32768;
-  private static final String SCODE_MAX = "max";
+  private static final String SCODE_MAX_100 = "max";
   private static final short SCODE_MAX_PAYLOAD = 32767;
 
   @Override
@@ -48,13 +48,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     super.setUp();
     dbService.__reset();
 
-    // feePayloadByScode
-    Map<String, Short> feePayloadByScode = new HashMap<>();
-    feePayloadByScode.put(SCODE_FOO, SCODE_FOO_PAYLOAD);
-    feePayloadByScode.put(SCODE_BAR, SCODE_BAR_PAYLOAD);
-    feePayloadByScode.put(SCODE_MIN, SCODE_MIN_PAYLOAD);
-    feePayloadByScode.put(SCODE_MAX, SCODE_MAX_PAYLOAD);
-    serverConfig.getSamouraiFees().setFeePayloadByScode(feePayloadByScode);
+    // scodes
+    setScodeConfig(SCODE_FOO_10, SCODE_FOO_PAYLOAD, 0, null);
+    setScodeConfig(SCODE_BAR_25, SCODE_BAR_PAYLOAD, 25, null);
+    setScodeConfig(SCODE_MIN_50, SCODE_MIN_PAYLOAD, 50, null);
+    setScodeConfig(SCODE_MAX_100, SCODE_MAX_PAYLOAD, 100, null);
   }
 
   private void assertFeeData(String txid, Integer feeIndice, byte[] feePayload) {
@@ -104,20 +102,20 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
 
     // accept when paid exact fee
-    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, FEES_VALID, 1, null));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, FEES_VALID, 1, null, 100));
 
     // accept when paid more than fee
-    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, FEES_VALID - 1, 1, null));
-    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, 1, 1, null));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, FEES_VALID - 1, 1, null, 100));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, 1, 1, null, 100));
 
     // reject when paid less than fee
-    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 1, 1, null));
-    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, 1000000, 1, null));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 1, 1, null, 100));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, 1000000, 1, null, 100));
 
     // reject when paid to wrong xpub indice
-    Assert.assertFalse(doIsTx0FeePaid(txid, 234, FEES_VALID, 0, null));
-    Assert.assertFalse(doIsTx0FeePaid(txid, 234, FEES_VALID, 2, null));
-    Assert.assertFalse(doIsTx0FeePaid(txid, 234, FEES_VALID, 10, null));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 234, FEES_VALID, 0, null, 100));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 234, FEES_VALID, 2, null, 100));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 234, FEES_VALID, 10, null, 100));
   }
 
   @Test
@@ -127,20 +125,26 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     feeAccept.put(FEES_VALID, 11111111L);
 
     // reject when no feeAccept
-    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 10, 1, null));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 10, 1, null, 100));
 
     // accept when tx0Time <= feeAccept.maxTime
-    Assert.assertTrue(doIsTx0FeePaid(txid, 11111110L, FEES_VALID + 10, 1, feeAccept));
-    Assert.assertTrue(doIsTx0FeePaid(txid, 11110L, FEES_VALID + 10, 1, feeAccept));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 11111110L, FEES_VALID + 10, 1, feeAccept, 100));
+    Assert.assertTrue(doIsTx0FeePaid(txid, 11110L, FEES_VALID + 10, 1, feeAccept, 100));
 
     // reject when tx0Time > feeAccept.maxTime
-    Assert.assertFalse(doIsTx0FeePaid(txid, 11111112L, FEES_VALID + 10, 1, feeAccept));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 11111112L, FEES_VALID + 10, 1, feeAccept, 100));
   }
 
   private boolean doIsTx0FeePaid(
-      String txid, long txTime, long minFees, int xpubIndice, Map<Long, Long> feeAccept) {
+      String txid,
+      long txTime,
+      long minFees,
+      int xpubIndice,
+      Map<Long, Long> feeAccept,
+      int feeValuePercent) {
     PoolFee poolFee = new PoolFee(minFees, feeAccept);
-    return feeValidationService.isTx0FeePaid(getTx(txid), txTime, xpubIndice, poolFee);
+    return feeValidationService.isTx0FeePaid(
+        getTx(txid), txTime, xpubIndice, poolFee, feeValuePercent);
   }
 
   private Transaction getTx(String txid) {
@@ -272,7 +276,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         feeValidationService.isValidTx0(tx, 1234, feeValidationService.decodeFeeData(tx), poolFee));
 
     // accept when valid feePayload
-    serverConfig.getSamouraiFees().getFeePayloadByScode().put("myscode", (short) 12345);
+    setScodeConfig("myscode", (short) 12345, 0, null);
     Assert.assertTrue(
         feeValidationService.isValidTx0(tx, 1234, feeValidationService.decodeFeeData(tx), poolFee));
   }
@@ -395,33 +399,49 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   public void getFeePayloadByScode() throws Exception {
     Assert.assertEquals(
         SCODE_FOO_PAYLOAD,
-        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_FOO)));
+        Utils.feePayloadBytesToShort(
+            feeValidationService.getFeePayloadByScode(SCODE_FOO_10, 1234)));
     Assert.assertEquals(
         SCODE_BAR_PAYLOAD,
-        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_BAR)));
+        Utils.feePayloadBytesToShort(
+            feeValidationService.getFeePayloadByScode(SCODE_BAR_25, 1234)));
     Assert.assertEquals(
         SCODE_MIN_PAYLOAD,
-        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MIN)));
+        Utils.feePayloadBytesToShort(
+            feeValidationService.getFeePayloadByScode(SCODE_MIN_50, 1234)));
     Assert.assertEquals(
         SCODE_MAX_PAYLOAD,
-        Utils.feePayloadBytesToShort(feeValidationService.getFeePayloadByScode(SCODE_MAX)));
-    Assert.assertEquals(null, feeValidationService.getFeePayloadByScode("invalid"));
+        Utils.feePayloadBytesToShort(
+            feeValidationService.getFeePayloadByScode(SCODE_MAX_100, 1234)));
+    Assert.assertEquals(null, feeValidationService.getFeePayloadByScode("invalid", 1234));
   }
 
   @Test
   public void getScodeByFeePayload() throws Exception {
     Assert.assertEquals(
-        SCODE_FOO,
-        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD)));
+        SCODE_FOO_PAYLOAD,
+        (short)
+            feeValidationService
+                .getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_FOO_PAYLOAD))
+                .getPayload());
     Assert.assertEquals(
-        SCODE_BAR,
-        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_BAR_PAYLOAD)));
+        SCODE_BAR_PAYLOAD,
+        (short)
+            feeValidationService
+                .getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_BAR_PAYLOAD))
+                .getPayload());
     Assert.assertEquals(
-        SCODE_MIN,
-        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MIN_PAYLOAD)));
+        SCODE_MIN_PAYLOAD,
+        (short)
+            feeValidationService
+                .getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MIN_PAYLOAD))
+                .getPayload());
     Assert.assertEquals(
-        SCODE_MAX,
-        feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MAX_PAYLOAD)));
+        SCODE_MAX_PAYLOAD,
+        (short)
+            feeValidationService
+                .getScodeByFeePayload(Utils.feePayloadShortToBytes(SCODE_MAX_PAYLOAD))
+                .getPayload());
 
     Assert.assertEquals(
         null, feeValidationService.getScodeByFeePayload(Utils.feePayloadShortToBytes((short) 0)));

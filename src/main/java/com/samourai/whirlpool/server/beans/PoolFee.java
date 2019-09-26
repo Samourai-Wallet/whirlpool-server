@@ -16,8 +16,9 @@ public class PoolFee {
     this.feeAccept = (feeAccept != null ? feeAccept : new HashMap<>());
   }
 
-  public boolean checkTx0FeePaid(long tx0FeePaid, long tx0Time) {
-    if (tx0FeePaid >= feeValue) {
+  public boolean checkTx0FeePaid(long tx0FeePaid, long tx0Time, int feeValuePercent) {
+    long feeToPay = computeFeeValue(feeValuePercent);
+    if (tx0FeePaid >= feeToPay) {
       return true;
     }
     Long maxTxTime = feeAccept.get(tx0FeePaid);
@@ -34,7 +35,7 @@ public class PoolFee {
                 + maxTxTime);
       }
     }
-    log.warn("checkTx0FeePaid: invalid fee payment: " + tx0FeePaid + " < " + feeValue);
+    log.warn("checkTx0FeePaid: invalid fee payment: " + tx0FeePaid + " < " + feeToPay);
     return false;
   }
 
@@ -44,6 +45,11 @@ public class PoolFee {
 
   public Map<Long, Long> getFeeAccept() {
     return feeAccept;
+  }
+
+  private long computeFeeValue(int feePercent) {
+    int result = Math.round(feeValue * feePercent / 100);
+    return result;
   }
 
   @Override

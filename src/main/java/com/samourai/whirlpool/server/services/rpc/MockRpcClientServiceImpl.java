@@ -4,28 +4,31 @@ import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
+import java.io.File;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.aspectj.util.FileUtil;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutput;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import wf.bitcoin.javabitcoindrpcclient.GenericRpcException;
 
 @Service
 @Profile(Utils.PROFILE_TEST)
 public class MockRpcClientServiceImpl implements RpcClientService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-  private TestUtils testUtils;
   private NetworkParameters params;
   private Bech32UtilGeneric bech32Util;
 
@@ -34,10 +37,8 @@ public class MockRpcClientServiceImpl implements RpcClientService {
   public static final int MOCK_TX_CONFIRMATIONS = 99;
   private static final long MOCK_TX_TIME = 900000;
 
-  public MockRpcClientServiceImpl(
-      TestUtils testUtils, CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
+  public MockRpcClientServiceImpl(CryptoService cryptoService, Bech32UtilGeneric bech32Util) {
     log.info("Instanciating MockRpcClientServiceImpl");
-    this.testUtils = testUtils;
     this.params = cryptoService.getNetworkParameters();
     this.bech32Util = bech32Util;
 
@@ -69,7 +70,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     }
 
     // load mock from mock file
-    Optional<String> rpcTxHex = testUtils.loadMockRpc(txid);
+    Optional<String> rpcTxHex = loadMockTx(txid);
     if (!rpcTxHex.isPresent()) {
       return Optional.empty();
     }
@@ -106,7 +107,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
       TransactionOutput transactionOutput =
           bech32Util.getTransactionOutput(addressBech32, amount, params);
       transaction.addOutput(transactionOutput);
-      Assert.assertEquals((long) i, transactionOutput.getIndex());
+      Assert.isTrue(i == transactionOutput.getIndex(), "assert failed");
     }
     int utxoIndex = nbOuts - 1;
 
@@ -127,9 +128,32 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     RpcTransaction rpcTransaction = new RpcTransaction(rawTxResponse, params);
 
     TransactionOutput txOutput = rpcTransaction.getTx().getOutput(utxoIndex);
-    Assert.assertEquals(
-        addressBech32, bech32Util.getAddressFromScript(txOutput.getScriptPubKey(), params));
+    Assert.isTrue(
+        addressBech32.equals(bech32Util.getAddressFromScript(txOutput.getScriptPubKey(), params)),
+        "assert failed");
 
     return rpcTransaction;
+  }
+
+  private Optional<String> loadMockTx(String txid) {
+    String mockFile = getMockFileName(txid);
+    try {
+      log.info("reading mock: " + mockFile);
+      String rawTx = FileUtil.readAsString(new File(mockFile));
+      return Optional.of(rawTx);
+    } catch (Exception e) {
+      log.info("mock not found: " + mockFile);
+      return Optional.empty();
+    }
+  }
+
+  private String getMockFileName(String txid) {
+    return "./src/test/resources/mocks/" + txid + ".txt";
+  }
+
+  public void writeMockRpc(String txid, String rawTxHex) throws Exception {
+    String fileName = getMockFileName(txid);
+    System.out.println("writing " + fileName + ": " + rawTxHex);
+    Files.write(Paths.get(fileName), rawTxHex.getBytes(), StandardOpenOption.CREATE);
   }
 }

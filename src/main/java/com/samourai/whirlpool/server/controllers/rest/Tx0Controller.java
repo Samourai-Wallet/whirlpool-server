@@ -39,7 +39,8 @@ public class Tx0Controller extends AbstractRestController {
   @RequestMapping(value = WhirlpoolEndpoint.REST_TX0_DATA, method = RequestMethod.GET)
   public Tx0DataResponse tx0Data(@RequestParam(value = "scode", required = false) String scode) {
     String feePaymentCode = feeValidationService.getFeePaymentCode();
-    byte[] feePayload = feeValidationService.getFeePayloadByScode(scode);
+    byte[] feePayload =
+        feeValidationService.getFeePayloadByScode(scode, System.currentTimeMillis());
     Tx0DataResponse tx0DataResponse;
     if (feePayload != null) {
       if (log.isDebugEnabled()) {
