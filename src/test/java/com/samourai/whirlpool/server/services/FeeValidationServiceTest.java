@@ -8,6 +8,7 @@ import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.tx0.Tx0;
 import com.samourai.whirlpool.client.tx0.Tx0Service;
+import com.samourai.whirlpool.client.wallet.WhirlpoolWalletConfig;
 import com.samourai.whirlpool.client.whirlpool.beans.Pool;
 import com.samourai.whirlpool.client.whirlpool.beans.Tx0Data;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
@@ -43,6 +44,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   private static final String SCODE_MAX_80 = "max";
   private static final short SCODE_MAX_PAYLOAD = 32767;
 
+  private WhirlpoolWalletConfig whirlpoolWalletConfig;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -53,6 +56,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     setScodeConfig(SCODE_BAR_25, SCODE_BAR_PAYLOAD, 25, null);
     setScodeConfig(SCODE_MIN_50, SCODE_MIN_PAYLOAD, 50, null);
     setScodeConfig(SCODE_MAX_80, SCODE_MAX_PAYLOAD, 80, null);
+
+    whirlpoolWalletConfig = new WhirlpoolWalletConfig(null, null, null, null, params, null);
   }
 
   private void assertFeeData(String txid, Integer feeIndice, byte[] feePayload) {
@@ -186,10 +191,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String feeAddress = "tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0";
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, 0, 1111, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params)
+        new Tx0Service(whirlpoolWalletConfig)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
@@ -242,10 +247,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String feeAddress = "tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0";
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, 0, FEES_VALID, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params)
+        new Tx0Service(whirlpoolWalletConfig)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
@@ -315,10 +320,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, FEES_VALID, 0, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params)
+        new Tx0Service(whirlpoolWalletConfig)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,
@@ -372,10 +377,10 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data = new Tx0Data(feePaymentCode, FEES_VALID, 0, feePayload, feeAddress, feeIndex);
 
     Tx0 tx0 =
-        new Tx0Service(params)
+        new Tx0Service(whirlpoolWalletConfig)
             .tx0(
                 input0Key.getPrivKeyBytes(),
                 input0OutPoint,

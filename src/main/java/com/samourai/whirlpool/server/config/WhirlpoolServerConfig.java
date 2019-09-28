@@ -500,6 +500,7 @@ public class WhirlpoolServerConfig {
     @NotEmpty private Short payload;
     @NotEmpty private Integer feeValuePercent; // 0-100
     private Long expiration;
+    private String message;
 
     public void validate() throws Exception {
       if (payload == null || payload == 0) {
@@ -535,6 +536,14 @@ public class WhirlpoolServerConfig {
 
     public void setExpiration(Long expiration) {
       this.expiration = expiration;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+
+    public void setMessage(String message) {
+      this.message = message;
     }
   }
 
@@ -638,7 +647,7 @@ public class WhirlpoolServerConfig {
         samouraiFees.getScodes().entrySet()) {
       String scode = Utils.obfuscateString(feePayloadEntry.getKey(), 1);
       ScodeSamouraiFeeConfig scodeConfig = feePayloadEntry.getValue();
-      String scodeInfo = "feeValue=" + scodeConfig.feeValuePercent + "%";
+      String scodeInfo = "feeValuePercent=" + scodeConfig.feeValuePercent + "%";
       if (scodeConfig.expiration != null) {
         scodeInfo += ", expiration=" + scodeConfig.expiration;
       }

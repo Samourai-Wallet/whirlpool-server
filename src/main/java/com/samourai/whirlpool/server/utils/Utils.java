@@ -79,6 +79,9 @@ public class Utils {
   }
 
   public static <K, V> Map.Entry<K, V> getRandomEntry(Map<K, V> map) {
+    if (map.isEmpty()) {
+      return null;
+    }
     Object entries[] = map.entrySet().toArray();
     return (Map.Entry<K, V>) entries[secureRandom.nextInt(entries.length)];
   }

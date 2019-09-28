@@ -14,6 +14,7 @@ public class BackendService extends BackendApi {
         httpClientService,
         serverConfig.isTestnet()
             ? BackendServer.TESTNET.getBackendUrlClear()
-            : BackendServer.MAINNET.getBackendUrlClear());
+            : BackendServer.MAINNET.getBackendUrlClear(),
+        null);
   }
 }

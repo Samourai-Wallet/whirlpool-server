@@ -26,9 +26,10 @@ public class JavaHttpClientService implements IBackendClient {
   }
 
   @Override
-  public <T> T getJson(String urlStr, Class<T> responseType) throws HttpException {
+  public <T> T getJson(String urlStr, Class<T> responseType, Map<String, String> headers)
+      throws HttpException {
     try {
-      HttpEntity request = new HttpEntity(computeHeaders());
+      HttpEntity request = new HttpEntity(computeHeaders(headers));
 
       // execute
       ResponseEntity<T> response =
@@ -44,12 +45,14 @@ public class JavaHttpClientService implements IBackendClient {
   }
 
   @Override
-  public <T> T postUrlEncoded(String urlStr, Class<T> responseType, Map<String, String> body)
+  public <T> T postUrlEncoded(
+      String urlStr, Class<T> responseType, Map<String, String> headers, Map<String, String> body)
       throws HttpException {
     try {
-      HttpHeaders headers = computeHeaders();
-      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-      HttpEntity<Map<String, String>> request = new HttpEntity<Map<String, String>>(body, headers);
+      HttpHeaders allHeaders = computeHeaders(headers);
+      allHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+      HttpEntity<Map<String, String>> request =
+          new HttpEntity<Map<String, String>>(body, allHeaders);
 
       // execute
       ResponseEntity<T> response =
@@ -64,9 +67,12 @@ public class JavaHttpClientService implements IBackendClient {
     }
   }
 
-  private HttpHeaders computeHeaders() {
+  private HttpHeaders computeHeaders(Map<String, String> headersMap) {
     final HttpHeaders headers = new HttpHeaders();
     headers.set(HttpHeaders.USER_AGENT, USER_AGENT);
+    for (Map.Entry<String, String> headerEntry : headersMap.entrySet()) {
+      headers.set(headerEntry.getKey(), headerEntry.getValue());
+    }
     return headers;
   }
 
