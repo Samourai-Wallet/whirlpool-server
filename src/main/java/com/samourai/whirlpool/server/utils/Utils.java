@@ -110,6 +110,11 @@ public class Utils {
     return null;
   }
 
+  public static void setLoggerDebug() {
+    setLoggerDebug("com.samourai.whirlpool");
+    setLoggerDebug("com.samourai.wallet");
+  }
+
   public static void setLoggerDebug(String logger) {
     LogbackUtils.setLogLevel(logger, Level.DEBUG.toString());
   }

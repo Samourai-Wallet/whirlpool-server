@@ -46,7 +46,7 @@ public class Application implements ApplicationRunner {
 
     if (args.containsOption(ARG_DEBUG)) {
       // enable debug logs
-      Utils.setLoggerDebug("com.samourai.whirlpool.server");
+      Utils.setLoggerDebug();
     }
 
     try {

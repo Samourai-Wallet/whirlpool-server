@@ -99,7 +99,7 @@ public abstract class AbstractIntegrationTest {
   @Before
   public void setUp() throws Exception {
     // enable debug
-    Utils.setLoggerDebug("com.samourai.whirlpool");
+    Utils.setLoggerDebug();
 
     serverConfig.validate();
 

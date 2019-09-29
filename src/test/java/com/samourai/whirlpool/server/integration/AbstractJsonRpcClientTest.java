@@ -22,7 +22,7 @@ public abstract class AbstractJsonRpcClientTest {
   @Before
   public void setUp() throws Exception {
     // enable debug
-    Utils.setLoggerDebug("com.samourai.whirlpool");
+    Utils.setLoggerDebug();
 
     // connect to rpc node
     Utils.testJsonRpcClientConnectivity(rpcClientService);
