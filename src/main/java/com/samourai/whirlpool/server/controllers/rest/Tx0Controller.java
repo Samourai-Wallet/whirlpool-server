@@ -59,26 +59,35 @@ public class Tx0Controller extends AbstractRestController {
         feeValidationService.getScodeConfigByScode(scode, System.currentTimeMillis());
     String feePayload64;
     long feeValue;
-    long changeValue;
     String message;
-
-    // fetch feeIndex
-    int feeIndex = computeFeeIndex();
-    String feeAddress = feeValidationService.computeFeeAddress(feeIndex);
 
     if (scodeConfig != null) {
       // scode found => scodeConfig.feeValuePercent
       byte[] feePayload = Utils.feePayloadShortToBytes(scodeConfig.getPayload());
       feePayload64 = WhirlpoolProtocol.encodeBytes(feePayload);
       feeValue = poolFee.computeFeeValue(scodeConfig.getFeeValuePercent());
-      changeValue = feeValue > 0 ? 0 : computeChangeValue(poolFee);
       message = scodeConfig.getMessage();
     } else {
       // no SCODE => 100% fee
       feePayload64 = null;
       feeValue = poolFee.getFeeValue();
-      changeValue = 0;
       message = null;
+    }
+
+    // fetch feeAddress
+    int feeIndex;
+    String feeAddress;
+    long changeValue;
+    if (feeValue > 0) {
+      // fees
+      feeIndex = computeFeeIndex();
+      feeAddress = feeValidationService.computeFeeAddress(feeIndex);
+      changeValue = 0;
+    } else {
+      // no fees
+      feeIndex = 0;
+      feeAddress = null;
+      changeValue = computeChangeValue(poolFee);
     }
 
     if (log.isDebugEnabled()) {
@@ -95,7 +104,7 @@ public class Tx0Controller extends AbstractRestController {
               + ", feeIndex="
               + feeIndex
               + ", feeAddress="
-              + feeAddress);
+              + (feeAddress != null ? feeAddress : ""));
     }
 
     Tx0DataResponse tx0DataResponse =
