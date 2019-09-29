@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.config;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.utils.Utils;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -643,15 +644,18 @@ public class WhirlpoolServerConfig {
               + "]";
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);
     }
+    int i = 0;
     for (Map.Entry<String, ScodeSamouraiFeeConfig> feePayloadEntry :
         samouraiFees.getScodes().entrySet()) {
       String scode = Utils.obfuscateString(feePayloadEntry.getKey(), 1);
       ScodeSamouraiFeeConfig scodeConfig = feePayloadEntry.getValue();
-      String scodeInfo = "feeValuePercent=" + scodeConfig.feeValuePercent + "%";
+      String scodeInfo =
+          "scode=" + scode + ", feeValuePercent=" + scodeConfig.feeValuePercent + "%";
       if (scodeConfig.expiration != null) {
-        scodeInfo += ", expiration=" + scodeConfig.expiration;
+        scodeInfo += ", expiration=" + new Date(scodeConfig.expiration).toString();
       }
-      configInfo.put("scode[" + scode + "]", scodeInfo);
+      configInfo.put("scode[" + i + "]", scodeInfo);
+      i++;
     }
     return configInfo;
   }

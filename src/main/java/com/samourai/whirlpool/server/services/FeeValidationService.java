@@ -230,9 +230,20 @@ public class FeeValidationService {
   public boolean isScodeValid(
       WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig, long tx0Time) {
     // check expiration
-    if (scodeConfig.getExpiration() != null && tx0Time > scodeConfig.getExpiration()) {
-      log.warn("SCode expired: expiration=" + scodeConfig.getExpiration() + ", tx0Time=" + tx0Time);
-      return false;
+    if (scodeConfig.getExpiration() != null) {
+      if (tx0Time > scodeConfig.getExpiration()) {
+        log.warn(
+            "SCode expired: expiration=" + scodeConfig.getExpiration() + ", tx0Time=" + tx0Time);
+        return false;
+      } else {
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "SCode still valid: expiration="
+                  + scodeConfig.getExpiration()
+                  + ", tx0Time="
+                  + tx0Time);
+        }
+      }
     }
     return true;
   }

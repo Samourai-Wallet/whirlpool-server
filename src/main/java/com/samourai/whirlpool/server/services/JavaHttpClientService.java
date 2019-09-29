@@ -6,10 +6,12 @@ import com.samourai.wallet.api.backend.IBackendClient;
 import com.samourai.wallet.api.backend.beans.HttpException;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -33,7 +35,7 @@ public class JavaHttpClientService implements IBackendClient {
 
       // execute
       ResponseEntity<T> response =
-          new RestTemplate().exchange(urlStr, HttpMethod.GET, request, responseType);
+          newRestTemplate().exchange(urlStr, HttpMethod.GET, request, responseType);
       checkSuccess(response);
       return response.getBody();
     } catch (Exception e) {
@@ -56,7 +58,7 @@ public class JavaHttpClientService implements IBackendClient {
 
       // execute
       ResponseEntity<T> response =
-          new RestTemplate().exchange(urlStr, HttpMethod.POST, request, responseType);
+          newRestTemplate().exchange(urlStr, HttpMethod.POST, request, responseType);
       checkSuccess(response);
       return response.getBody();
     } catch (Exception e) {
@@ -81,5 +83,18 @@ public class JavaHttpClientService implements IBackendClient {
       throw new HttpException(
           new Exception("Request failed: statusCode=" + response.getStatusCodeValue()), null);
     }
+  }
+
+  private RestTemplate newRestTemplate() {
+    RestTemplate r = new RestTemplate();
+
+    // prevent no suitable HttpMessageConverter found for ... content type
+    // [application/octet-stream]
+    MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter =
+        new MappingJackson2HttpMessageConverter();
+    mappingJackson2HttpMessageConverter.setSupportedMediaTypes(
+        Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM));
+    r.getMessageConverters().add(mappingJackson2HttpMessageConverter);
+    return r;
   }
 }

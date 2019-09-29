@@ -86,6 +86,13 @@ public class Utils {
     return (Map.Entry<K, V>) entries[secureRandom.nextInt(entries.length)];
   }
 
+  public static <T> T getRandomEntry(List<T> list) {
+    if (list.isEmpty()) {
+      return null;
+    }
+    return list.get(secureRandom.nextInt(list.size()));
+  }
+
   public static String computeInputId(TxOutPoint outPoint) {
     return computeInputId(outPoint.getHash(), outPoint.getIndex());
   }

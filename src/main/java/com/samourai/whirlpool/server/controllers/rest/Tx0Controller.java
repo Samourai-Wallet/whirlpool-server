@@ -11,7 +11,8 @@ import com.samourai.whirlpool.server.services.FeeValidationService;
 import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
-import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,10 @@ public class Tx0Controller extends AbstractRestController {
       @RequestParam(value = "poolId", required = true) String poolId,
       @RequestParam(value = "scode", required = false) String scode)
       throws Exception {
+
+    // prevent bruteforce attacks
+    Thread.sleep(1000);
+
     PoolFee poolFee = poolService.getPool(poolId).getPoolFee();
 
     String feePaymentCode = feeValidationService.getFeePaymentCode();
@@ -81,6 +86,8 @@ public class Tx0Controller extends AbstractRestController {
       log.debug(
           "Tx0Data: scode="
               + scodeStr
+              + ", pool.feeValue="
+              + poolFee.getFeeValue()
               + ", feeValue="
               + feeValue
               + ", changeValue="
@@ -105,16 +112,22 @@ public class Tx0Controller extends AbstractRestController {
       feeIndex = address.account_index;
     } catch (Exception e) {
       // use fallback value
-      log.error("Unable to fetchAddress for samouraiFee => using feeIndex=" + feeIndex);
+      log.error("Unable to fetchAddress for samouraiFee => using feeIndex=" + feeIndex, e);
     }
     return feeIndex;
   }
 
   private long computeChangeValue(PoolFee poolFee) {
     // random SCODE
-    Map.Entry<String, WhirlpoolServerConfig.ScodeSamouraiFeeConfig> scodeConfig =
-        Utils.getRandomEntry(serverConfig.getSamouraiFees().getScodes());
-    if (scodeConfig == null) {
+    List<WhirlpoolServerConfig.ScodeSamouraiFeeConfig> nonZeroScodes =
+        serverConfig
+            .getSamouraiFees()
+            .getScodes()
+            .values()
+            .stream()
+            .filter(c -> c.getFeeValuePercent() > 0)
+            .collect(Collectors.toList());
+    if (nonZeroScodes.isEmpty()) {
       // no SCODE available => use 100% pool fee
       long feeValue = poolFee.getFeeValue();
       if (log.isDebugEnabled()) {
@@ -124,7 +137,8 @@ public class Tx0Controller extends AbstractRestController {
     }
 
     // use random SCODE
-    int feeValuePercent = scodeConfig.getValue().getFeeValuePercent();
+    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig = Utils.getRandomEntry(nonZeroScodes);
+    int feeValuePercent = scodeConfig.getFeeValuePercent();
     long feeValue = poolFee.computeFeeValue(feeValuePercent);
     if (log.isDebugEnabled()) {
       log.debug(
