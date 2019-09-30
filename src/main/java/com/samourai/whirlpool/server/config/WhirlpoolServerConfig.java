@@ -462,6 +462,7 @@ public class WhirlpoolServerConfig {
     @NotEmpty private String xpub;
     private SecretWalletConfig secretWallet;
     private Map<String, ScodeSamouraiFeeConfig> scodes = new HashMap<>(); // -32,768 to 32,767
+    private Map<String, ScodeSamouraiFeeConfig> scodesUpperCase;
 
     public void validate() throws Exception {
       for (Map.Entry<String, ScodeSamouraiFeeConfig> scodeEntry : scodes.entrySet()) {
@@ -489,11 +490,18 @@ public class WhirlpoolServerConfig {
     }
 
     public Map<String, ScodeSamouraiFeeConfig> getScodes() {
-      return scodes;
+      if (scodesUpperCase == null) {
+        scodesUpperCase = new HashMap<>();
+        for (Map.Entry<String, ScodeSamouraiFeeConfig> e : scodes.entrySet()) {
+          scodesUpperCase.put(e.getKey().toUpperCase(), e.getValue());
+        }
+      }
+      return scodesUpperCase;
     }
 
     public void setScodes(Map<String, ScodeSamouraiFeeConfig> scodes) {
       this.scodes = scodes;
+      this.scodesUpperCase = null;
     }
   }
 

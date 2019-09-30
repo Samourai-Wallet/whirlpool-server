@@ -41,7 +41,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   private static final short SCODE_BAR_PAYLOAD = 5678;
   private static final String SCODE_MIN_50 = "min";
   private static final short SCODE_MIN_PAYLOAD = -32768;
-  private static final String SCODE_MAX_80 = "max";
+  private static final String SCODE_MAX_80 = "maX";
   private static final short SCODE_MAX_PAYLOAD = 32767;
 
   private WhirlpoolWalletConfig whirlpoolWalletConfig;
@@ -414,6 +414,16 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Assert.assertEquals(
         80,
         (int) feeValidationService.getScodeConfigByScode(SCODE_MAX_80, now).getFeeValuePercent());
+    // case non-sensitive
+    Assert.assertEquals(
+            80,
+            (int) feeValidationService.getScodeConfigByScode("MaX", now).getFeeValuePercent());
+    Assert.assertEquals(
+            80,
+            (int) feeValidationService.getScodeConfigByScode("max", now).getFeeValuePercent());
+    Assert.assertEquals(
+            80,
+            (int) feeValidationService.getScodeConfigByScode("MAX", now).getFeeValuePercent());
     Assert.assertEquals(null, feeValidationService.getScodeConfigByScode("invalid", now));
   }
 

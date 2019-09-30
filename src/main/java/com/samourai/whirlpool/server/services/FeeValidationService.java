@@ -268,8 +268,9 @@ public class FeeValidationService {
 
   public WhirlpoolServerConfig.ScodeSamouraiFeeConfig getScodeConfigByScode(
       String scode, long tx0Time) {
+    String scodeUpperCase = (scode != null ? scode.toUpperCase() : null);
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
-        serverConfig.getSamouraiFees().getScodes().get(scode);
+        serverConfig.getSamouraiFees().getScodes().get(scodeUpperCase);
     if (scodeConfig == null) {
       return null;
     }
