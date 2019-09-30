@@ -72,6 +72,10 @@ public class Tx0Controller extends AbstractRestController {
       feePayload64 = null;
       feeValue = poolFee.getFeeValue();
       message = null;
+
+      if (scode != null) {
+        log.warn("Invalid SCODE: " + scode);
+      }
     }
 
     // fetch feeAddress
