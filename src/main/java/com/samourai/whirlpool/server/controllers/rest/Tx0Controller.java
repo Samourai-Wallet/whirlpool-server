@@ -81,17 +81,17 @@ public class Tx0Controller extends AbstractRestController {
     // fetch feeAddress
     int feeIndex;
     String feeAddress;
-    long changeValue;
+    long feeChange;
     if (feeValue > 0) {
       // fees
       feeIndex = computeFeeIndex();
       feeAddress = feeValidationService.computeFeeAddress(feeIndex);
-      changeValue = 0;
+      feeChange = 0;
     } else {
       // no fees
       feeIndex = 0;
       feeAddress = null;
-      changeValue = computeChangeValue(poolFee);
+      feeChange = computeChangeValue(poolFee);
     }
 
     if (log.isDebugEnabled()) {
@@ -103,8 +103,8 @@ public class Tx0Controller extends AbstractRestController {
               + poolFee.getFeeValue()
               + ", feeValue="
               + feeValue
-              + ", changeValue="
-              + changeValue
+              + ", feeChange="
+              + feeChange
               + ", feeIndex="
               + feeIndex
               + ", feeAddress="
@@ -113,7 +113,7 @@ public class Tx0Controller extends AbstractRestController {
 
     Tx0DataResponse tx0DataResponse =
         new Tx0DataResponse(
-            feePaymentCode, feeValue, changeValue, message, feePayload64, feeAddress, feeIndex);
+            feePaymentCode, feeValue, feeChange, message, feePayload64, feeAddress, feeIndex);
     return tx0DataResponse;
   }
 

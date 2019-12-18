@@ -245,6 +245,8 @@ public abstract class AbstractIntegrationTest {
       scodeConfig.setExpiration(expiration);
     }
     serverConfig.getSamouraiFees().getScodes().put(scode, scodeConfig);
-    serverConfig.getSamouraiFees().setScodes(serverConfig.getSamouraiFees().getScodes()); // reset scodesUpperCase
+    serverConfig
+        .getSamouraiFees()
+        .setScodes(serverConfig.getSamouraiFees().getScodes()); // reset scodesUpperCase
   }
 }

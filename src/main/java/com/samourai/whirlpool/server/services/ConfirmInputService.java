@@ -25,11 +25,11 @@ public class ConfirmInputService {
   }
 
   public synchronized Optional<byte[]> confirmInputOrQueuePool(
-      String mixId, String username, byte[] blindedBordereau)
+      String mixId, String username, byte[] blindedBordereau, String userHash)
       throws IllegalInputException, MixException {
     try {
       // add input to mix & reply confirmInputResponse
-      return Optional.of(mixService.confirmInput(mixId, username, blindedBordereau));
+      return Optional.of(mixService.confirmInput(mixId, username, blindedBordereau, userHash));
     } catch (QueueInputException e) {
       // input queued => re-enqueue in pool
       RegisteredInput registeredInput = e.getRegisteredInput();

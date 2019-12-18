@@ -29,12 +29,7 @@ import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.MessageListener;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -126,7 +121,7 @@ public class MixService {
       throw new QueueInputException("Current mix is full", registeredInput, pool.getPoolId());
     }
 
-    // verify not already registered
+    // verify input not already registered
     if (mix.hasInput(registeredInput.getOutPoint())) {
       throw new IllegalInputException("Input already registered for this mix");
     }
@@ -144,6 +139,20 @@ public class MixService {
         throw new QueueInputException(
             "Current mix is full for mustMix", registeredInput, pool.getPoolId());
       }
+    }
+
+    // verify unique userHash
+    Optional<ConfirmedInput> inputSameUserHash =
+            mix.getInputs()
+                    .parallelStream()
+                    .filter(input -> input.getUserHash().equals(confirmedInput.getUserHash()))
+                    .findFirst();
+    if (inputSameUserHash.isPresent()) {
+      if (log.isDebugEnabled()) {
+        log.debug("userHash is already mixing in "+mix.getMixId()+": " + inputSameUserHash);
+      }
+      throw new QueueInputException(
+              "Your wallet already registered for this mix", registeredInput, pool.getPoolId());
     }
 
     // verify max-inputs-same-hash
@@ -170,7 +179,7 @@ public class MixService {
     }
   }
 
-  public synchronized byte[] confirmInput(String mixId, String username, byte[] blindedBordereau)
+  public synchronized byte[] confirmInput(String mixId, String username, byte[] blindedBordereau, String userHash)
       throws IllegalInputException, MixException, QueueInputException {
     Mix mix = getMix(mixId);
 
@@ -188,7 +197,7 @@ public class MixService {
       throw new QueueInputException("Mix already started", registeredInput, poolId);
     }
 
-    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, blindedBordereau);
+    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, blindedBordereau, userHash);
 
     // last input validations
     validateOnConfirmInput(mix, confirmedInput);

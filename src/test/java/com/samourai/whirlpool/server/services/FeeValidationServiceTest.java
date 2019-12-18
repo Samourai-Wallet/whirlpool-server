@@ -416,14 +416,11 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         (int) feeValidationService.getScodeConfigByScode(SCODE_MAX_80, now).getFeeValuePercent());
     // case non-sensitive
     Assert.assertEquals(
-            80,
-            (int) feeValidationService.getScodeConfigByScode("MaX", now).getFeeValuePercent());
+        80, (int) feeValidationService.getScodeConfigByScode("MaX", now).getFeeValuePercent());
     Assert.assertEquals(
-            80,
-            (int) feeValidationService.getScodeConfigByScode("max", now).getFeeValuePercent());
+        80, (int) feeValidationService.getScodeConfigByScode("max", now).getFeeValuePercent());
     Assert.assertEquals(
-            80,
-            (int) feeValidationService.getScodeConfigByScode("MAX", now).getFeeValuePercent());
+        80, (int) feeValidationService.getScodeConfigByScode("MAX", now).getFeeValuePercent());
     Assert.assertEquals(null, feeValidationService.getScodeConfigByScode("invalid", now));
   }
 
