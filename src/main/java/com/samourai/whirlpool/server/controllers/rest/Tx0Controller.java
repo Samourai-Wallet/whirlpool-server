@@ -59,6 +59,7 @@ public class Tx0Controller extends AbstractRestController {
         feeValidationService.getScodeConfigByScode(scode, System.currentTimeMillis());
     String feePayload64;
     long feeValue;
+    int feeDiscountPercent;
     String message;
 
     if (scodeConfig != null) {
@@ -66,11 +67,13 @@ public class Tx0Controller extends AbstractRestController {
       byte[] feePayload = Utils.feePayloadShortToBytes(scodeConfig.getPayload());
       feePayload64 = WhirlpoolProtocol.encodeBytes(feePayload);
       feeValue = poolFee.computeFeeValue(scodeConfig.getFeeValuePercent());
+      feeDiscountPercent = 100 - scodeConfig.getFeeValuePercent();
       message = scodeConfig.getMessage();
     } else {
       // no SCODE => 100% fee
       feePayload64 = null;
       feeValue = poolFee.getFeeValue();
+      feeDiscountPercent = 0;
       message = null;
 
       if (scode != null) {
@@ -91,7 +94,7 @@ public class Tx0Controller extends AbstractRestController {
       // no fees
       feeIndex = 0;
       feeAddress = null;
-      feeChange = computeChangeValue(poolFee);
+      feeChange = computeRandomFeeChange(poolFee);
     }
 
     if (log.isDebugEnabled()) {
@@ -113,7 +116,14 @@ public class Tx0Controller extends AbstractRestController {
 
     Tx0DataResponse tx0DataResponse =
         new Tx0DataResponse(
-            feePaymentCode, feeValue, feeChange, message, feePayload64, feeAddress, feeIndex);
+            feePaymentCode,
+            feeValue,
+            feeChange,
+            feeDiscountPercent,
+            message,
+            feePayload64,
+            feeAddress,
+            feeIndex);
     return tx0DataResponse;
   }
 
@@ -130,7 +140,7 @@ public class Tx0Controller extends AbstractRestController {
     return feeIndex;
   }
 
-  private long computeChangeValue(PoolFee poolFee) {
+  private long computeRandomFeeChange(PoolFee poolFee) {
     // random SCODE
     List<WhirlpoolServerConfig.ScodeSamouraiFeeConfig> nonZeroScodes =
         serverConfig

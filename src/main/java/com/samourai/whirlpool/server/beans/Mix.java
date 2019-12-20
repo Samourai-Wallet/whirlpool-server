@@ -8,6 +8,8 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.Utils;
+
+import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,8 +21,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import org.bitcoinj.core.Transaction;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Mix {
+  private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
   private MixTO mixTO;
   private Long created;
 
@@ -244,12 +250,13 @@ public class Mix {
   }
 
   public synchronized void unregisterInput(ConfirmedInput confirmedInput) {
+    log.info(" • ["+ mixId + "] unregistering a CONFIRMED input: "+confirmedInput);
     String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getOutPoint());
     inputsById.remove(inputId);
   }
 
-  public boolean hasInput(TxOutPoint outPoint) {
-    return inputsById.containsKey(Utils.computeInputId(outPoint));
+  public ConfirmedInput findInput(TxOutPoint outPoint) {
+    return inputsById.get(Utils.computeInputId(outPoint));
   }
 
   public String computeInputsHash() {

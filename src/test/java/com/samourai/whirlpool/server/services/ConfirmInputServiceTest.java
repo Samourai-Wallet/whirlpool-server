@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
@@ -22,7 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = DEFINED_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -48,7 +49,7 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
     byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
 
     // CONFIRM_INPUT
-    confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau);
+    confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau, "userHash");
 
     // get a valid signed blinded bordereau
     byte[] signedBlindedBordereau =
@@ -123,12 +124,75 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
     byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
 
     // CONFIRM_INPUT
-    confirmInputService.confirmInputOrQueuePool(mixId, "user1", blindedBordereau);
-    confirmInputService.confirmInputOrQueuePool(mixId, "user2", blindedBordereau);
+    confirmInputService.confirmInputOrQueuePool(mixId, "user1", blindedBordereau, "userHash1");
+    confirmInputService.confirmInputOrQueuePool(mixId, "user2", blindedBordereau, "userHash2");
 
     // VERIFY
     testUtils.assertMix(1, 0, mix); // 1 mustMix confirmed
     testUtils.assertPool(1, 0, pool); // 1 mustMix queued
+  }
+
+  @Test
+  public void registerInput_shouldRejectWhenDuplicateUserHash() throws Exception {
+    Mix mix = __getCurrentMix();
+    String mixId = mix.getMixId();
+    Pool pool = mix.getPool();
+    String poolId = mix.getPool().getPoolId();
+    String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
+
+    ECKey ecKey = new ECKey();
+    SegwitAddress inputAddress =
+            new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
+    String signature = ecKey.signMessage(poolId);
+
+    long inputBalance = mix.getPool().computePremixBalanceMin(false);
+
+    // different hashs
+    RpcTransaction rpcTransaction =
+            rpcClientService.createAndMockTx(inputAddress, inputBalance, 100, 2);
+    RpcTransaction rpcTransaction2 =
+            rpcClientService.createAndMockTx(inputAddress, inputBalance, 100, 2);
+    TxOutPoint txOutPoint1 = blockchainDataService.getOutPoint(rpcTransaction, 0);
+    TxOutPoint txOutPoint2 = blockchainDataService.getOutPoint(rpcTransaction2, 1);
+
+    Assert.assertEquals(txOutPoint1.getHash(), txOutPoint2.getHash());
+    Assert.assertEquals(0, txOutPoint1.getIndex());
+    Assert.assertEquals(1, txOutPoint2.getIndex());
+
+    // TEST
+    registerInputService.registerInput(
+            poolId,
+            "user1",
+            signature,
+            txOutPoint1.getHash(),
+            txOutPoint1.getIndex(),
+            false,
+            "127.0.0.1");
+    testUtils.assertPoolEmpty(pool);
+    testUtils.assertMix(0, 1, mix); // confirming
+
+    registerInputService.registerInput(
+            poolId,
+            "user2",
+            signature,
+            txOutPoint2.getHash(),
+            txOutPoint2.getIndex(),
+            false,
+            "127.0.0.1");
+    testUtils.assertPoolEmpty(pool);
+    testUtils.assertMix(0, 2, mix); // confirming
+
+    // blind bordereau
+    RSABlindingParameters blindingParams = computeBlindingParams(mix);
+    byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
+
+    // CONFIRM_INPUT
+    confirmInputService.confirmInputOrQueuePool(mixId, "user1", blindedBordereau, "userHash1");
+    confirmInputService.confirmInputOrQueuePool(mixId, "user2", blindedBordereau, "userHash1"); // same userHash
+
+    // VERIFY
+    testUtils.assertMix(1, 0, mix); // 1 mustMix confirmed
+    testUtils.assertPool(1, 0, pool); // 1 mustMix queued because of "Your wallet already registered for this mix"
   }
 
   @Test

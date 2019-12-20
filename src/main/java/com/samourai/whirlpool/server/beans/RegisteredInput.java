@@ -34,4 +34,9 @@ public class RegisteredInput {
   public String getIp() {
     return ip;
   }
+
+  @Override
+  public String toString() {
+    return "outPoint="+outPoint+", liquidity="+liquidity+", username="+username+", ip="+ip;
+  }
 }

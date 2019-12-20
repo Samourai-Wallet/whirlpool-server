@@ -22,4 +22,9 @@ public class ConfirmedInput {
   public String getUserHash() {
     return userHash;
   }
+
+  @Override
+  public String toString() {
+    return "registeredInput=["+registeredInput+"], userHash="+userHash;
+  }
 }

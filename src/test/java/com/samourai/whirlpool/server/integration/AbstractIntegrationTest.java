@@ -27,20 +27,22 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 @ActiveProfiles(Utils.PROFILE_TEST)
 public abstract class AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  @Value("${server.port}")
-  protected int port;
+  @LocalServerPort protected int port;
 
   @Rule public ExpectedException thrown = ExpectedException.none();
 
@@ -191,7 +193,7 @@ public abstract class AbstractIntegrationTest {
     return pool.getCurrentMix();
   }
 
-  @After
+  @AfterAll
   public void tearDown() {
     if (multiClientManager != null) {
       multiClientManager.exit();

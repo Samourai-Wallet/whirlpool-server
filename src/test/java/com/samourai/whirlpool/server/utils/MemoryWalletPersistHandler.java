@@ -6,6 +6,7 @@ import com.samourai.whirlpool.client.wallet.WhirlpoolWallet;
 import com.samourai.whirlpool.client.wallet.beans.WhirlpoolUtxo;
 import com.samourai.whirlpool.client.wallet.beans.WhirlpoolUtxoConfig;
 import com.samourai.whirlpool.client.wallet.persist.WhirlpoolWalletPersistHandler;
+
 import java.util.Collection;
 
 public class MemoryWalletPersistHandler implements WhirlpoolWalletPersistHandler {
@@ -41,17 +42,14 @@ public class MemoryWalletPersistHandler implements WhirlpoolWalletPersistHandler
   }
 
   @Override
-  public void setUtxoConfig(String utxoHash, int utxoIndex, WhirlpoolUtxoConfig value) {}
+  public void addUtxoConfig(String utxoHash, int utxoIndex, WhirlpoolUtxoConfig value) {}
 
   @Override
-  public void setUtxoConfig(String utxoHash, WhirlpoolUtxoConfig value) {}
+  public void addUtxoConfig(String utxoHash, WhirlpoolUtxoConfig value) {}
 
   @Override
   public void cleanUtxoConfig(Collection<WhirlpoolUtxo> knownUtxos) {}
 
   @Override
   public void save() throws Exception {}
-
-  @Override
-  public void onUtxoConfigChanged(WhirlpoolUtxoConfig whirlpoolUtxoConfig) {}
 }

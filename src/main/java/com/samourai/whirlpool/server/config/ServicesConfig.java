@@ -1,5 +1,7 @@
 package com.samourai.whirlpool.server.config;
 
+import com.samourai.wallet.bip47.rpc.java.SecretPointFactoryJava;
+import com.samourai.wallet.bip47.rpc.secretPoint.ISecretPointFactory;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.CryptoTestUtil;
@@ -46,8 +48,13 @@ public class ServicesConfig {
   }
 
   @Bean
-  WhirlpoolFee whirlpoolFee() {
-    return WhirlpoolFee.getInstance();
+  ISecretPointFactory secretPointFactory() {
+    return SecretPointFactoryJava.getInstance();
+  }
+
+  @Bean
+  WhirlpoolFee whirlpoolFee(ISecretPointFactory secretPointFactory) {
+    return WhirlpoolFee.getInstance(secretPointFactory);
   }
 
   @Bean

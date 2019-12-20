@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.util.TxUtil;
@@ -30,7 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = DEFINED_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 public class SigningServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -61,7 +62,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // valid signature
     UtxoWithBalance utxoWithBalance =
         new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
-    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey);
+    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey, "userPreHash");
 
     // test
     String username = "user1";
@@ -87,7 +88,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // valid signature
     UtxoWithBalance utxoWithBalance =
         new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
-    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey);
+    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey, "userPreHash");
 
     // test
     try {
@@ -117,7 +118,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     mix.registerInput(
         new ConfirmedInput(
             new RegisteredInput(firstUsername, false, firstTxOutPoint, "127.0.0.1"),
-            new byte[] {}));
+            new byte[] {}, "userHash1"));
     mix.registerOutput(testUtils.generateSegwitAddress().getBech32AsString());
 
     // prepare input
@@ -128,7 +129,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     // valid signature
     UtxoWithBalance utxoWithBalance =
         new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
-    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey);
+    PremixHandler premixHandler = new PremixHandler(utxoWithBalance, ecKey, "userPreHash");
 
     // test
     String username = "user1";
@@ -161,7 +162,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     UtxoWithBalance utxoWithBalance =
         new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
     PremixHandler premixHandler =
-        new PremixHandler(utxoWithBalance, ecKey) {
+        new PremixHandler(utxoWithBalance, ecKey, "userPreHash") {
           @Override
           public void signTransaction(Transaction tx, int inputIndex, NetworkParameters params) {
             long spendAmount = 1234; // invalid signed amount
@@ -199,7 +200,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     UtxoWithBalance utxoWithBalance =
         new UtxoWithBalance(txOutPoint.getHash(), txOutPoint.getIndex(), inputBalance);
     PremixHandler premixHandler =
-        new PremixHandler(utxoWithBalance, ecKey) {
+        new PremixHandler(utxoWithBalance, ecKey, "userPreHash") {
           @Override
           public void signTransaction(Transaction tx, int inputIndex, NetworkParameters params) {
             TxUtil.getInstance()
@@ -249,7 +250,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
     byte[] signedBlindedBordereau =
-        confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau).get();
+        confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau, "userHash"+username).get();
 
     // register output
     byte[] unblindedSignedBordereau =

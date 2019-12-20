@@ -1,11 +1,13 @@
 package com.samourai.whirlpool.server.utils;
 
+import com.samourai.wallet.api.backend.beans.UnspentResponse;
 import com.samourai.wallet.bip47.rpc.BIP47Wallet;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.CryptoTestUtil;
+import com.samourai.whirlpool.client.tx0.UnspentOutputWithKey;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.beans.Pool;
@@ -17,6 +19,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.invoke.MethodHandles;
+import java.util.Collection;
+
+import java8.util.Lists;
+import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.TransactionOutPoint;
+import org.bitcoinj.params.TestNet3Params;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
@@ -118,7 +127,33 @@ public class TestUtils {
   public ConfirmedInput computeConfirmedInput(String utxoHash, long utxoIndex, boolean liquidity) {
     TxOutPoint outPoint = new TxOutPoint(utxoHash, utxoIndex, 1234, 99, null, "fakeReceiveAddress");
     RegisteredInput registeredInput = new RegisteredInput("foo", liquidity, outPoint, "127.0.0.1");
-    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, null);
+    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, null, "userHash"+utxoHash+utxoIndex);
     return confirmedInput;
+  }
+
+  public UnspentResponse.UnspentOutput computeUnspentOutput(String hash, int index, long value) {
+    UnspentResponse.UnspentOutput spendFrom = new UnspentResponse.UnspentOutput();
+    spendFrom.tx_hash = hash;
+    spendFrom.tx_output_n = index;
+    spendFrom.value = value;
+    spendFrom.script = "foo";
+    spendFrom.addr = "foo";
+    spendFrom.confirmations = 1234;
+    spendFrom.xpub = new UnspentResponse.UnspentOutput.Xpub();
+    spendFrom.xpub.path = "foo";
+    return spendFrom;
+  }
+
+  public UnspentResponse.UnspentOutput computeUnspentOutput(TransactionOutPoint outPoint) {
+    return computeUnspentOutput(outPoint.getHash().toString(), (int)outPoint.getIndex(), outPoint.getValue().value);
+  }
+
+  public UnspentOutputWithKey generateUnspentOutputWithKey(long value, NetworkParameters params) throws Exception {
+    ECKey input0Key = new ECKey();
+    String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
+    TransactionOutPoint input0OutPoint =
+            cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, value, params);
+    UnspentResponse.UnspentOutput utxo = computeUnspentOutput(input0OutPoint);
+    return new UnspentOutputWithKey(utxo, input0Key.getPrivKeyBytes());
   }
 }

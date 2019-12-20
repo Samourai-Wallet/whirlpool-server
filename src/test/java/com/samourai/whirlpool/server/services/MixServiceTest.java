@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.Mix;
@@ -19,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = DEFINED_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 public class MixServiceTest extends AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -59,13 +60,13 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 1 mustMix => false
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"), null));
+            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"), null, "userHash1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 2 mustMix => true
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("mustMix2", false, generateOutPoint(), "127.0.0.1"), null));
+            new RegisteredInput("mustMix2", false, generateOutPoint(), "127.0.0.1"), null, "userHash2"));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
 
@@ -105,19 +106,19 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 1 liquidity => false
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("liquidity1", true, generateOutPoint(), "127.0.0.1"), null));
+            new RegisteredInput("liquidity1", true, generateOutPoint(), "127.0.0.1"), null, "userHashL1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 2 liquidity => false : minMustMix not reached
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("liquidity2", true, generateOutPoint(), "127.0.0.1"), null));
+            new RegisteredInput("liquidity2", true, generateOutPoint(), "127.0.0.1"), null, "userHashL2"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 1 mustMix => true : minMustMix reached
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"), null));
+            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"), null, "userHashM1"));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
 

@@ -111,19 +111,27 @@ public class MixService {
   }
 
   /** Last input validations when adding it to a mix (not when queueing it) */
-  private void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
+  private synchronized void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
       throws QueueInputException, IllegalInputException {
     RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
     Pool pool = mix.getPool();
 
+    // check mix didn't start yet
+    if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
+      // confirming input too late => enqueue in pool
+      String poolId = mix.getPool().getPoolId();
+      throw new QueueInputException("Mix already started", registeredInput, poolId);
+    }
     // verify mix not full
     if (mix.isFull()) {
       throw new QueueInputException("Current mix is full", registeredInput, pool.getPoolId());
     }
 
-    // verify input not already registered
-    if (mix.hasInput(registeredInput.getOutPoint())) {
-      throw new IllegalInputException("Input already registered for this mix");
+    // verify input not already confirmed
+    ConfirmedInput alreadyConfirmedInput = mix.findInput(registeredInput.getOutPoint());
+    if (alreadyConfirmedInput != null) {
+      // input already confirmed => reject duplicate client
+      throw new IllegalInputException("Input already confirmed");
     }
 
     if (registeredInput.isLiquidity()) {
@@ -143,16 +151,16 @@ public class MixService {
 
     // verify unique userHash
     Optional<ConfirmedInput> inputSameUserHash =
-            mix.getInputs()
-                    .parallelStream()
-                    .filter(input -> input.getUserHash().equals(confirmedInput.getUserHash()))
-                    .findFirst();
+        mix.getInputs()
+            .parallelStream()
+            .filter(input -> input.getUserHash().equals(confirmedInput.getUserHash()))
+            .findFirst();
     if (inputSameUserHash.isPresent()) {
       if (log.isDebugEnabled()) {
-        log.debug("userHash is already mixing in "+mix.getMixId()+": " + inputSameUserHash);
+        log.debug("userHash is already mixing in " + mix.getMixId() + ": " + inputSameUserHash);
       }
       throw new QueueInputException(
-              "Your wallet already registered for this mix", registeredInput, pool.getPoolId());
+          "Your wallet already registered for this mix", registeredInput, pool.getPoolId());
     }
 
     // verify max-inputs-same-hash
@@ -179,7 +187,8 @@ public class MixService {
     }
   }
 
-  public synchronized byte[] confirmInput(String mixId, String username, byte[] blindedBordereau, String userHash)
+  public synchronized byte[] confirmInput(
+      String mixId, String username, byte[] blindedBordereau, String userHash)
       throws IllegalInputException, MixException, QueueInputException {
     Mix mix = getMix(mixId);
 
@@ -189,13 +198,6 @@ public class MixService {
             .orElseThrow(
                 () ->
                     new IllegalInputException("Confirming input not found: username=" + username));
-
-    // check mix didn't start yet
-    if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
-      // confirming input too late => enqueue in pool
-      String poolId = mix.getPool().getPoolId();
-      throw new QueueInputException("Mix already started", registeredInput, poolId);
-    }
 
     ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, blindedBordereau, userHash);
 
@@ -746,28 +748,8 @@ public class MixService {
               mix.unregisterInput(confirmedInput);
 
               if (mixAlreadyStarted) {
-                log.warn(
-                    " • ["
-                        + mixId
-                        + "] unregistered "
-                        + (confirmedInput.getRegisteredInput().isLiquidity()
-                            ? "liquidity"
-                            : "mustMix")
-                        + " from registered inputs (MIX ALREADY STARTED), username="
-                        + username);
-
                 // blame
                 blameService.blame(confirmedInput, BlameReason.DISCONNECT, mixId);
-              } else {
-                log.info(
-                    " • ["
-                        + mixId
-                        + "] unregistered "
-                        + (confirmedInput.getRegisteredInput().isLiquidity()
-                            ? "liquidity"
-                            : "mustMix")
-                        + " from registered inputs (mix not started yet), username="
-                        + username);
               }
             });
 

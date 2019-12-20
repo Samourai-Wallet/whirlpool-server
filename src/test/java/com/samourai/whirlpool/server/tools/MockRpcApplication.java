@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.tools;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.whirlpool.server.integration.AbstractJsonRpcClientTest;
 import com.samourai.whirlpool.server.services.rpc.MockRpcClientServiceImpl;
@@ -17,7 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /** Utility for RPC testing. */
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = DEFINED_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @Ignore
 public class MockRpcApplication extends AbstractJsonRpcClientTest {
   private static final Logger log = LoggerFactory.getLogger(MockRpcApplication.class);
