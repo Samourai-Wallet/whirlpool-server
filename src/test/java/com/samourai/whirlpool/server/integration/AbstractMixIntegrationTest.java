@@ -88,7 +88,8 @@ public abstract class AbstractMixIntegrationTest extends AbstractIntegrationTest
         clientCryptoService.blind(receiveAddressOrNullForReuseInputAddr, blindingParams);
 
     // CONFIRM_INPUT
-    confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau, "userHash"+username);
+    confirmInputService.confirmInputOrQueuePool(
+        mixId, username, blindedBordereau, "userHash" + username);
 
     // get a valid signed blinded bordereau
     byte[] signedBlindedBordereau =

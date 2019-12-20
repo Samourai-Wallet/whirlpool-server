@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.wallet.segwit.SegwitAddress;
@@ -142,16 +141,16 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
 
     ECKey ecKey = new ECKey();
     SegwitAddress inputAddress =
-            new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
+        new SegwitAddress(ecKey.getPubKey(), cryptoService.getNetworkParameters());
     String signature = ecKey.signMessage(poolId);
 
     long inputBalance = mix.getPool().computePremixBalanceMin(false);
 
     // different hashs
     RpcTransaction rpcTransaction =
-            rpcClientService.createAndMockTx(inputAddress, inputBalance, 100, 2);
+        rpcClientService.createAndMockTx(inputAddress, inputBalance, 100, 2);
     RpcTransaction rpcTransaction2 =
-            rpcClientService.createAndMockTx(inputAddress, inputBalance, 100, 2);
+        rpcClientService.createAndMockTx(inputAddress, inputBalance, 100, 2);
     TxOutPoint txOutPoint1 = blockchainDataService.getOutPoint(rpcTransaction, 0);
     TxOutPoint txOutPoint2 = blockchainDataService.getOutPoint(rpcTransaction2, 1);
 
@@ -161,24 +160,24 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
 
     // TEST
     registerInputService.registerInput(
-            poolId,
-            "user1",
-            signature,
-            txOutPoint1.getHash(),
-            txOutPoint1.getIndex(),
-            false,
-            "127.0.0.1");
+        poolId,
+        "user1",
+        signature,
+        txOutPoint1.getHash(),
+        txOutPoint1.getIndex(),
+        false,
+        "127.0.0.1");
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 1, mix); // confirming
 
     registerInputService.registerInput(
-            poolId,
-            "user2",
-            signature,
-            txOutPoint2.getHash(),
-            txOutPoint2.getIndex(),
-            false,
-            "127.0.0.1");
+        poolId,
+        "user2",
+        signature,
+        txOutPoint2.getHash(),
+        txOutPoint2.getIndex(),
+        false,
+        "127.0.0.1");
     testUtils.assertPoolEmpty(pool);
     testUtils.assertMix(0, 2, mix); // confirming
 
@@ -188,11 +187,13 @@ public class ConfirmInputServiceTest extends AbstractMixIntegrationTest {
 
     // CONFIRM_INPUT
     confirmInputService.confirmInputOrQueuePool(mixId, "user1", blindedBordereau, "userHash1");
-    confirmInputService.confirmInputOrQueuePool(mixId, "user2", blindedBordereau, "userHash1"); // same userHash
+    confirmInputService.confirmInputOrQueuePool(
+        mixId, "user2", blindedBordereau, "userHash1"); // same userHash
 
     // VERIFY
     testUtils.assertMix(1, 0, mix); // 1 mustMix confirmed
-    testUtils.assertPool(1, 0, pool); // 1 mustMix queued because of "Your wallet already registered for this mix"
+    testUtils.assertPool(
+        1, 0, pool); // 1 mustMix queued because of "Your wallet already registered for this mix"
   }
 
   @Test

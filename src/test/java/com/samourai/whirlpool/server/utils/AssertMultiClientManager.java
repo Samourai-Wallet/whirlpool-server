@@ -180,7 +180,8 @@ public class AssertMultiClientManager extends MultiClientManager {
 
     Bip84Wallet bip84Wallet = bip84Wallets[i];
     UtxoWithBalance utxo = new UtxoWithBalance(input.getHash(), input.getIndex(), input.getValue());
-    IPremixHandler premixHandler = new PremixHandler(utxo, ecKey, "userPreHash"+input.getHash()+input.getIndex());
+    IPremixHandler premixHandler =
+        new PremixHandler(utxo, ecKey, "userPreHash" + input.getHash() + input.getIndex());
     IPostmixHandler postmixHandler = new Bip84PostmixHandler(bip84Wallet);
 
     MixParams mixParams =

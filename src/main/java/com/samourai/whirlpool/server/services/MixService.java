@@ -594,7 +594,7 @@ public class MixService {
             .filter(mix -> mix.computeInputsHash().equals(inputsHash))
             .collect(Collectors.toList());
     if (mixsFound.size() != 1) {
-      log.warn("REGISTER_OUTPUT too late, mix not found for inputsHash=" + inputsHash);
+      log.warn("REGISTER_OUTPUT rejected: no current mix for inputsHash=" + inputsHash);
       // reject with generic message because we may not be responsible of this error (ie: another
       // client disconnected during the mix)
       throw new IllegalInputException("Mix failed");

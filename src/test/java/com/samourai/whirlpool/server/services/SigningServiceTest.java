@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.wallet.segwit.SegwitAddress;
@@ -118,7 +117,8 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     mix.registerInput(
         new ConfirmedInput(
             new RegisteredInput(firstUsername, false, firstTxOutPoint, "127.0.0.1"),
-            new byte[] {}, "userHash1"));
+            new byte[] {},
+            "userHash1"));
     mix.registerOutput(testUtils.generateSegwitAddress().getBech32AsString());
 
     // prepare input
@@ -250,7 +250,9 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     String receiveAddress = testUtils.generateSegwitAddress().getBech32AsString();
     byte[] blindedBordereau = clientCryptoService.blind(receiveAddress, blindingParams);
     byte[] signedBlindedBordereau =
-        confirmInputService.confirmInputOrQueuePool(mixId, username, blindedBordereau, "userHash"+username).get();
+        confirmInputService
+            .confirmInputOrQueuePool(mixId, username, blindedBordereau, "userHash" + username)
+            .get();
 
     // register output
     byte[] unblindedSignedBordereau =

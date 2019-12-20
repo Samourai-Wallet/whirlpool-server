@@ -1,13 +1,10 @@
 package com.samourai.whirlpool.server.services;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-import com.samourai.wallet.api.backend.beans.UnspentResponse;
 import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.client.indexHandler.MemoryIndexHandler;
 import com.samourai.wallet.hd.HD_Wallet;
-import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.whirlpool.client.tx0.*;
 import com.samourai.whirlpool.client.wallet.WhirlpoolWalletConfig;
 import com.samourai.whirlpool.client.whirlpool.beans.Pool;
@@ -16,15 +13,11 @@ import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
-import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
-
 import java8.util.Lists;
-import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionOutPoint;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -178,9 +171,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
-            new Bip84Wallet(
-                    bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
-
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -206,7 +198,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 badBankWallet,
-                    new Tx0Config(),
+                new Tx0Config(),
                 tx0Preview);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
@@ -231,8 +223,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
-            new Bip84Wallet(
-                    bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -251,7 +243,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     String feeAddress = "tb1q9fj036sha0mv25qm6ruk7l85xy2wy6qp853yx0";
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, 0, FEES_VALID, 0, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data =
+        new Tx0Data(feePaymentCode, 0, FEES_VALID, 0, feePayload, feeAddress, feeIndex);
     Tx0Preview tx0Preview = new Tx0Preview(tx0Data, 2, 1000102, 94024590, 4);
 
     Tx0 tx0 =
@@ -261,8 +254,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 badBankWallet,
-                    new Tx0Config(),
-                    tx0Preview);
+                new Tx0Config(),
+                tx0Preview);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(0, feeData.getFeeIndice()); // feeIndice overriden by feePayload
@@ -302,8 +295,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
-            new Bip84Wallet(
-                    bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -323,7 +316,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, FEES_VALID, 0, 0, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data =
+        new Tx0Data(feePaymentCode, FEES_VALID, 0, 0, feePayload, feeAddress, feeIndex);
     Tx0Preview tx0Preview = new Tx0Preview(tx0Data, 2, 1000102, 94024590, 4);
 
     Tx0 tx0 =
@@ -358,8 +352,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
-            new Bip84Wallet(
-                    bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
 
     Pool pool = new Pool();
     pool.setPoolId("foo");
@@ -379,7 +373,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
     int feeIndex = 123456;
 
-    Tx0Data tx0Data = new Tx0Data(feePaymentCode, FEES_VALID, 0, 0, feePayload, feeAddress, feeIndex);
+    Tx0Data tx0Data =
+        new Tx0Data(feePaymentCode, FEES_VALID, 0, 0, feePayload, feeAddress, feeIndex);
     Tx0Preview tx0Preview = new Tx0Preview(tx0Data, 2, 1000102, 94024590, 4);
 
     Tx0 tx0 =
@@ -389,8 +384,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 depositWallet,
                 premixWallet,
                 badBankWallet,
-                    new Tx0Config(),
-                    tx0Preview);
+                new Tx0Config(),
+                tx0Preview);
 
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx0.getTx());
     Assert.assertEquals(feeIndex, feeData.getFeeIndice());

@@ -37,6 +37,13 @@ public class RegisteredInput {
 
   @Override
   public String toString() {
-    return "outPoint="+outPoint+", liquidity="+liquidity+", username="+username+", ip="+ip;
+    return "outPoint="
+        + outPoint
+        + ", liquidity="
+        + liquidity
+        + ", username="
+        + username
+        + ", ip="
+        + ip;
   }
 }

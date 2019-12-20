@@ -8,7 +8,6 @@ import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.Utils;
-
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -250,7 +249,7 @@ public class Mix {
   }
 
   public synchronized void unregisterInput(ConfirmedInput confirmedInput) {
-    log.info(" • ["+ mixId + "] unregistering a CONFIRMED input: "+confirmedInput);
+    log.info(" • [" + mixId + "] unregistering a CONFIRMED input: " + confirmedInput);
     String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getOutPoint());
     inputsById.remove(inputId);
   }

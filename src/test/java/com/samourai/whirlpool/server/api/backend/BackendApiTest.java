@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.api.backend;
 
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import com.samourai.wallet.api.backend.BackendApi;

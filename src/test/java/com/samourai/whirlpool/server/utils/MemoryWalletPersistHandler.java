@@ -6,7 +6,6 @@ import com.samourai.whirlpool.client.wallet.WhirlpoolWallet;
 import com.samourai.whirlpool.client.wallet.beans.WhirlpoolUtxo;
 import com.samourai.whirlpool.client.wallet.beans.WhirlpoolUtxoConfig;
 import com.samourai.whirlpool.client.wallet.persist.WhirlpoolWalletPersistHandler;
-
 import java.util.Collection;
 
 public class MemoryWalletPersistHandler implements WhirlpoolWalletPersistHandler {

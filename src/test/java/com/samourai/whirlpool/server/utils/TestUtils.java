@@ -19,13 +19,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.invoke.MethodHandles;
-import java.util.Collection;
-
-import java8.util.Lists;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.TransactionOutPoint;
-import org.bitcoinj.params.TestNet3Params;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
@@ -127,7 +123,8 @@ public class TestUtils {
   public ConfirmedInput computeConfirmedInput(String utxoHash, long utxoIndex, boolean liquidity) {
     TxOutPoint outPoint = new TxOutPoint(utxoHash, utxoIndex, 1234, 99, null, "fakeReceiveAddress");
     RegisteredInput registeredInput = new RegisteredInput("foo", liquidity, outPoint, "127.0.0.1");
-    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, null, "userHash"+utxoHash+utxoIndex);
+    ConfirmedInput confirmedInput =
+        new ConfirmedInput(registeredInput, null, "userHash" + utxoHash + utxoIndex);
     return confirmedInput;
   }
 
@@ -145,14 +142,16 @@ public class TestUtils {
   }
 
   public UnspentResponse.UnspentOutput computeUnspentOutput(TransactionOutPoint outPoint) {
-    return computeUnspentOutput(outPoint.getHash().toString(), (int)outPoint.getIndex(), outPoint.getValue().value);
+    return computeUnspentOutput(
+        outPoint.getHash().toString(), (int) outPoint.getIndex(), outPoint.getValue().value);
   }
 
-  public UnspentOutputWithKey generateUnspentOutputWithKey(long value, NetworkParameters params) throws Exception {
+  public UnspentOutputWithKey generateUnspentOutputWithKey(long value, NetworkParameters params)
+      throws Exception {
     ECKey input0Key = new ECKey();
     String input0OutPointAddress = new SegwitAddress(input0Key, params).getBech32AsString();
     TransactionOutPoint input0OutPoint =
-            cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, value, params);
+        cryptoTestUtil.generateTransactionOutPoint(input0OutPointAddress, value, params);
     UnspentResponse.UnspentOutput utxo = computeUnspentOutput(input0OutPoint);
     return new UnspentOutputWithKey(utxo, input0Key.getPrivKeyBytes());
   }

@@ -25,6 +25,6 @@ public class ConfirmedInput {
 
   @Override
   public String toString() {
-    return "registeredInput=["+registeredInput+"], userHash="+userHash;
+    return "registeredInput=[" + registeredInput + "], userHash=" + userHash;
   }
 }
