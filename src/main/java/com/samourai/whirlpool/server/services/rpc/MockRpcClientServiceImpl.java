@@ -33,6 +33,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
   private Bech32UtilGeneric bech32Util;
 
   private Map<String, RpcRawTransactionResponse> mockTransactions;
+  private Map<String, Boolean> mockSpentOutputs;
 
   public static final int MOCK_TX_CONFIRMATIONS = 99;
   private static final long MOCK_TX_TIME = 900000;
@@ -42,7 +43,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     this.params = cryptoService.getNetworkParameters();
     this.bech32Util = bech32Util;
 
-    this.mockTransactions = new HashMap<>();
+    resetMock();
   }
 
   @Override
@@ -79,6 +80,11 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     return Optional.of(rpcTxResponse);
   }
 
+  @Override
+  public boolean isTxOutUnspent(String txid, long index) {
+    return !mockSpentOutputs.containsKey(txid+":"+index);
+  }
+
   public void mock(String txid, String rawTxHex, int confirmations) {
     log.info("mock tx: " + txid);
     RpcRawTransactionResponse rawTxResponse =
@@ -86,8 +92,13 @@ public class MockRpcClientServiceImpl implements RpcClientService {
     mockTransactions.put(txid, rawTxResponse);
   }
 
+  public void mockSpentOutput(String txid, long index) {
+    mockSpentOutputs.put(txid+":"+index, true);
+  }
+
   public void resetMock() {
     mockTransactions = new HashMap<>();
+    mockSpentOutputs = new HashMap<>();
   }
 
   // ------------

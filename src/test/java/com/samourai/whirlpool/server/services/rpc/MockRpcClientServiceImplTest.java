@@ -43,4 +43,23 @@ public class MockRpcClientServiceImplTest extends AbstractIntegrationTest {
       Assert.assertEquals(rawTxResponse.getConfirmations(), CONFIRMATIONS);
     }
   }
+
+  @Test
+  public void isTxOutUnspent() {
+    String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
+    String txhex = "01000000000101d9a61885250550a0f074e1866f5dbc4bd96224b2af2f75b70fbfc8312de7cd0b0000000000ffffffff080000000000000000066a040000000198e00e000000000016001411ebbec7c48b7d42c1a4f6d808f2ac81be8503b7689a9800000000001600142a64f8ea17ebf6c5501bd0f96f7cf43114e26801689a9800000000001600149747d7abc760e033a19d477d2091582f76b4308b689a9800000000001600149c1ffd729a95ee034e8efc55e10226ec17ae87a8689a980000000000160014ea6d4e82441d3e99b21197964b5e814ad2e6430c689a980000000000160014f9db48da4dea3d5304e8c6516cd229f20a0188999c806e0100000000160014d08a7c707572ace8fcecbc6210e31c177bdf803e02483045022100adee6cc97538f29fbe64e3ee10300bb2222327306b91c749f0f572949385cb5102200f76be99e4cf8f61454acddb0ffdfbec7dde288d49e7cde52cd940d4321f7083012102d0f240f307e6b32f94cf39e61dfdc8570cb29adab92e8a24d5a48cfe3eaf70c100000000";
+    rpcClientService.mock(txid, txhex, 1234);
+
+    // unspent by default
+    Assert.assertTrue(rpcClientService.isTxOutUnspent(txid, 0));
+    Assert.assertTrue(rpcClientService.isTxOutUnspent(txid, 1));
+
+    // mock one output as spent
+    rpcClientService.mockSpentOutput(txid, 0);
+
+    // verify
+    Assert.assertFalse(rpcClientService.isTxOutUnspent(txid, 0)); // spent
+    Assert.assertTrue(rpcClientService.isTxOutUnspent(txid, 1));
+
+  }
 }

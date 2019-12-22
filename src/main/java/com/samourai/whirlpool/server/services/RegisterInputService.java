@@ -76,6 +76,11 @@ public class RegisterInputService {
       // verify signature
       inputValidationService.validateSignature(txOutPoint, poolId, signature);
 
+      // verify unspent
+      if (!blockchainDataService.isTxOutUnspent(utxoHash, utxoIndex)) {
+        throw new IllegalInputException("Input already spent");
+      }
+
       // check tx0Whitelist
       String txid = rpcTransaction.getTx().getHashAsString();
       if (!dbService.hasTx0Whitelist(txid)) {

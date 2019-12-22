@@ -95,6 +95,21 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
   }
 
   @Override
+  public boolean isTxOutUnspent(String txid, long index) {
+    try {
+      // getTxOut only returns unspent outputs
+      BitcoindRpcClient.TxOut txOut = rpcClient.getTxOut(txid, index);
+      if (txOut != null) {
+        return true;
+      }
+    } catch (Exception e) {
+      log.error("getUnspentTxOut error", e);
+    }
+    // not found or already spent
+    return false;
+  }
+
+  @Override
   public void broadcastTransaction(Transaction tx) throws BroadcastException {
     String txid = tx.getHashAsString();
     if (whirlpoolServerConfig.getRpcClient().isMockTxBroadcast()) {

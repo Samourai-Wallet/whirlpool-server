@@ -175,7 +175,7 @@ public class RegisterOutputServiceTest extends AbstractMixIntegrationTest {
           "invalidInputsHash", unblindedSignedBordereau, receiveAddress); // INVALID inputsHash
       Assert.assertTrue(false);
     } catch (Exception e) {
-      Assert.assertEquals("REGISTER_OUTPUT too late, mix is over", e.getMessage());
+      Assert.assertEquals("Mix failed", e.getMessage());
     }
     Assert.assertEquals(0, mix.getReceiveAddresses().size()); // output NOT registered
 

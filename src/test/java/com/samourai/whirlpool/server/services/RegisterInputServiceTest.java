@@ -41,7 +41,12 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
     serverConfig.setTestMode(true); // TODO
   }
 
-  private TxOutPoint runTestValidInput(boolean liquidity) {
+  private TxOutPoint runTestValidInput(boolean liquidity, boolean spent) throws Exception {
+    if (spent) {
+      thrown.expect(IllegalInputException.class);
+      thrown.expectMessage("Input already spent");
+    }
+
     TxOutPoint txOutPoint = null;
     try {
       Mix mix = __getCurrentMix();
@@ -62,6 +67,10 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
               inputBalance,
               confirmations);
 
+      if (spent)  {
+        rpcClientService.mockSpentOutput(txOutPoint.getHash(), txOutPoint.getIndex());
+      }
+
       // TEST
       registerInputService.registerInput(
           poolId,
@@ -73,6 +82,9 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
           "127.0.0.1");
 
     } catch (Exception e) {
+      if (spent && "Input already spent".equals(e.getMessage()))  {
+        throw e; // expected
+      }
       e.printStackTrace();
       Assert.assertTrue(false);
     }
@@ -82,7 +94,7 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
   @Test
   public void registerInput_shouldRegisterMustMixWhenValid() throws Exception {
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput(false);
+    TxOutPoint txOutPoint = runTestValidInput(false, false);
 
     // VERIFY
     Mix mix = __getCurrentMix();
@@ -95,9 +107,24 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
   }
 
   @Test
+  public void registerInput_shouldFailWhenSpent() throws Exception {
+    // TEST
+    TxOutPoint txOutPoint = runTestValidInput(false, true);
+
+    // VERIFY
+    Mix mix = __getCurrentMix();
+    Pool pool = mix.getPool();
+
+    // mustMix should NOT be registered
+    testUtils.assertPoolEmpty(pool);
+    testUtils.assertMix(0, 0, mix); // no mustMix confirming
+    Assert.assertFalse(mix.hasConfirmingInput(txOutPoint));
+  }
+
+  @Test
   public void registerInput_shouldQueueLiquidityWhenValid() throws Exception {
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput(true);
+    TxOutPoint txOutPoint = runTestValidInput(true, false);
 
     // VERIFY
     Mix mix = __getCurrentMix();
@@ -117,7 +144,7 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
     mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT); // mix already started
 
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput(false);
+    TxOutPoint txOutPoint = runTestValidInput(false, false);
 
     // VERIFY
 
@@ -134,7 +161,7 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
     mix.setMixStatusAndTime(MixStatus.REGISTER_OUTPUT); // mix already started
 
     // TEST
-    TxOutPoint txOutPoint = runTestValidInput(true);
+    TxOutPoint txOutPoint = runTestValidInput(true, false);
 
     // VERIFY
     InputPool liquidityPool = mix.getPool().getLiquidityQueue();

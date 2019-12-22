@@ -96,7 +96,6 @@ public class MixService {
     this.exportService = exportService;
     this.taskService = taskService;
     this.txUtil = txUtil;
-    this.currentMixs = new ConcurrentHashMap<>();
 
     this.__reset();
 
@@ -308,6 +307,10 @@ public class MixService {
     if (mix.getNbInputs() < mix.getTargetAnonymitySet()) {
       return false;
     }
+    // check for inputs spent in the meantime
+    if (!revalidateInputsForSpent(mix)) {
+      return false;
+    }
     return true;
   }
 
@@ -368,11 +371,48 @@ public class MixService {
 
   protected synchronized boolean isRegisterOutputReady(Mix mix) {
     if (!isRegisterInputReady(mix)) {
-      // TODO recheck inputs balances and update/ban/reopen REGISTER_INPUT or fail if input spent in
-      // the meantime
       return false;
     }
+
     return (mix.getReceiveAddresses().size() == mix.getNbInputs());
+  }
+
+  protected boolean revalidateInputsForSpent(Mix mix) {
+    boolean mixAlreadyStarted = mixAlreadyStarted(mix);
+    List<ConfirmedInput> spentInputs = new ArrayList<>();
+
+    // check for spent inputs
+    for (ConfirmedInput confirmedInput : mix.getInputs()) {
+      TxOutPoint outPoint = confirmedInput.getRegisteredInput().getOutPoint();
+      if (!rpcClientService.isTxOutUnspent(outPoint.getHash(), outPoint.getIndex())) {
+        // input was spent in meantime
+        spentInputs.add(confirmedInput);
+      }
+    }
+
+    if (spentInputs.isEmpty()) {
+      // no input spent => valid
+      return true;
+    }
+
+    // there were input spent
+    for (ConfirmedInput spentInput : spentInputs) {
+      log.warn("Removing confirmed input spent in meantime", spentInput);
+
+      // remove spent input
+      mix.unregisterInput(spentInput);
+
+      if (mixAlreadyStarted) {
+        // blame
+        blameService.blame(spentInput, BlameReason.SPENT, mix.getMixId());
+      }
+    }
+    if (mixAlreadyStarted) {
+      // restart mix
+      String outpointKeysToBlame = computeOutpointKeysToBlame(spentInputs);
+      goFail(mix, FailReason.SPENT, outpointKeysToBlame);
+    }
+    return false; // not valid
   }
 
   public synchronized void revealOutput(String mixId, String username, String receiveAddress)
@@ -741,10 +781,7 @@ public class MixService {
                       confirmedInput.getRegisteredInput().getUsername().equals(username))
               .collect(Collectors.toList());
       if (!confirmedInputs.isEmpty()) {
-        boolean mixAlreadyStarted =
-            !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())
-                && !MixStatus.FAIL.equals(mix.getMixStatus())
-                && !MixStatus.SUCCESS.equals(mix.getMixStatus());
+        boolean mixAlreadyStarted = mixAlreadyStarted(mix);
 
         confirmedInputs.forEach(
             confirmedInput -> {
@@ -763,6 +800,12 @@ public class MixService {
         }
       }
     }
+  }
+
+  private boolean mixAlreadyStarted(Mix mix) {
+    return !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())
+            && !MixStatus.FAIL.equals(mix.getMixStatus())
+            && !MixStatus.SUCCESS.equals(mix.getMixStatus());
   }
 
   private Collection<Mix> getCurrentMixs() {
@@ -800,7 +843,7 @@ public class MixService {
     currentMixs.put(mixId, mix);
     pool.setCurrentMix(mix);
 
-    log.info("[NEW MIX " + mix.getMixId() + "]");
+    log.info("["+pool.getPoolId()+"][NEW MIX "+ mix.getMixId() + "]");
     logMixStatus(mix);
 
     // add queued mustMixs if any
