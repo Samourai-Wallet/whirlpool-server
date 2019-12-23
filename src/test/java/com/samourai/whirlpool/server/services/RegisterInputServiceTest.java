@@ -67,7 +67,7 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
               inputBalance,
               confirmations);
 
-      if (spent)  {
+      if (spent) {
         rpcClientService.mockSpentOutput(txOutPoint.getHash(), txOutPoint.getIndex());
       }
 
@@ -82,7 +82,7 @@ public class RegisterInputServiceTest extends AbstractMixIntegrationTest {
           "127.0.0.1");
 
     } catch (Exception e) {
-      if (spent && "Input already spent".equals(e.getMessage()))  {
+      if (spent && "Input already spent".equals(e.getMessage())) {
         throw e; // expected
       }
       e.printStackTrace();

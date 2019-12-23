@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.services.rpc;
 import com.samourai.whirlpool.server.exceptions.BroadcastException;
 import java.util.Optional;
 import org.bitcoinj.core.Transaction;
-import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 
 public interface RpcClientService {
   boolean testConnectivity();

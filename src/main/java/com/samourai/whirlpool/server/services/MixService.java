@@ -804,8 +804,8 @@ public class MixService {
 
   private boolean mixAlreadyStarted(Mix mix) {
     return !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())
-            && !MixStatus.FAIL.equals(mix.getMixStatus())
-            && !MixStatus.SUCCESS.equals(mix.getMixStatus());
+        && !MixStatus.FAIL.equals(mix.getMixStatus())
+        && !MixStatus.SUCCESS.equals(mix.getMixStatus());
   }
 
   private Collection<Mix> getCurrentMixs() {
@@ -843,7 +843,7 @@ public class MixService {
     currentMixs.put(mixId, mix);
     pool.setCurrentMix(mix);
 
-    log.info("["+pool.getPoolId()+"][NEW MIX "+ mix.getMixId() + "]");
+    log.info("[" + pool.getPoolId() + "][NEW MIX " + mix.getMixId() + "]");
     logMixStatus(mix);
 
     // add queued mustMixs if any

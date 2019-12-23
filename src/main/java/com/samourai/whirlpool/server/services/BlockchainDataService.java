@@ -14,7 +14,6 @@ import org.bitcoinj.core.TransactionOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 
 @Service
 public class BlockchainDataService {
@@ -74,8 +73,6 @@ public class BlockchainDataService {
             toAddress);
     return txOutPoint;
   }
-
-
 
   public boolean isTxOutUnspent(String txid, long utxoIndex) {
     return rpcClientService.isTxOutUnspent(txid, utxoIndex);

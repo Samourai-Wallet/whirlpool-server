@@ -151,25 +151,26 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long anonymitySetAdjustTimeout = 10 * 60;
     long liquidityTimeout = 60;
     Mix mix =
-            __nextMix(
-                    denomination,
-                    feeValue,
-                    minerFeeMin,
-                    minerFeeCap,
-                    minerFeeMax,
-                    mustMixMin,
-                    liquidityMin,
-                    anonymitySetTarget,
-                    anonymitySetMin,
-                    anonymitySetMax,
-                    anonymitySetAdjustTimeout,
-                    liquidityTimeout);
+        __nextMix(
+            denomination,
+            feeValue,
+            minerFeeMin,
+            minerFeeCap,
+            minerFeeMax,
+            mustMixMin,
+            liquidityMin,
+            anonymitySetTarget,
+            anonymitySetMin,
+            anonymitySetMax,
+            anonymitySetAdjustTimeout,
+            liquidityTimeout);
 
     // 0 mustMix => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 1 mustMix => false
-    ConfirmedInput mustMix1 = new ConfirmedInput(
+    ConfirmedInput mustMix1 =
+        new ConfirmedInput(
             new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"),
             null,
             "userHash1");
@@ -177,7 +178,8 @@ public class MixServiceTest extends AbstractIntegrationTest {
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
     // 2 mustMix => true
-    ConfirmedInput mustMix2 = new ConfirmedInput(
+    ConfirmedInput mustMix2 =
+        new ConfirmedInput(
             new RegisteredInput("mustMix2", false, generateOutPoint(), "127.0.0.1"),
             null,
             "userHash2");
@@ -199,7 +201,8 @@ public class MixServiceTest extends AbstractIntegrationTest {
     Assert.assertEquals(dbService.findBlames(blameIdentifierMustMix1).size(), 0);
 
     // 2 mustMix => true
-    ConfirmedInput mustMix3 = new ConfirmedInput(
+    ConfirmedInput mustMix3 =
+        new ConfirmedInput(
             new RegisteredInput("mustMix3", false, generateOutPoint(), "127.0.0.1"),
             null,
             "userHash3");
@@ -219,7 +222,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // mix failed
     Assert.assertEquals(MixStatus.FAIL, mix.getMixStatus());
     Assert.assertEquals(FailReason.SPENT, mix.getFailReason());
-    Assert.assertEquals(out3.getHash()+":"+out3.getIndex(), mix.getFailInfo());
+    Assert.assertEquals(out3.getHash() + ":" + out3.getIndex(), mix.getFailInfo());
 
     // blame as mix was already started
     String blameIdentifierMustMix3 = Utils.computeBlameIdentitifer(mustMix3);

@@ -82,7 +82,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
 
   @Override
   public boolean isTxOutUnspent(String txid, long index) {
-    return !mockSpentOutputs.containsKey(txid+":"+index);
+    return !mockSpentOutputs.containsKey(txid + ":" + index);
   }
 
   public void mock(String txid, String rawTxHex, int confirmations) {
@@ -93,7 +93,7 @@ public class MockRpcClientServiceImpl implements RpcClientService {
   }
 
   public void mockSpentOutput(String txid, long index) {
-    mockSpentOutputs.put(txid+":"+index, true);
+    mockSpentOutputs.put(txid + ":" + index, true);
   }
 
   public void resetMock() {
