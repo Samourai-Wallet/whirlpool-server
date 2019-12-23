@@ -51,6 +51,7 @@ server.register-input.liquidity-interval = 10: liquidities are added by batch at
 ### UTXO rules
 ```
 server.register-input.max-inputs-same-hash: max inputs with same hash (same origin tx) allowed to register to a mix
+server.register-input.max-inputs-same-user-hash: max inputs with same user-hash (same mixing client) allowed to register to a mix
 ```
 
 ### SCodes

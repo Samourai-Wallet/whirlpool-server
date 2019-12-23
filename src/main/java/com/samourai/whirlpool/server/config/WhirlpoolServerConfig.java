@@ -147,6 +147,7 @@ public class WhirlpoolServerConfig {
     private int minConfirmationsMustMix;
     private int minConfirmationsLiquidity;
     private int maxInputsSameHash;
+    private int maxInputsSameUserHash;
     private long liquidityInterval;
 
     public int getMinConfirmationsMustMix() {
@@ -171,6 +172,14 @@ public class WhirlpoolServerConfig {
 
     public void setMaxInputsSameHash(int maxInputsSameHash) {
       this.maxInputsSameHash = maxInputsSameHash;
+    }
+
+    public int getMaxInputsSameUserHash() {
+      return maxInputsSameUserHash;
+    }
+
+    public void setMaxInputsSameUserHash(int maxInputsSameUserHash) {
+      this.maxInputsSameUserHash = maxInputsSameUserHash;
     }
 
     public long getLiquidityInterval() {
@@ -597,6 +606,8 @@ public class WhirlpoolServerConfig {
 
     configInfo.put(
         "registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));
+    configInfo.put(
+        "registerInput.maxInputsSameUserHash", String.valueOf(registerInput.maxInputsSameUserHash));
     configInfo.put(
         "registerInput.minConfirmations",
         "liquidity="

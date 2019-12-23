@@ -98,7 +98,7 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
   public boolean isTxOutUnspent(String txid, long index) {
     try {
       // getTxOut only returns unspent outputs
-      BitcoindRpcClient.TxOut txOut = rpcClient.getTxOut(txid, index);
+      BitcoindRpcClient.TxOut txOut = rpcClient.getTxOut(txid, index, true);
       if (txOut != null) {
         return true;
       }

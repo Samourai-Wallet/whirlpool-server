@@ -126,13 +126,6 @@ public class MixService {
       throw new QueueInputException("Current mix is full", registeredInput, pool.getPoolId());
     }
 
-    // verify input not already confirmed
-    ConfirmedInput alreadyConfirmedInput = mix.findInput(registeredInput.getOutPoint());
-    if (alreadyConfirmedInput != null) {
-      // input already confirmed => reject duplicate client
-      throw new IllegalInputException("Input already confirmed");
-    }
-
     if (registeredInput.isLiquidity()) {
       // liquidity: verify liquidities open
       if (!mix.isRegisterLiquiditiesOpen()) {
@@ -149,14 +142,21 @@ public class MixService {
     }
 
     // verify unique userHash
-    Optional<ConfirmedInput> inputSameUserHash =
+    int maxInputsSameUserHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameUserHash();
+    long countInputSameUserHash =
         mix.getInputs()
             .parallelStream()
             .filter(input -> input.getUserHash().equals(confirmedInput.getUserHash()))
-            .findFirst();
-    if (inputSameUserHash.isPresent()) {
+            .count();
+    if ((countInputSameUserHash + 1) > maxInputsSameUserHash) {
       if (log.isDebugEnabled()) {
-        log.debug("userHash is already mixing in " + mix.getMixId() + ": " + inputSameUserHash);
+        log.debug(
+            "already "
+                + countInputSameUserHash
+                + " inputs with same userHash in "
+                + mix.getMixId()
+                + ": "
+                + confirmedInput.getUserHash());
       }
       throw new QueueInputException(
           "Your wallet already registered for this mix", registeredInput, pool.getPoolId());
@@ -183,6 +183,13 @@ public class MixService {
     if (mix.getInputByAddress(inputAddress).isPresent()) {
       throw new QueueInputException(
           "Current mix is full for inputs with same address", registeredInput, pool.getPoolId());
+    }
+
+    // verify input not already confirmed
+    ConfirmedInput alreadyConfirmedInput = mix.findInput(registeredInput.getOutPoint());
+    if (alreadyConfirmedInput != null) {
+      // input already confirmed => reject duplicate client
+      throw new IllegalInputException("Input already confirmed");
     }
   }
 
@@ -397,7 +404,8 @@ public class MixService {
 
     // there were input spent
     for (ConfirmedInput spentInput : spentInputs) {
-      log.warn("Removing confirmed input spent in meantime", spentInput);
+      log.warn(
+          "Found " + spentInputs.size() + " confirmed input(s) spent in meantime!", spentInput);
 
       // remove spent input
       mix.unregisterInput(spentInput);
