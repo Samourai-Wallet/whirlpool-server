@@ -54,7 +54,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     setScodeConfig(SCODE_MIN_50, SCODE_MIN_PAYLOAD, 50, null);
     setScodeConfig(SCODE_MAX_80, SCODE_MAX_PAYLOAD, 80, null);
 
-    whirlpoolWalletConfig = new WhirlpoolWalletConfig(null, null, null, null, params, null);
+    whirlpoolWalletConfig = new WhirlpoolWalletConfig(null, null, null, null, params, false, null);
   }
 
   private void assertFeeData(String txid, Integer feeIndice, byte[] feePayload) {
