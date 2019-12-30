@@ -84,7 +84,7 @@ public class AssertMultiClientManager extends MultiClientManager {
             new JavaStompClientService(cliTorClientService, cliConfig, httpClientService),
             new MemoryWalletPersistHandler(),
             server,
-            cryptoService.getNetworkParameters());
+            cryptoService.getNetworkParameters(), false);
     return WhirlpoolClientImpl.newClient(config);
   }
 
@@ -182,7 +182,7 @@ public class AssertMultiClientManager extends MultiClientManager {
     UtxoWithBalance utxo = new UtxoWithBalance(input.getHash(), input.getIndex(), input.getValue());
     IPremixHandler premixHandler =
         new PremixHandler(utxo, ecKey, "userPreHash" + input.getHash() + input.getIndex());
-    IPostmixHandler postmixHandler = new Bip84PostmixHandler(bip84Wallet);
+    IPostmixHandler postmixHandler = new Bip84PostmixHandler(bip84Wallet, false);
 
     MixParams mixParams =
         new MixParams(pool.getPoolId(), pool.getDenomination(), premixHandler, postmixHandler);
@@ -394,7 +394,7 @@ public class AssertMultiClientManager extends MultiClientManager {
   public void exit() {
     for (WhirlpoolClient whirlpoolClient : clients) {
       if (whirlpoolClient != null) {
-        whirlpoolClient.exit();
+        whirlpoolClient.stop(true);
       }
     }
   }
