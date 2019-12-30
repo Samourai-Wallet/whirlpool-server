@@ -645,7 +645,7 @@ public class MixService {
       log.warn("REGISTER_OUTPUT rejected: no current mix for inputsHash=" + inputsHash);
       // reject with generic message because we may not be responsible of this error (ie: another
       // client disconnected during the mix)
-      throw new IllegalInputException("Mix failed");
+      throw new MixException("Mix failed");
     }
     Mix mix = mixsFound.get(0);
     if (mixStatus != null && !mixStatus.equals(mix.getMixStatus())) {
