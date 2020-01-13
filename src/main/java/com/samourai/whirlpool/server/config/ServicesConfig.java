@@ -1,5 +1,7 @@
 package com.samourai.whirlpool.server.config;
 
+import com.samourai.javaserver.config.ServerServicesConfig;
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.wallet.bip47.rpc.java.SecretPointFactoryJava;
 import com.samourai.wallet.bip47.rpc.secretPoint.ISecretPointFactory;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
@@ -11,7 +13,6 @@ import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import java.lang.invoke.MethodHandles;
-import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.EnableCaching;
@@ -22,24 +23,24 @@ import org.springframework.core.task.TaskExecutor;
 
 @Configuration
 @EnableCaching
-public class ServicesConfig {
+public class ServicesConfig extends ServerServicesConfig {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   protected WhirlpoolServerConfig whirlpoolServerConfig;
 
   public ServicesConfig(WhirlpoolServerConfig whirlpoolServerConfig) {
+    super();
     this.whirlpoolServerConfig = whirlpoolServerConfig;
-  }
-
-  @Bean
-  LayoutDialect layoutDialect() {
-    // enable layout:decorate for thymeleaf
-    return new LayoutDialect();
   }
 
   @Bean
   TaskExecutor taskExecutor() {
     return new SimpleAsyncTaskExecutor();
+  }
+
+  @Bean
+  ServerUtils serverUtils() {
+    return ServerUtils.getInstance();
   }
 
   @Bean

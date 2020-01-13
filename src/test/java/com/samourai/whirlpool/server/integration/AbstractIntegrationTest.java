@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.integration;
 
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.wallet.bip47.rpc.java.Bip47UtilJava;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.SegwitAddress;
@@ -35,7 +36,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles(Utils.PROFILE_TEST)
+@ActiveProfiles(ServerUtils.PROFILE_TEST)
 public abstract class AbstractIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

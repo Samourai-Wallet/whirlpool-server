@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.integration;
 
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.TestUtils;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -11,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
 /** Tests connecting to a real rpc client node. */
-@ActiveProfiles(Utils.PROFILE_DEFAULT)
+@ActiveProfiles(ServerUtils.PROFILE_DEFAULT)
 public abstract class AbstractJsonRpcClientTest {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

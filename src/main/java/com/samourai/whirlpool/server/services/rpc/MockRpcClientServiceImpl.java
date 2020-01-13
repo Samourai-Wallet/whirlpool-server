@@ -1,10 +1,10 @@
 package com.samourai.whirlpool.server.services.rpc;
 
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.wallet.segwit.SegwitAddress;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.services.CryptoService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.io.File;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Files;
@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 import wf.bitcoin.javabitcoindrpcclient.GenericRpcException;
 
 @Service
-@Profile(Utils.PROFILE_TEST)
+@Profile(ServerUtils.PROFILE_TEST)
 public class MockRpcClientServiceImpl implements RpcClientService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private NetworkParameters params;

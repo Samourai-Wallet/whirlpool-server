@@ -1,8 +1,8 @@
 package com.samourai.whirlpool.server.services.rpc;
 
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.BroadcastException;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.net.URL;
 import java.util.Optional;
@@ -15,7 +15,7 @@ import wf.bitcoin.javabitcoindrpcclient.BitcoinJSONRPCClient;
 import wf.bitcoin.javabitcoindrpcclient.BitcoindRpcClient;
 
 @Service
-@Profile("!" + Utils.PROFILE_TEST)
+@Profile("!" + ServerUtils.PROFILE_TEST)
 public class JSONRpcClientServiceImpl implements RpcClientService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private WhirlpoolServerConfig whirlpoolServerConfig;

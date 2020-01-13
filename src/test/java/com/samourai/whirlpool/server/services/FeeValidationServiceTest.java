@@ -170,6 +170,9 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Bip84Wallet premixWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet postmixWallet =
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 4, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
@@ -197,6 +200,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 spendFroms,
                 depositWallet,
                 premixWallet,
+                postmixWallet,
                 badBankWallet,
                 new Tx0Config(),
                 tx0Preview);
@@ -222,6 +226,9 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Bip84Wallet premixWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet postmixWallet =
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 4, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
@@ -253,6 +260,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 spendFroms,
                 depositWallet,
                 premixWallet,
+                postmixWallet,
                 badBankWallet,
                 new Tx0Config(),
                 tx0Preview);
@@ -294,6 +302,9 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Bip84Wallet premixWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet postmixWallet =
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 4, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
@@ -326,6 +337,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 spendFroms,
                 depositWallet,
                 premixWallet,
+                postmixWallet,
                 badBankWallet,
                 new Tx0Config(),
                 tx0Preview);
@@ -351,6 +363,9 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
     Bip84Wallet premixWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 2, new MemoryIndexHandler(), new MemoryIndexHandler());
+    Bip84Wallet postmixWallet =
+        new Bip84Wallet(
+            bip84w, Integer.MAX_VALUE - 4, new MemoryIndexHandler(), new MemoryIndexHandler());
     Bip84Wallet badBankWallet =
         new Bip84Wallet(
             bip84w, Integer.MAX_VALUE - 3, new MemoryIndexHandler(), new MemoryIndexHandler());
@@ -383,6 +398,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
                 spendFroms,
                 depositWallet,
                 premixWallet,
+                postmixWallet,
                 badBankWallet,
                 new Tx0Config(),
                 tx0Preview);

@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.config;
 
+import com.samourai.javaserver.config.ServerConfig;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.util.Date;
@@ -16,11 +17,10 @@ import org.springframework.context.annotation.Configuration;
 
 @ConfigurationProperties(prefix = "server")
 @Configuration
-public class WhirlpoolServerConfig {
+public class WhirlpoolServerConfig implements ServerConfig {
 
   private SamouraiFeeConfig samouraiFees;
   private boolean testMode;
-  private int port;
   private boolean testnet;
   private boolean mixEnabled;
   private NetworkParameters networkParameters;
@@ -55,14 +55,6 @@ public class WhirlpoolServerConfig {
 
   public void setMixEnabled(boolean mixEnabled) {
     this.mixEnabled = mixEnabled;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
   }
 
   public boolean isTestnet() {
@@ -586,13 +578,14 @@ public class WhirlpoolServerConfig {
     }
   }
 
+  @Override
   public void validate() throws Exception {
     samouraiFees.validate();
   }
 
+  @Override
   public Map<String, String> getConfigInfo() {
     Map<String, String> configInfo = new LinkedHashMap<>();
-    configInfo.put("port", String.valueOf(getPort()));
     configInfo.put("testMode", String.valueOf(testMode));
     configInfo.put(
         "rpcClient",

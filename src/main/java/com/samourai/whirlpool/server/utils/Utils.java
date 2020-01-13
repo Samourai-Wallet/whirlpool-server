@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
@@ -26,16 +27,14 @@ import org.bitcoinj.crypto.HDKeyDerivation;
 import org.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
 
 public class Utils {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final SecureRandom secureRandom = new SecureRandom();
   private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ServerUtils serverUtils = ServerUtils.getInstance();
 
   private static int BTC_TO_SATOSHIS = 100000000;
-  public static final String PROFILE_TEST = "test";
-  public static final String PROFILE_DEFAULT = "default";
 
   private static final String URL_EXPLORER_TESTNET = "https://blockstream.info/testnet/tx/";
   private static final String URL_EXPLORER_MAINNET = "https://blockstream.info/tx/";
@@ -111,12 +110,8 @@ public class Utils {
   }
 
   public static void setLoggerDebug() {
-    setLoggerDebug("com.samourai.whirlpool");
-    setLoggerDebug("com.samourai.wallet");
-  }
-
-  public static void setLoggerDebug(String logger) {
-    LogbackUtils.setLogLevel(logger, Level.DEBUG.toString());
+    serverUtils.setLoggerDebug("com.samourai.whirlpool");
+    serverUtils.setLoggerDebug("com.samourai.wallet");
   }
 
   public static BigDecimal satoshisToBtc(long satoshis) {
