@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<a th:fragment="logo" class="navbar-brand col-sm-3 col-md-2 mr-0" href="/status/status" title="Samourai Whirlpool"><img src="/img/samourai.png"/> Whirlpool</a>
+
+<ul th:fragment="menu" class="nav flex-column">
+    <li class="nav-item">
+        <a th:class="${currentPage == 'status'} ? 'nav-link active' : 'nav-link'" href="/status/status">
+            <span data-feather="play"></span>
+            Status
+        </a>
+    </li>
+    <li class="nav-item">
+        <a th:class="${currentPage == 'history'} ? 'nav-link active' : 'nav-link'" href="/status/history">
+            <span data-feather="list"></span>
+            History
+        </a>
+    </li>
+    <li class="nav-item">
+        <a th:class="${currentPage == 'config'} ? 'nav-link active' : 'nav-link'" href="/status/config">
+            <span data-feather="settings"></span>
+            Configuration
+        </a>
+    </li>
+    <li class="nav-item">
+        <a th:class="${currentPage == 'ban'} ? 'nav-link active' : 'nav-link'" href="/status/ban">
+            <span data-feather="slash"></span>
+            Banned inputs
+        </a>
+    </li>
+</ul>
+
+<span th:fragment="copyright">&copy; Samourai Wallet</span>
+
+</body>
+</html>

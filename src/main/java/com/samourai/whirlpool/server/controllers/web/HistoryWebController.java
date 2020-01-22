@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.controllers.web;
 
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import com.samourai.whirlpool.server.persistence.to.MixLogTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedUpdatedTO;
@@ -44,6 +45,8 @@ public class HistoryWebController {
               direction = Sort.Direction.DESC)
           Pageable pageable)
       throws Exception {
+    new WhirlpoolDashboardTemplateModel().apply(model);
+
     Page<MixTO> page = dbService.findMixs(pageable);
     model.addAttribute("page", page);
     model.addAttribute("urlExplorer", Utils.computeUrlExplorer(whirlpoolServerConfig));

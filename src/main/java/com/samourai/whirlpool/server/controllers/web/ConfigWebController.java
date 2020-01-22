@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.controllers.web;
 
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class ConfigWebController {
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
   public String status(Model model) {
+    new WhirlpoolDashboardTemplateModel().apply(model);
     model.addAttribute("configInfo", whirlpoolServerConfig.getConfigInfo());
     return "config";
   }

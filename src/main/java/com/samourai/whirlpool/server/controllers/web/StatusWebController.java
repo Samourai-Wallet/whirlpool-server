@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.controllers.web;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.PoolService;
@@ -39,6 +40,8 @@ public class StatusWebController {
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
   public String status(Model model) throws Exception {
+    new WhirlpoolDashboardTemplateModel().apply(model);
+
     List<Map<String, Object>> pools = new ArrayList<>();
     poolService
         .getPools()

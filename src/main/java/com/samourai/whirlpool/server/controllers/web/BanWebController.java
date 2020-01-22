@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.controllers.web;
 
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import com.samourai.whirlpool.server.persistence.to.BanTO;
 import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedTO;
 import com.samourai.whirlpool.server.services.BanService;
@@ -43,6 +44,8 @@ public class BanWebController {
               direction = Sort.Direction.DESC)
           Pageable pageable)
       throws Exception {
+    new WhirlpoolDashboardTemplateModel().apply(model);
+
     Page<BanTO> page = banService.findActiveBans(pageable);
     model.addAttribute("page", page);
     model.addAttribute("urlExplorer", Utils.computeUrlExplorer(whirlpoolServerConfig));

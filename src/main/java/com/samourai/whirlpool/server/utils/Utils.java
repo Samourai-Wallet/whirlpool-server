@@ -39,6 +39,8 @@ public class Utils {
   private static final String URL_EXPLORER_TESTNET = "https://blockstream.info/testnet/tx/";
   private static final String URL_EXPLORER_MAINNET = "https://blockstream.info/tx/";
 
+  public static final String WEB_PAGE_TITLE = "Whirlpool - Samourai Wallet";
+
   public static String getRandomString(int length) {
     RandomStringGenerator randomStringGenerator =
         new RandomStringGenerator.Builder()
