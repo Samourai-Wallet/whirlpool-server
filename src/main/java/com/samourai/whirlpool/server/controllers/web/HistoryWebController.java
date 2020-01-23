@@ -1,12 +1,12 @@
 package com.samourai.whirlpool.server.controllers.web;
 
+import com.samourai.wallet.api.explorer.ExplorerApi;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import com.samourai.whirlpool.server.persistence.to.MixLogTO;
 import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedUpdatedTO;
 import com.samourai.whirlpool.server.services.DbService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import org.slf4j.Logger;
@@ -29,11 +29,14 @@ public class HistoryWebController {
 
   private DbService dbService;
   private WhirlpoolServerConfig serverConfig;
+  private ExplorerApi explorerApi;
 
   @Autowired
-  public HistoryWebController(DbService dbService, WhirlpoolServerConfig serverConfig) {
+  public HistoryWebController(
+      DbService dbService, WhirlpoolServerConfig serverConfig, ExplorerApi explorerApi) {
     this.dbService = dbService;
     this.serverConfig = serverConfig;
+    this.explorerApi = explorerApi;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
@@ -49,7 +52,7 @@ public class HistoryWebController {
 
     Page<MixTO> page = dbService.findMixs(pageable);
     model.addAttribute("page", page);
-    model.addAttribute("urlExplorer", Utils.computeUrlExplorer(serverConfig));
+    model.addAttribute("urlExplorer", explorerApi.getUrlTx());
     model.addAttribute("mixStats", dbService.getMixStats());
     model.addAttribute("ENDPOINT", ENDPOINT);
     model.addAttribute("now", new Timestamp(System.currentTimeMillis()));

@@ -1,11 +1,11 @@
 package com.samourai.whirlpool.server.controllers.web;
 
+import com.samourai.wallet.api.explorer.ExplorerApi;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import com.samourai.whirlpool.server.persistence.to.BanTO;
 import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedTO;
 import com.samourai.whirlpool.server.services.BanService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import org.slf4j.Logger;
@@ -28,11 +28,14 @@ public class BanWebController {
 
   private BanService banService;
   private WhirlpoolServerConfig serverConfig;
+  private ExplorerApi explorerApi;
 
   @Autowired
-  public BanWebController(BanService banService, WhirlpoolServerConfig serverConfig) {
+  public BanWebController(
+      BanService banService, WhirlpoolServerConfig serverConfig, ExplorerApi explorerApi) {
     this.banService = banService;
     this.serverConfig = serverConfig;
+    this.explorerApi = explorerApi;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
@@ -48,7 +51,7 @@ public class BanWebController {
 
     Page<BanTO> page = banService.findActiveBans(pageable);
     model.addAttribute("page", page);
-    model.addAttribute("urlExplorer", Utils.computeUrlExplorer(serverConfig));
+    model.addAttribute("urlExplorer", explorerApi.getUrlTx());
     model.addAttribute("ENDPOINT", ENDPOINT);
     model.addAttribute("now", new Timestamp(System.currentTimeMillis()));
     model.addAttribute("banConfig", serverConfig.getBan());

@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.config;
 
 import com.samourai.javaserver.config.ServerServicesConfig;
 import com.samourai.javaserver.utils.ServerUtils;
+import com.samourai.wallet.api.explorer.ExplorerApi;
 import com.samourai.wallet.bip47.rpc.java.SecretPointFactoryJava;
 import com.samourai.wallet.bip47.rpc.secretPoint.ISecretPointFactory;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
@@ -86,5 +87,10 @@ public class ServicesConfig extends ServerServicesConfig {
   @Bean
   CryptoTestUtil cryptoTestUtil() {
     return CryptoTestUtil.getInstance();
+  }
+
+  @Bean
+  ExplorerApi explorerApi(WhirlpoolServerConfig serverConfig) {
+    return new ExplorerApi(serverConfig.isTestnet());
   }
 }

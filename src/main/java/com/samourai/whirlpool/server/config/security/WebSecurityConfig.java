@@ -30,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     String WS_CONNECT_XHR = WhirlpoolEndpoint.WS_CONNECT + "/**";
 
-    // disable csrf for mixing
+    // disable csrf for our endpoints
     http.csrf()
         .ignoringAntMatchers(ArrayUtils.addAll(REST_MIX_ENDPOINTS, WS_CONNECT_XHR))
         .and()
