@@ -5,7 +5,6 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.validation.constraints.NotEmpty;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 @ConfigurationProperties(prefix = "server")
 @Configuration
-public class WhirlpoolServerConfig implements ServerConfig {
+public class WhirlpoolServerConfig extends ServerConfig {
 
   private SamouraiFeeConfig samouraiFees;
   private boolean testMode;
@@ -580,12 +579,13 @@ public class WhirlpoolServerConfig implements ServerConfig {
 
   @Override
   public void validate() throws Exception {
+    super.validate();
     samouraiFees.validate();
   }
 
   @Override
   public Map<String, String> getConfigInfo() {
-    Map<String, String> configInfo = new LinkedHashMap<>();
+    Map<String, String> configInfo = super.getConfigInfo();
     configInfo.put("testMode", String.valueOf(testMode));
     configInfo.put(
         "rpcClient",

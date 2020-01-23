@@ -16,17 +16,17 @@ public class ConfigWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status/config";
 
-  private WhirlpoolServerConfig whirlpoolServerConfig;
+  private WhirlpoolServerConfig serverConfig;
 
   @Autowired
-  public ConfigWebController(WhirlpoolServerConfig whirlpoolServerConfig) {
-    this.whirlpoolServerConfig = whirlpoolServerConfig;
+  public ConfigWebController(WhirlpoolServerConfig serverConfig) {
+    this.serverConfig = serverConfig;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
   public String status(Model model) {
-    new WhirlpoolDashboardTemplateModel().apply(model);
-    model.addAttribute("configInfo", whirlpoolServerConfig.getConfigInfo());
+    new WhirlpoolDashboardTemplateModel(serverConfig).apply(model);
+    model.addAttribute("configInfo", serverConfig.getConfigInfo());
     return "config";
   }
 }

@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.controllers.web;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.controllers.web.beans.WhirlpoolDashboardTemplateModel;
 import com.samourai.whirlpool.server.services.MixLimitsService;
 import com.samourai.whirlpool.server.services.MixService;
@@ -26,13 +27,18 @@ public class StatusWebController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   public static final String ENDPOINT = "/status/status";
 
+  private WhirlpoolServerConfig serverConfig;
   private PoolService poolService;
   private MixService mixService;
   private MixLimitsService mixLimitsService;
 
   @Autowired
   public StatusWebController(
-      PoolService poolService, MixService mixService, MixLimitsService mixLimitsService) {
+      WhirlpoolServerConfig serverConfig,
+      PoolService poolService,
+      MixService mixService,
+      MixLimitsService mixLimitsService) {
+    this.serverConfig = serverConfig;
     this.poolService = poolService;
     this.mixService = mixService;
     this.mixLimitsService = mixLimitsService;
@@ -40,7 +46,7 @@ public class StatusWebController {
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
   public String status(Model model) throws Exception {
-    new WhirlpoolDashboardTemplateModel().apply(model);
+    new WhirlpoolDashboardTemplateModel(serverConfig).apply(model);
 
     List<Map<String, Object>> pools = new ArrayList<>();
     poolService

@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<a th:fragment="logo" class="navbar-brand col-sm-3 col-md-2 mr-0" href="/status/status" title="Samourai Whirlpool"><img src="/img/samourai.png"/> Whirlpool</a>
+<a th:fragment="logo" class="navbar-brand col-sm-3 col-md-2 mr-0" href="/status/status"><img src="/img/samourai.png"/> <span th:text="${dashboardModel.logoTitle}"/></a>
 
 <ul th:fragment="menu" class="nav flex-column">
     <li class="nav-item">

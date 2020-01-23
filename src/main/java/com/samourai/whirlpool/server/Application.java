@@ -39,11 +39,6 @@ public class Application extends ServerApplication {
   }
 
   @Override
-  protected String getServerName() {
-    return "whirlpool-server";
-  }
-
-  @Override
   protected ServerConfig getServerConfig() {
     return serverConfig;
   }

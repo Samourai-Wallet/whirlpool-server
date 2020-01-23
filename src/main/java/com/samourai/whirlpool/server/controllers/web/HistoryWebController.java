@@ -28,12 +28,12 @@ public class HistoryWebController {
   private static final int PAGE_SIZE = 100;
 
   private DbService dbService;
-  private WhirlpoolServerConfig whirlpoolServerConfig;
+  private WhirlpoolServerConfig serverConfig;
 
   @Autowired
-  public HistoryWebController(DbService dbService, WhirlpoolServerConfig whirlpoolServerConfig) {
+  public HistoryWebController(DbService dbService, WhirlpoolServerConfig serverConfig) {
     this.dbService = dbService;
-    this.whirlpoolServerConfig = whirlpoolServerConfig;
+    this.serverConfig = serverConfig;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
@@ -45,11 +45,11 @@ public class HistoryWebController {
               direction = Sort.Direction.DESC)
           Pageable pageable)
       throws Exception {
-    new WhirlpoolDashboardTemplateModel().apply(model);
+    new WhirlpoolDashboardTemplateModel(serverConfig).apply(model);
 
     Page<MixTO> page = dbService.findMixs(pageable);
     model.addAttribute("page", page);
-    model.addAttribute("urlExplorer", Utils.computeUrlExplorer(whirlpoolServerConfig));
+    model.addAttribute("urlExplorer", Utils.computeUrlExplorer(serverConfig));
     model.addAttribute("mixStats", dbService.getMixStats());
     model.addAttribute("ENDPOINT", ENDPOINT);
     model.addAttribute("now", new Timestamp(System.currentTimeMillis()));

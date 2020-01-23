@@ -27,12 +27,12 @@ public class BanWebController {
   private static final int PAGE_SIZE = 100;
 
   private BanService banService;
-  private WhirlpoolServerConfig whirlpoolServerConfig;
+  private WhirlpoolServerConfig serverConfig;
 
   @Autowired
-  public BanWebController(BanService banService, WhirlpoolServerConfig whirlpoolServerConfig) {
+  public BanWebController(BanService banService, WhirlpoolServerConfig serverConfig) {
     this.banService = banService;
-    this.whirlpoolServerConfig = whirlpoolServerConfig;
+    this.serverConfig = serverConfig;
   }
 
   @RequestMapping(value = ENDPOINT, method = RequestMethod.GET)
@@ -44,14 +44,14 @@ public class BanWebController {
               direction = Sort.Direction.DESC)
           Pageable pageable)
       throws Exception {
-    new WhirlpoolDashboardTemplateModel().apply(model);
+    new WhirlpoolDashboardTemplateModel(serverConfig).apply(model);
 
     Page<BanTO> page = banService.findActiveBans(pageable);
     model.addAttribute("page", page);
-    model.addAttribute("urlExplorer", Utils.computeUrlExplorer(whirlpoolServerConfig));
+    model.addAttribute("urlExplorer", Utils.computeUrlExplorer(serverConfig));
     model.addAttribute("ENDPOINT", ENDPOINT);
     model.addAttribute("now", new Timestamp(System.currentTimeMillis()));
-    model.addAttribute("banConfig", whirlpoolServerConfig.getBan());
+    model.addAttribute("banConfig", serverConfig.getBan());
 
     // getters used in template
     if (false) {
@@ -61,9 +61,9 @@ public class BanWebController {
         banTO.getExpiration();
         banTO.getIdentifier();
         banTO.getNotes();
-        whirlpoolServerConfig.getBan().getBlames();
-        whirlpoolServerConfig.getBan().getExpiration();
-        whirlpoolServerConfig.getBan().getPeriod();
+        serverConfig.getBan().getBlames();
+        serverConfig.getBan().getExpiration();
+        serverConfig.getBan().getPeriod();
       }
     }
     return "ban";
