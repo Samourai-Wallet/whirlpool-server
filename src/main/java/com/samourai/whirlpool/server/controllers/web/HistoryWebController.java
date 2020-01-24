@@ -8,7 +8,6 @@ import com.samourai.whirlpool.server.persistence.to.MixTO;
 import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedUpdatedTO;
 import com.samourai.whirlpool.server.services.DbService;
 import java.lang.invoke.MethodHandles;
-import java.sql.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +54,6 @@ public class HistoryWebController {
     model.addAttribute("urlExplorer", explorerApi.getUrlTx());
     model.addAttribute("mixStats", dbService.getMixStats());
     model.addAttribute("ENDPOINT", ENDPOINT);
-    model.addAttribute("now", new Timestamp(System.currentTimeMillis()));
 
     // getters used in template
     if (false) {
