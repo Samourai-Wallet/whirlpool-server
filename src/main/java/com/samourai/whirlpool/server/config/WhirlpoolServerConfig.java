@@ -459,7 +459,6 @@ public class WhirlpoolServerConfig extends ServerConfig {
   }
 
   public static class SamouraiFeeConfig {
-    @NotEmpty private String xpub;
     private SecretWalletConfig secretWallet;
     private Map<String, ScodeSamouraiFeeConfig> scodes = new HashMap<>(); // -32,768 to 32,767
     private Map<String, ScodeSamouraiFeeConfig> scodesUpperCase;
@@ -471,14 +470,6 @@ public class WhirlpoolServerConfig extends ServerConfig {
         }
         scodeEntry.getValue().validate();
       }
-    }
-
-    public String getXpub() {
-      return xpub;
-    }
-
-    public void setXpub(String xpub) {
-      this.xpub = xpub;
     }
 
     public SecretWalletConfig getSecretWallet() {
@@ -592,10 +583,8 @@ public class WhirlpoolServerConfig extends ServerConfig {
         rpcClient.getHost() + ":" + rpcClient.getPort() + "," + networkParameters.getId());
     configInfo.put("protocolVersion", WhirlpoolProtocol.PROTOCOL_VERSION);
 
-    String feesXpub = Utils.obfuscateString(samouraiFees.xpub, 3);
     int nbSeedWords = samouraiFees.getSecretWallet().getWords().split(" ").length;
-    configInfo.put(
-        "samouraiFees", "xpub=" + feesXpub + ", secretWallet=(" + nbSeedWords + " seed words)");
+    configInfo.put("samouraiFees", "secretWallet=(" + nbSeedWords + " seed words)");
 
     configInfo.put(
         "registerInput.maxInputsSameHash", String.valueOf(registerInput.maxInputsSameHash));
