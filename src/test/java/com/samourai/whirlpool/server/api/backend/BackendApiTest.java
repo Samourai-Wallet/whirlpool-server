@@ -22,7 +22,9 @@ public class BackendApiTest extends AbstractIntegrationTest {
   public BackendApiTest() {
     backendApi =
         new BackendApi(
-            new JavaHttpClientService(), BackendServer.TESTNET.getBackendUrlClear(), Optional.empty());
+            new JavaHttpClientService(),
+            BackendServer.TESTNET.getBackendUrlClear(),
+            Optional.empty());
   }
 
   @Test

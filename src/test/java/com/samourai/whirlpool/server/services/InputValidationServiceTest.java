@@ -82,34 +82,28 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   @Test
   public void checkInput_noFeePayload() throws Exception {
     // register as valid whirlpool txid
-    String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
-    long denomination = 1000000;
-    try {
-      dbService.saveMixTxid(txid, denomination);
-    } catch (Exception e) {
-    } // ignore duplicate
-
-    long FEES_VALID_TX = 10000;
+    String txid = "7aa680b658cf26aa94944875d31dcd60db204e1e746dfd36cfcd677494ca89a4";
+    long FEES_VALID_TX = 50000;
 
     // accept when valid mustMix, paid exact fee
     PoolFee poolFee = new PoolFee(FEES_VALID_TX, null);
-    for (int i = 0; i < 8; i++) {
+    for (int i = 2; i < 8; i++) {
       Assert.assertFalse(doCheckInput(txid, i, poolFee));
     }
 
     // reject when valid mustMix, paid more than fee
     poolFee = new PoolFee(FEES_VALID_TX - 1, null);
-    for (int i = 0; i < 8; i++) {
+    for (int i = 2; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
-      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
+      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
       doCheckInput(txid, i, poolFee);
     }
 
     // reject when paid less than fee
     poolFee = new PoolFee(FEES_VALID_TX + 1, null);
-    for (int i = 0; i < 8; i++) {
+    for (int i = 2; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
-      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
+      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
       doCheckInput(txid, i, poolFee);
     }
   }
