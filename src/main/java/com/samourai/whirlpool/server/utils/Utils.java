@@ -3,7 +3,6 @@ package com.samourai.whirlpool.server.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
-import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
@@ -20,9 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.ChildNumber;
-import org.bitcoinj.crypto.DeterministicKey;
-import org.bitcoinj.crypto.HDKeyDerivation;
 import org.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,18 +148,6 @@ public class Utils {
 
   public static short feePayloadBytesToShort(byte[] feePayload) {
     return ByteBuffer.wrap(feePayload).getShort();
-  }
-
-  public static String computeXpubAddressBech32(int x, String xpub, NetworkParameters params) {
-    DeterministicKey mKey = FormatsUtilGeneric.getInstance().createMasterPubKeyFromXPub(xpub);
-    DeterministicKey cKey =
-        HDKeyDerivation.deriveChildKey(
-            mKey, new ChildNumber(0, false)); // assume external/receive chain
-    DeterministicKey adk = HDKeyDerivation.deriveChildKey(cKey, new ChildNumber(x, false));
-    ECKey feeECKey = ECKey.fromPublicOnly(adk.getPubKey());
-    String feeAddressBech32 =
-        Bech32UtilGeneric.getInstance().toBech32(feeECKey.getPubKey(), params);
-    return feeAddressBech32;
   }
 
   public static String bytesToBinaryString(byte[] bytes) {

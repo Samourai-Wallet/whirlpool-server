@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.wallet.bip47.rpc.BIP47Account;
 import com.samourai.wallet.hd.HD_Wallet;
 import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
@@ -13,10 +14,11 @@ import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig.SecretWalletConfig;
 import com.samourai.whirlpool.server.utils.Utils;
+import com.samourai.xmanager.client.XManagerClient;
+import com.samourai.xmanager.protocol.XManagerService;
 import java.lang.invoke.MethodHandles;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.core.TransactionOutput;
@@ -39,6 +41,7 @@ public class FeeValidationService {
   private TxUtil txUtil;
   private BlockchainDataService blockchainDataService;
   private WhirlpoolFee whirlpoolFee;
+  private XManagerClient xManagerClient;
 
   public FeeValidationService(
       CryptoService cryptoService,
@@ -47,7 +50,8 @@ public class FeeValidationService {
       HD_WalletFactoryJava hdWalletFactory,
       TxUtil txUtil,
       BlockchainDataService blockchainDataService,
-      WhirlpoolFee whirlpoolFee)
+      WhirlpoolFee whirlpoolFee,
+      XManagerClient xManagerClient)
       throws Exception {
     this.cryptoService = cryptoService;
     this.serverConfig = serverConfig;
@@ -57,6 +61,7 @@ public class FeeValidationService {
     this.txUtil = txUtil;
     this.blockchainDataService = blockchainDataService;
     this.whirlpoolFee = whirlpoolFee;
+    this.xManagerClient = xManagerClient;
   }
 
   private BIP47Account computeSecretAccount() throws Exception {
@@ -93,7 +98,8 @@ public class FeeValidationService {
   }
 
   public boolean isValidTx0(
-      Transaction tx0, long tx0Time, WhirlpoolFeeData feeData, PoolFee poolFee) {
+      Transaction tx0, long tx0Time, WhirlpoolFeeData feeData, PoolFee poolFee)
+      throws NotifiableException {
     // validate feePayload
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
         validateFeePayload(feeData.getFeePayload(), tx0Time);
@@ -107,41 +113,53 @@ public class FeeValidationService {
   }
 
   protected boolean isTx0FeePaid(
-      Transaction tx0, long tx0Time, int x, PoolFee poolFee, int feeValuePercent) {
+      Transaction tx0, long tx0Time, int x, PoolFee poolFee, int feeValuePercent)
+      throws NotifiableException {
     if (x < 0) {
       log.error("Invalid samouraiFee indice: " + x);
       return false;
     }
 
-    // find samourai payment address from xpub indice in tx payload
-    String feesAddressBech32 = computeFeeAddress(x);
-
     // make sure tx contains an output to samourai fees
     for (TransactionOutput txOutput : tx0.getOutputs()) {
-      // is this the fees payment output?
-      String toAddress =
-          Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());
-      if (toAddress != null && feesAddressBech32.equals(toAddress)) {
-        // ok, this is the fees payment output
-        long feePaid = txOutput.getValue().getValue();
-        if (poolFee.checkTx0FeePaid(feePaid, tx0Time, feeValuePercent)) {
-          return true;
-        } else {
-          log.warn(
-              "Tx0: invalid feePaid="
-                  + feePaid
-                  + " for tx0="
-                  + tx0.getHashAsString()
-                  + ", tx0Time="
-                  + tx0Time
-                  + ", x="
-                  + x
-                  + ", poolFee="
-                  + poolFee
-                  + ", feeValuePercent="
-                  + feeValuePercent
-                  + ", feesAddressBech32="
-                  + feesAddressBech32);
+      // is this the fee output?
+      long amount = txOutput.getValue().getValue();
+      if (poolFee.checkTx0FeePaid(amount, tx0Time, feeValuePercent)) {
+        // ok, valid fee amount => this is either change output or fee output
+        String toAddress =
+            Utils.getToAddressBech32(txOutput, bech32Util, cryptoService.getNetworkParameters());
+        if (toAddress != null) {
+          // validate fee address
+          boolean isFeeAddress = false;
+          try {
+            isFeeAddress =
+                xManagerClient.verifyAddressIndexResponseOrException(
+                    XManagerService.WHIRLPOOL, toAddress, x);
+          } catch (Exception e) {
+            log.error("!!! XMANAGER UNAVAILABLE !!! unable to validate Tx0");
+            throw new NotifiableException("XM unavailable, please retry later");
+          }
+
+          if (isFeeAddress) {
+            // ok, this is the fee address
+            return true;
+          } else {
+            log.warn(
+                "Tx0: invalid fee address for amount="
+                    + amount
+                    + " for tx0="
+                    + tx0.getHashAsString()
+                    + ", tx0Time="
+                    + tx0Time
+                    + ", x="
+                    + x
+                    + ", poolFee="
+                    + poolFee
+                    + ", feeValuePercent="
+                    + feeValuePercent
+                    + ", feesAddressBech32="
+                    + toAddress);
+          }
         }
       }
     }
@@ -155,16 +173,8 @@ public class FeeValidationService {
             + ", poolFee="
             + poolFee
             + ", feeValuePercent="
-            + feeValuePercent
-            + ",  feesAddressBech32="
-            + feesAddressBech32);
+            + feeValuePercent);
     return false;
-  }
-
-  public String computeFeeAddress(int x) {
-    String feeXpub = serverConfig.getSamouraiFees().getXpub();
-    NetworkParameters params = cryptoService.getNetworkParameters();
-    return Utils.computeXpubAddressBech32(x, feeXpub, params);
   }
 
   private Callback<byte[]> computeCallbackFetchOutpointScriptBytes(TransactionOutPoint outPoint) {

@@ -13,6 +13,8 @@ import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
+import com.samourai.whirlpool.server.services.JavaHttpClientService;
+import com.samourai.xmanager.client.XManagerClient;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,5 +94,11 @@ public class ServicesConfig extends ServerServicesConfig {
   @Bean
   ExplorerApi explorerApi(WhirlpoolServerConfig serverConfig) {
     return new ExplorerApi(serverConfig.isTestnet());
+  }
+
+  @Bean
+  XManagerClient xManagerClient(
+      WhirlpoolServerConfig serverConfig, JavaHttpClientService httpClient) {
+    return new XManagerClient(serverConfig.isTestnet(), false, httpClient);
   }
 }

@@ -7,6 +7,7 @@ import com.samourai.wallet.api.backend.BackendServer;
 import com.samourai.wallet.api.backend.beans.MultiAddrResponse;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.services.JavaHttpClientService;
+import java8.util.Optional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +22,7 @@ public class BackendApiTest extends AbstractIntegrationTest {
   public BackendApiTest() {
     backendApi =
         new BackendApi(
-            new JavaHttpClientService(), BackendServer.TESTNET.getBackendUrlClear(), null);
+            new JavaHttpClientService(), BackendServer.TESTNET.getBackendUrlClear(), Optional.empty());
   }
 
   @Test

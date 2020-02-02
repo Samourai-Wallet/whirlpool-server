@@ -1,9 +1,9 @@
 package com.samourai.whirlpool.server.controllers.websocket;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.exceptions.BannedInputException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;

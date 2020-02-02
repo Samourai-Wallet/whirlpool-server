@@ -18,7 +18,7 @@ public class PoolFee {
 
   public boolean checkTx0FeePaid(long tx0FeePaid, long tx0Time, int feeValuePercent) {
     long feeToPay = computeFeeValue(feeValuePercent);
-    if (tx0FeePaid >= feeToPay) {
+    if (tx0FeePaid == feeToPay) {
       return true;
     }
     Long maxTxTime = feeAccept.get(tx0FeePaid);
@@ -35,7 +35,6 @@ public class PoolFee {
                 + maxTxTime);
       }
     }
-    log.warn("checkTx0FeePaid: invalid fee payment: " + tx0FeePaid + " < " + feeToPay);
     return false;
   }
 

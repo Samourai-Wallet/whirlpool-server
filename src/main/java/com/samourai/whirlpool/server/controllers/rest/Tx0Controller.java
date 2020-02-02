@@ -1,15 +1,16 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
-import com.samourai.wallet.api.backend.beans.MultiAddrResponse;
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.Tx0DataResponse;
 import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
-import com.samourai.whirlpool.server.services.BackendService;
 import com.samourai.whirlpool.server.services.FeeValidationService;
 import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.utils.Utils;
+import com.samourai.xmanager.client.XManagerClient;
+import com.samourai.xmanager.protocol.XManagerService;
+import com.samourai.xmanager.protocol.rest.AddressIndexResponse;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,18 +30,18 @@ public class Tx0Controller extends AbstractRestController {
   private PoolService poolService;
   private FeeValidationService feeValidationService;
   private WhirlpoolServerConfig serverConfig;
-  private BackendService backendService;
+  private XManagerClient xManagerClient;
 
   @Autowired
   public Tx0Controller(
       PoolService poolService,
       FeeValidationService feeValidationService,
       WhirlpoolServerConfig serverConfig,
-      BackendService backendService) {
+      XManagerClient xManagerClient) {
     this.poolService = poolService;
     this.feeValidationService = feeValidationService;
     this.serverConfig = serverConfig;
-    this.backendService = backendService;
+    this.xManagerClient = xManagerClient;
   }
 
   @RequestMapping(value = WhirlpoolEndpoint.REST_TX0_DATA, method = RequestMethod.GET)
@@ -87,8 +88,10 @@ public class Tx0Controller extends AbstractRestController {
     long feeChange;
     if (feeValue > 0) {
       // fees
-      feeIndex = computeFeeIndex();
-      feeAddress = feeValidationService.computeFeeAddress(feeIndex);
+      AddressIndexResponse addressIndexResponse =
+          xManagerClient.getAddressIndexOrDefault(XManagerService.WHIRLPOOL);
+      feeIndex = addressIndexResponse.index;
+      feeAddress = addressIndexResponse.address;
       feeChange = 0;
     } else {
       // no fees
@@ -125,19 +128,6 @@ public class Tx0Controller extends AbstractRestController {
             feeAddress,
             feeIndex);
     return tx0DataResponse;
-  }
-
-  private int computeFeeIndex() {
-    int feeIndex = 0; // fallback value when backend is not available
-    try {
-      MultiAddrResponse.Address address =
-          this.backendService.fetchAddress(serverConfig.getSamouraiFees().getXpub());
-      feeIndex = address.account_index;
-    } catch (Exception e) {
-      // use fallback value
-      log.error("Unable to fetchAddress for samouraiFee => using feeIndex=" + feeIndex, e);
-    }
-    return feeIndex;
   }
 
   private long computeRandomFeeChange(PoolFee poolFee) {

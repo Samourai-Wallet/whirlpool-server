@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.Pool;
@@ -38,7 +39,7 @@ public class InputValidationService {
 
   public TxOutPoint validateProvenance(
       TxOutPoint txOutPoint, RpcTransaction tx, boolean liquidity, Pool pool, boolean hasMixTxid)
-      throws IllegalInputException {
+      throws NotifiableException {
 
     // provenance verification can be disabled with testMode
     if (whirlpoolServerConfig.isTestMode()) {
@@ -60,7 +61,7 @@ public class InputValidationService {
 
   protected boolean checkInputProvenance(
       RpcTransaction rpcTx, long inputValue, PoolFee poolFee, boolean hasMixTxid)
-      throws IllegalInputException {
+      throws NotifiableException {
     Transaction tx = rpcTx.getTx();
     // is it a tx0?
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx);

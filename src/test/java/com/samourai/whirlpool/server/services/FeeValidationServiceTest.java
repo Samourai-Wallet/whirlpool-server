@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.wallet.client.Bip84Wallet;
 import com.samourai.wallet.client.indexHandler.MemoryIndexHandler;
 import com.samourai.wallet.hd.HD_Wallet;
@@ -90,25 +91,15 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void computeFeeAddress() {
-    Assert.assertEquals(
-        feeValidationService.computeFeeAddress(1), "tb1qz84ma37y3d759sdy7mvq3u4vsxlg2qahw3lm23");
-    Assert.assertEquals(
-        feeValidationService.computeFeeAddress(2), "tb1qk20n7cpza4eakn0vqyfwskdgpwwwy29l5ek93w");
-    Assert.assertEquals(
-        feeValidationService.computeFeeAddress(3), "tb1qs394xtk0cx8ls9laymdn3scdrss3c2c20gttdx");
-  }
-
-  @Test
   public void isTx0FeePaid_feeValue() throws Exception {
     String txid = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
 
     // accept when paid exact fee
     Assert.assertTrue(doIsTx0FeePaid(txid, 1234, FEES_VALID, 1, null, 100));
 
-    // accept when paid more than fee
-    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, FEES_VALID - 1, 1, null, 100));
-    Assert.assertTrue(doIsTx0FeePaid(txid, 1234, 1, 1, null, 100));
+    // reject when paid more than fee
+    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID - 1, 1, null, 100));
+    Assert.assertFalse(doIsTx0FeePaid(txid, 1234, 1, 1, null, 100));
 
     // reject when paid less than fee
     Assert.assertFalse(doIsTx0FeePaid(txid, 1234, FEES_VALID + 1, 1, null, 100));
@@ -143,7 +134,8 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
       long minFees,
       int xpubIndice,
       Map<Long, Long> feeAccept,
-      int feeValuePercent) {
+      int feeValuePercent)
+      throws NotifiableException {
     PoolFee poolFee = new PoolFee(minFees, feeAccept);
     return feeValidationService.isTx0FeePaid(
         getTx(txid), txTime, xpubIndice, poolFee, feeValuePercent);
@@ -274,7 +266,7 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
   }
 
   @Test
-  public void isValidTx0_feePayload2() {
+  public void isValidTx0_feePayload2() throws NotifiableException {
     // reject nofee when unknown feePayload
     String txid = "b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3";
     PoolFee poolFee = new PoolFee(FEES_VALID, null);

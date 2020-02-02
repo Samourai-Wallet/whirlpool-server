@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -88,20 +89,24 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     } catch (Exception e) {
     } // ignore duplicate
 
+    long FEES_VALID_TX = 10000;
+
     // accept when valid mustMix, paid exact fee
-    PoolFee poolFee = new PoolFee(FEES_VALID, null);
+    PoolFee poolFee = new PoolFee(FEES_VALID_TX, null);
     for (int i = 0; i < 8; i++) {
       Assert.assertFalse(doCheckInput(txid, i, poolFee));
     }
 
-    // accept when valid mustMix, paid more than fee
-    poolFee = new PoolFee(FEES_VALID - 1, null);
+    // reject when valid mustMix, paid more than fee
+    poolFee = new PoolFee(FEES_VALID_TX - 1, null);
     for (int i = 0; i < 8; i++) {
-      Assert.assertFalse(doCheckInput(txid, i, poolFee));
+      thrown.expect(IllegalInputException.class);
+      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
+      doCheckInput(txid, i, poolFee);
     }
 
     // reject when paid less than fee
-    poolFee = new PoolFee(FEES_VALID + 1, null);
+    poolFee = new PoolFee(FEES_VALID_TX + 1, null);
     for (int i = 0; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
       thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=1)");
@@ -125,13 +130,13 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     doCheckInput("b3557587f87bcbd37e847a0fff0ded013b23026f153d85f28cb5d407d39ef2f3", 2);
   }
 
-  private boolean doCheckInput(String utxoHash, long utxoIndex) throws IllegalInputException {
+  private boolean doCheckInput(String utxoHash, long utxoIndex) throws NotifiableException {
     PoolFee poolFee = new PoolFee(FEES_VALID, null);
     return doCheckInput(utxoHash, utxoIndex, poolFee);
   }
 
   private boolean doCheckInput(String utxoHash, long utxoIndex, PoolFee poolFee)
-      throws IllegalInputException {
+      throws NotifiableException {
     RpcTransaction rpcTransaction =
         blockchainDataService
             .getRpcTransaction(utxoHash)

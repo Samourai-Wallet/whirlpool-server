@@ -1,11 +1,11 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.BannedInputException;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
-import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.persistence.to.BanTO;
 import java.lang.invoke.MethodHandles;
 import java.util.Optional;
@@ -49,7 +49,7 @@ public class RegisterInputService {
       long utxoIndex,
       boolean liquidity,
       String ip)
-      throws IllegalInputException, MixException {
+      throws NotifiableException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
       throw new IllegalInputException("Invalid utxoHash");
     }
@@ -95,7 +95,7 @@ public class RegisterInputService {
 
       // register input to pool
       poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip);
-    } catch (IllegalInputException e) {
+    } catch (NotifiableException e) { // validation error or input rejected
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;
     }
