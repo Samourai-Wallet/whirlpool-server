@@ -31,6 +31,7 @@ public class WhirlpoolServerConfig extends ServerConfig {
   private BanConfig ban;
   private ExportConfig export;
   private PoolConfig[] pools;
+  private long requestTimeout;
 
   public SamouraiFeeConfig getSamouraiFees() {
     return samouraiFees;
@@ -132,6 +133,14 @@ public class WhirlpoolServerConfig extends ServerConfig {
 
   public void setPools(PoolConfig[] pools) {
     this.pools = pools;
+  }
+
+  public long getRequestTimeout() {
+    return requestTimeout;
+  }
+
+  public void setRequestTimeout(long requestTimeout) {
+    this.requestTimeout = requestTimeout;
   }
 
   public static class RegisterInputConfig {

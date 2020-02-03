@@ -6,6 +6,9 @@ import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
+import com.samourai.xmanager.client.XManagerClient;
+import com.samourai.xmanager.protocol.XManagerService;
+import com.samourai.xmanager.protocol.rest.AddressIndexResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,8 @@ public class Application extends ServerApplication {
 
   @Autowired private WhirlpoolServerConfig serverConfig;
 
+  @Autowired private XManagerClient xManagerClient;
+
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
   }
@@ -34,6 +39,11 @@ public class Application extends ServerApplication {
     if (!rpcClientService.testConnectivity()) {
       throw new Exception("RPC connexion failed");
     }
+
+    // check XM connectivity
+    AddressIndexResponse addressIndexResponse =
+        xManagerClient.getAddressIndexOrDefault(XManagerService.WHIRLPOOL);
+    log.info("XM index: " + addressIndexResponse.index);
 
     // server starting...
   }

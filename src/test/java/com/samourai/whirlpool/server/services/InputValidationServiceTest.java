@@ -95,7 +95,8 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     poolFee = new PoolFee(FEES_VALID_TX - 1, null);
     for (int i = 2; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
-      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
+      thrown.expectMessage(
+          "Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
       doCheckInput(txid, i, poolFee);
     }
 
@@ -103,7 +104,8 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     poolFee = new PoolFee(FEES_VALID_TX + 1, null);
     for (int i = 2; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
-      thrown.expectMessage("Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
+      thrown.expectMessage(
+          "Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
       doCheckInput(txid, i, poolFee);
     }
   }
