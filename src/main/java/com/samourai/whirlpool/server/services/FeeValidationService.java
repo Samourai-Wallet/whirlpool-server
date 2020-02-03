@@ -137,7 +137,7 @@ public class FeeValidationService {
                     XManagerService.WHIRLPOOL, toAddress, x);
           } catch (Exception e) {
             log.error("!!! XMANAGER UNAVAILABLE !!! unable to validate Tx0");
-            throw new NotifiableException("XM unavailable, please retry later");
+            isFeeAddress = true;
           }
 
           if (isFeeAddress) {
