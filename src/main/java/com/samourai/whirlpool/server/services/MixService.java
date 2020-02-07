@@ -116,7 +116,7 @@ public class MixService {
       }
     } else {
       // mustMix: verify minLiquidity
-      int liquiditySlotsAvailable = pool.getMaxAnonymitySet() - (mix.getNbInputsMustMix() + 1);
+      int liquiditySlotsAvailable = pool.getAnonymitySet() - (mix.getNbInputsMustMix() + 1);
       if (liquiditySlotsAvailable < pool.getMinLiquidity()) {
         throw new QueueInputException(
             "Current mix is full for mustMix", registeredInput, pool.getPoolId());
@@ -233,15 +233,15 @@ public class MixService {
       if (allowGracePeriod
           && GRACE_TIME_CONFIRMING_INPUTS > 0
           && mix.hasPendingConfirmingInputs()
-          && mix.getNbInputs() < mix.getPool().getMaxAnonymitySet()) {
+          && mix.getNbInputs() < mix.getPool().getAnonymitySet()) {
         if (log.isDebugEnabled()) {
           log.debug(
               "Ready to go REGISTER_OUTPUT - waiting for last pending confirmations: pendingConfirmingInputs="
                   + mix.getNbConfirmingInputs()
                   + ", nbInputs="
                   + mix.getNbInputs()
-                  + ", maxAnonymitySet="
-                  + mix.getPool().getMaxAnonymitySet());
+                  + ", anonymitySet="
+                  + mix.getPool().getAnonymitySet());
         }
 
         // allow grace period for pending inputs confirmations...
@@ -293,7 +293,7 @@ public class MixService {
     if (!mix.hasMinLiquidityMixReached()) {
       return false;
     }
-    if (mix.getNbInputs() < mix.getTargetAnonymitySet()) {
+    if (mix.getNbInputs() < mix.getPool().getAnonymitySet()) {
       return false;
     }
     // check for inputs spent in the meantime
@@ -341,7 +341,7 @@ public class MixService {
             + " liquidity, "
             + mix.getNbInputs()
             + "/"
-            + mix.getTargetAnonymitySet()
+            + mix.getPool().getAnonymitySet()
             + " anonymitySet (pool: "
             + liquiditiesQueued
             + " liquidities + "

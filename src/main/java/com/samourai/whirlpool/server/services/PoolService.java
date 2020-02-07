@@ -66,10 +66,7 @@ public class PoolService {
       long minerFeeMax = poolConfig.getMinerFeeMax();
       int minMustMix = poolConfig.getMustMixMin();
       int minLiquidity = poolConfig.getLiquidityMin();
-      int targetAnonymitySet = poolConfig.getAnonymitySetTarget();
-      int minAnonymitySet = poolConfig.getAnonymitySetMin();
-      int maxAnonymitySet = poolConfig.getAnonymitySetMax();
-      long mustMixAdjustTimeout = poolConfig.getAnonymitySetAdjustTimeout();
+      int anonymitySet = poolConfig.getAnonymitySet();
 
       Assert.notNull(poolId, "Pool configuration: poolId must not be NULL");
       Assert.isTrue(!pools.containsKey(poolId), "Pool configuration: poolId must not be duplicate");
@@ -84,10 +81,7 @@ public class PoolService {
               minerFeeMax,
               minMustMix,
               minLiquidity,
-              targetAnonymitySet,
-              minAnonymitySet,
-              maxAnonymitySet,
-              mustMixAdjustTimeout);
+              anonymitySet);
       pools.put(poolId, pool);
     }
   }

@@ -300,10 +300,7 @@ public class WhirlpoolServerConfig extends ServerConfig {
     private long minerFeeMax;
     private int mustMixMin;
     private int liquidityMin;
-    private int anonymitySetTarget;
-    private int anonymitySetMin;
-    private int anonymitySetMax;
-    private long anonymitySetAdjustTimeout;
+    private int anonymitySet;
 
     public String getId() {
       return id;
@@ -377,36 +374,12 @@ public class WhirlpoolServerConfig extends ServerConfig {
       this.liquidityMin = liquidityMin;
     }
 
-    public int getAnonymitySetTarget() {
-      return anonymitySetTarget;
+    public int getAnonymitySet() {
+      return anonymitySet;
     }
 
-    public void setAnonymitySetTarget(int anonymitySetTarget) {
-      this.anonymitySetTarget = anonymitySetTarget;
-    }
-
-    public int getAnonymitySetMin() {
-      return anonymitySetMin;
-    }
-
-    public void setAnonymitySetMin(int anonymitySetMin) {
-      this.anonymitySetMin = anonymitySetMin;
-    }
-
-    public int getAnonymitySetMax() {
-      return anonymitySetMax;
-    }
-
-    public void setAnonymitySetMax(int anonymitySetMax) {
-      this.anonymitySetMax = anonymitySetMax;
-    }
-
-    public long getAnonymitySetAdjustTimeout() {
-      return anonymitySetAdjustTimeout;
-    }
-
-    public void setAnonymitySetAdjustTimeout(long anonymitySetAdjustTimeout) {
-      this.anonymitySetAdjustTimeout = anonymitySetAdjustTimeout;
+    public void setAnonymitySet(int anonymitySet) {
+      this.anonymitySet = anonymitySet;
     }
   }
 
@@ -633,12 +606,7 @@ public class WhirlpoolServerConfig extends ServerConfig {
               + ", feeAccept="
               + (poolConfig.feeAccept != null ? poolConfig.feeAccept : null)
               + ", anonymitySet="
-              + poolConfig.anonymitySetTarget
-              + "["
-              + poolConfig.anonymitySetMin
-              + "-"
-              + poolConfig.anonymitySetMax
-              + "]";
+              + poolConfig.anonymitySet;
       poolInfo +=
           ", mustMixMin="
               + poolConfig.getMustMixMin()

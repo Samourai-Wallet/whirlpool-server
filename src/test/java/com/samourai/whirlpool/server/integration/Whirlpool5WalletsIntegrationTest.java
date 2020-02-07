@@ -383,11 +383,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
     long minerFeeMax = mixFee * 10;
     int mustMixMin = NB_CLIENTS;
     int liquidityMin = 0;
-    int anonymitySetTarget = NB_CLIENTS;
-    int anonymitySetMin = NB_CLIENTS;
-    int anonymitySetMax = NB_CLIENTS;
-    long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
-    long liquidityTimeout = 60;
+    int anonymitySet = NB_CLIENTS;
     Mix mix =
         __nextMix(
             denomination,
@@ -397,11 +393,7 @@ public class Whirlpool5WalletsIntegrationTest extends WhirlpoolSimpleIntegration
             minerFeeMax,
             mustMixMin,
             liquidityMin,
-            anonymitySetTarget,
-            anonymitySetMin,
-            anonymitySetMax,
-            anonymitySetAdjustTimeout,
-            liquidityTimeout);
+            anonymitySet);
 
     AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 

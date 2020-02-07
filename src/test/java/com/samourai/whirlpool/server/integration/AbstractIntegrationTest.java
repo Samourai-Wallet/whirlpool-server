@@ -139,11 +139,7 @@ public abstract class AbstractIntegrationTest {
       long minerFeeMax,
       int mustMixMin,
       int liquidityMin,
-      int anonymitySetTarget,
-      int anonymitySetMin,
-      int anonymitySetMax,
-      long anonymitySetAdjustTimeout,
-      long liquidityTimeout)
+      int anonymitySet)
       throws IllegalInputException {
     // create new pool
     WhirlpoolServerConfig.PoolConfig poolConfig = new WhirlpoolServerConfig.PoolConfig();
@@ -155,10 +151,7 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setMinerFeeMax(minerFeeMax);
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setLiquidityMin(liquidityMin);
-    poolConfig.setAnonymitySetTarget(anonymitySetTarget);
-    poolConfig.setAnonymitySetMin(anonymitySetMin);
-    poolConfig.setAnonymitySetMax(anonymitySetMax);
-    poolConfig.setAnonymitySetAdjustTimeout(anonymitySetAdjustTimeout);
+    poolConfig.setAnonymitySet(anonymitySet);
 
     // run new mix for the pool
     return __nextMix(poolConfig);
@@ -177,10 +170,7 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setMinerFeeMax(copyPool.getMinerFeeMax());
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setLiquidityMin(liquidityMin);
-    poolConfig.setAnonymitySetTarget(anonymitySet);
-    poolConfig.setAnonymitySetMin(anonymitySet);
-    poolConfig.setAnonymitySetMax(anonymitySet);
-    poolConfig.setAnonymitySetAdjustTimeout(copyPool.getTimeoutAdjustAnonymitySet());
+    poolConfig.setAnonymitySet(anonymitySet);
 
     // run new mix for the pool
     return __nextMix(poolConfig);

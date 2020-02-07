@@ -44,7 +44,7 @@
                     </div>
                 </td>
                 <td>
-                    <strong><span th:text="${pool.nbInputs}"/> / <span th:text="${pool.targetAnonymitySet}"/> confirmed</strong><br/>
+                    <strong><span th:text="${pool.nbInputs}"/> / <span th:text="${pool.anonymitySet}"/> confirmed</strong><br/>
                     <span th:text="${pool.nbInputsMustMix}" style="font-weight:bold"/> / <span th:text="${pool.minMustMix}"/> mustMix<br/>
                     <span th:text="${pool.nbInputsLiquidities}" style="font-weight:bold"/> / <span th:text="${pool.minLiquidity}"/> liquidities + <span th:text="${pool.liquiditiesQueued}" style="font-weight:bold"/> queued
                 </td>
@@ -52,7 +52,6 @@
                 <td>
                     Pool fee: <span th:text="${@templateUtil.satoshisToBtc(pool.feeValue)}"/><br/>
                     Miner fee: <span th:text="${pool.minerFeeMin}" title="minerFeeMin"/>-<span th:text="${pool.minerFeeMax}" title="minerFeeMax"/> (cap <span th:text="${pool.minerFeeCap}" title="minerFeeMaxCap"/>)<br/>
-                    AnonymitySet: <span th:text="${pool.minAnonymitySet}"/>-<span th:text="${pool.maxAnonymitySet}"/>
                 </td>
                 </tr>
                 <tr>

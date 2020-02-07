@@ -62,10 +62,10 @@ public class PoolsController extends AbstractRestController {
             pool.computeMustMixBalanceMin(),
             pool.computeMustMixBalanceCap(),
             pool.computeMustMixBalanceMax(),
-            pool.getMinAnonymitySet(),
+            pool.getAnonymitySet(),
             pool.getMinMustMix(),
             nbRegistered,
-            currentMix.getTargetAnonymitySet(),
+            pool.getAnonymitySet(),
             currentMix.getMixStatus(),
             currentMix.getElapsedTime(),
             nbConfirmed);

@@ -8,11 +8,7 @@ import com.samourai.whirlpool.cli.services.JavaHttpClientService;
 import com.samourai.whirlpool.cli.services.JavaStompClientService;
 import com.samourai.whirlpool.client.WhirlpoolClient;
 import com.samourai.whirlpool.client.mix.MixParams;
-import com.samourai.whirlpool.client.mix.handler.Bip84PostmixHandler;
-import com.samourai.whirlpool.client.mix.handler.IPostmixHandler;
-import com.samourai.whirlpool.client.mix.handler.IPremixHandler;
-import com.samourai.whirlpool.client.mix.handler.PremixHandler;
-import com.samourai.whirlpool.client.mix.handler.UtxoWithBalance;
+import com.samourai.whirlpool.client.mix.handler.*;
 import com.samourai.whirlpool.client.utils.MultiClientListener;
 import com.samourai.whirlpool.client.utils.MultiClientManager;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientConfig;
@@ -335,61 +331,6 @@ public class AssertMultiClientManager extends MultiClientManager {
   private void assertClientsSuccess(int nbSuccessExpected) {
     waitDone(nbSuccessExpected);
     Assert.assertTrue(getNbSuccess() == nbSuccessExpected);
-  }
-
-  public void nextTargetAnonymitySetAdjustment() throws Exception {
-    int targetAnonymitySetExpected = mix.getTargetAnonymitySet() - 1;
-    if (targetAnonymitySetExpected < mix.getPool().getMinAnonymitySet()) {
-      throw new Exception("targetAnonymitySetExpected < minAnonymitySet");
-    }
-
-    log.info(
-        "nextTargetAnonymitySetAdjustment: "
-            + (targetAnonymitySetExpected + 1)
-            + " -> "
-            + targetAnonymitySetExpected);
-
-    // simulate 9min58 elapsed... mix targetAnonymitySet should remain unchanged
-    mixLimitsService.__simulateElapsedTime(mix, mix.getPool().getTimeoutAdjustAnonymitySet() - 2);
-    Thread.sleep(1000);
-    Assert.assertEquals(targetAnonymitySetExpected + 1, mix.getTargetAnonymitySet());
-
-    // a few seconds more, mix targetAnonymitySet should be decreased
-    waitMixTargetAnonymitySet(targetAnonymitySetExpected);
-  }
-
-  public void waitMixTargetAnonymitySet(int targetAnonymitySetExpected) throws Exception {
-    int MAX_WAITS = 5;
-    int WAIT_DURATION = 1000;
-    for (int i = 0; i < MAX_WAITS; i++) {
-      String msg =
-          "# ("
-              + (i + 1)
-              + "/"
-              + MAX_WAITS
-              + ") Waiting for mixTargetAnonymitySet: "
-              + mix.getTargetAnonymitySet()
-              + " vs "
-              + targetAnonymitySetExpected
-              + " ("
-              + mix.getMixStatus()
-              + ")";
-      if (mix.getTargetAnonymitySet() != targetAnonymitySetExpected
-          && !MixStatus.SUCCESS.equals(mix.getMixStatus())) {
-        log.info(msg + " : waiting longer...");
-        Thread.sleep(WAIT_DURATION);
-      } else {
-        log.info(msg + " : success");
-        return;
-      }
-    }
-
-    log.info(
-        "# (LAST) Waiting for mixTargetAnonymitySet: "
-            + mix.getTargetAnonymitySet()
-            + " vs "
-            + targetAnonymitySetExpected);
-    Assert.assertEquals(targetAnonymitySetExpected, mix.getTargetAnonymitySet());
   }
 
   public void exit() {

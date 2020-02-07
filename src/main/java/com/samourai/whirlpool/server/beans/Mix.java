@@ -10,11 +10,7 @@ import com.samourai.whirlpool.server.services.CryptoService;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
@@ -37,7 +33,6 @@ public class Mix {
   private ScheduledFuture scheduleRegisterOutput;
 
   private Pool pool;
-  private int targetAnonymitySet;
 
   private MixStatus mixStatus;
   private InputPool confirmingInputs;
@@ -66,7 +61,6 @@ public class Mix {
     this.scheduleRegisterOutput = null;
 
     this.pool = pool;
-    this.targetAnonymitySet = pool.getTargetAnonymitySet();
 
     this.mixStatus = MixStatus.CONFIRM_INPUT;
     this.confirmingInputs = new InputPool();
@@ -108,7 +102,7 @@ public class Mix {
   }
 
   public boolean isFull() {
-    return (getNbInputs() >= pool.getMaxAnonymitySet());
+    return (getNbInputs() >= pool.getAnonymitySet());
   }
 
   public String getMixId() {
@@ -148,14 +142,6 @@ public class Mix {
 
   public Pool getPool() {
     return pool;
-  }
-
-  public int getTargetAnonymitySet() {
-    return targetAnonymitySet;
-  }
-
-  public void setTargetAnonymitySet(int targetAnonymitySet) {
-    this.targetAnonymitySet = targetAnonymitySet;
   }
 
   public MixStatus getMixStatus() {

@@ -36,11 +36,7 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
     long minerFeeMax = 10000;
     int mustMixMin = 1;
     int liquidityMin = 0;
-    int anonymitySetTarget = NB_CLIENTS_FIRST_MIX;
-    int anonymitySetMin = 1;
-    int anonymitySetMax = NB_CLIENTS_FIRST_MIX;
-    long anonymitySetAdjustTimeout = 10 * 60; // 10 minutes
-    long liquidityTimeout = 60;
+    int anonymitySet = NB_CLIENTS_FIRST_MIX;
     Mix mix =
         __nextMix(
             denomination,
@@ -50,11 +46,7 @@ public class WhirlpoolMultiMixIntegrationTest extends AbstractIntegrationTest {
             minerFeeMax,
             mustMixMin,
             liquidityMin,
-            anonymitySetTarget,
-            anonymitySetMin,
-            anonymitySetMax,
-            anonymitySetAdjustTimeout,
-            liquidityTimeout);
+            anonymitySet);
 
     AssertMultiClientManager multiClientManager = multiClientManager(NB_CLIENTS, mix);
 

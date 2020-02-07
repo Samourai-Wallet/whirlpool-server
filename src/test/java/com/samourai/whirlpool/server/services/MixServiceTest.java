@@ -35,11 +35,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long minerFeeMax = 10000;
     int mustMixMin = 1;
     int liquidityMin = 0;
-    int anonymitySetTarget = 2;
-    int anonymitySetMin = 2;
-    int anonymitySetMax = 2;
-    long anonymitySetAdjustTimeout = 10 * 60;
-    long liquidityTimeout = 60;
+    int anonymitySet = 2;
     Mix mix =
         __nextMix(
             denomination,
@@ -49,11 +45,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
             minerFeeMax,
             mustMixMin,
             liquidityMin,
-            anonymitySetTarget,
-            anonymitySetMin,
-            anonymitySetMax,
-            anonymitySetAdjustTimeout,
-            liquidityTimeout);
+            anonymitySet);
 
     // 0 mustMix => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -85,11 +77,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long minerFeeMax = 10000;
     int mustMixMin = 1;
     int liquidityMin = 0;
-    int anonymitySetTarget = 2;
-    int anonymitySetMin = 2;
-    int anonymitySetMax = 2;
-    long anonymitySetAdjustTimeout = 10 * 60;
-    long liquidityTimeout = 60;
+    int anonymitySet = 2;
     Mix mix =
         __nextMix(
             denomination,
@@ -99,11 +87,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
             minerFeeMax,
             mustMixMin,
             liquidityMin,
-            anonymitySetTarget,
-            anonymitySetMin,
-            anonymitySetMax,
-            anonymitySetAdjustTimeout,
-            liquidityTimeout);
+            anonymitySet);
 
     // 0 liquidity => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -145,11 +129,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long minerFeeMax = 10000;
     int mustMixMin = 1;
     int liquidityMin = 0;
-    int anonymitySetTarget = 2;
-    int anonymitySetMin = 2;
-    int anonymitySetMax = 2;
-    long anonymitySetAdjustTimeout = 10 * 60;
-    long liquidityTimeout = 60;
+    int anonymitySet = 2;
     Mix mix =
         __nextMix(
             denomination,
@@ -159,11 +139,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
             minerFeeMax,
             mustMixMin,
             liquidityMin,
-            anonymitySetTarget,
-            anonymitySetMin,
-            anonymitySetMax,
-            anonymitySetAdjustTimeout,
-            liquidityTimeout);
+            anonymitySet);
 
     // 0 mustMix => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));

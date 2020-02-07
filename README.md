@@ -71,19 +71,14 @@ SCode can expire for tx0s confirmed after a specified time.
 
 ### Pool: Mix limits
 ```
-server.pools[x].anonymity-set-target = 10
-server.pools[x].anonymity-set-min = 6
-server.pools[x].anonymity-set-max = 20
-server.pools[x].anonymity-set-adjust-timeout = 120
-
+server.pools[x].anonymity-set = 5
 server.pools[x].must-mix-min = 1
 server.pools[x].liquidity-min = 1
 ```
-Mix will start when *anonymity-set-target* (mustMix + liquidities) are registered.<br/>
-If this target is not met after *anonymity-set-adjust-timeout*, it will be gradually decreased to *anonymity-set-min*.<br/>
+Mix will start when *anonymity-set* (mustMix + liquidities) are registered.<br/>
 
-At the beginning of the mix, only mustMix can register up, to *anonymity-set-max - liquidity-min*. Meanwhile, liquidities are placed on a waiting pool.<br/>
-Liquidities are added as soon as *must-mix-min* is reached, up to *anonymity-set-max* inputs for the mix.
+At the beginning of the mix, only mustMix can register up, to *anonymity-set - liquidity-min*. Meanwhile, liquidities are placed on a waiting pool.<br/>
+Liquidities are added as soon as *must-mix-min* is reached, up to *anonymity-set* inputs for the mix.
 
 ### Exports
 Each mix success/fail is appended to a CSV file:

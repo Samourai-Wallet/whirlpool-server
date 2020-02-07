@@ -60,9 +60,7 @@ public class StatusWebController {
               poolAttributes.put("feeValue", pool.getPoolFee().getFeeValue());
               poolAttributes.put("feeAccept", pool.getPoolFee().getFeeAccept());
               poolAttributes.put("mixStatus", mix.getMixStatus());
-              poolAttributes.put("targetAnonymitySet", mix.getTargetAnonymitySet());
-              poolAttributes.put("maxAnonymitySet", pool.getMaxAnonymitySet());
-              poolAttributes.put("minAnonymitySet", pool.getMinAnonymitySet());
+              poolAttributes.put("anonymitySet", pool.getAnonymitySet());
               poolAttributes.put("minMustMix", pool.getMinMustMix());
               poolAttributes.put("minLiquidity", pool.getMinLiquidity());
               poolAttributes.put("minerFeeMin", pool.getMinerFeeMin());

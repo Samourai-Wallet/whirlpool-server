@@ -111,13 +111,6 @@ public class MixLimitsService {
 
             Long timeToWait = null;
             switch (mix.getMixStatus()) {
-              case CONFIRM_INPUT:
-                if (mix.getTargetAnonymitySet() > mix.getPool().getMinAnonymitySet()) {
-                  // timeout before next targetAnonymitySet adjustment
-                  timeToWait = mix.getPool().getTimeoutAdjustAnonymitySet() * 1000 - elapsedTime;
-                }
-                break;
-
               case REGISTER_OUTPUT:
                 timeToWait =
                     whirlpoolServerConfig.getRegisterOutput().getTimeout() * 1000 - elapsedTime;
@@ -150,11 +143,6 @@ public class MixLimitsService {
               log.debug("limitsWatcher.onTimeout");
             }
             switch (mix.getMixStatus()) {
-              case CONFIRM_INPUT:
-                // adjust targetAnonymitySet
-                adjustTargetAnonymitySet(mix, timeoutWatcher);
-                break;
-
               case REGISTER_OUTPUT:
                 mixService.onTimeoutRegisterOutput(mix);
                 break;
@@ -227,34 +215,6 @@ public class MixLimitsService {
 
   // CONFIRM_INPUT
 
-  private void adjustTargetAnonymitySet(Mix mix, TimeoutWatcher timeoutWatcher) {
-    // no input registered yet => nothing to do
-    if (mix.getNbInputs() == 0) {
-      return;
-    }
-
-    // anonymitySet already at minimum
-    if (mix.getPool().getMinAnonymitySet() >= mix.getTargetAnonymitySet()) {
-      return;
-    }
-
-    // adjust mustMix
-    int nextTargetAnonymitySet = mix.getTargetAnonymitySet() - 1;
-    log.info(
-        " • must-mix-adjust-timeout over, adjusting targetAnonymitySet: " + nextTargetAnonymitySet);
-    mix.setTargetAnonymitySet(nextTargetAnonymitySet);
-    timeoutWatcher.resetTimeout();
-
-    // is mix ready now?
-    if (mixService.isRegisterInputReady(mix)) {
-      // add max possible liquidities (when maxAnonSet>currentAnonSet)
-      addLiquidities(mix);
-
-      // notify mixService - which doesn't know targetAnonymitySet was adjusted
-      mixService.checkConfirmInputReady(mix);
-    }
-  }
-
   public synchronized void onInputConfirmed(Mix mix) {
     // first mustMix registered => instanciate limitsWatcher & liquidityWatcher
     if (mix.getNbInputs() == 1) {
@@ -275,7 +235,7 @@ public class MixLimitsService {
       return;
     }
 
-    int liquiditiesToAdd = mix.getPool().getMaxAnonymitySet() - mix.getNbInputs();
+    int liquiditiesToAdd = mix.getPool().getAnonymitySet() - mix.getNbInputs();
     if (liquiditiesToAdd > 0) {
       // add queued liquidities if any
       liquiditiesToAdd++; // invite one more liquidity to prevent more waiting if one disconnects
@@ -283,8 +243,8 @@ public class MixLimitsService {
     } else {
       if (log.isDebugEnabled()) {
         log.debug(
-            "No liquidity to add: maxAnonymitySet="
-                + mix.getPool().getMaxAnonymitySet()
+            "No liquidity to add: anonymitySet="
+                + mix.getPool().getAnonymitySet()
                 + ", nbInputs="
                 + mix.getNbInputs());
       }

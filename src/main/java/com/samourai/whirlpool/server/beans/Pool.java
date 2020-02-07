@@ -11,10 +11,7 @@ public class Pool {
   private long minerFeeMax; // in satoshis
   private int minMustMix;
   private int minLiquidity;
-  private int targetAnonymitySet;
-  private int minAnonymitySet;
-  private int maxAnonymitySet;
-  private long timeoutAdjustAnonymitySet; // wait X seconds for decreasing anonymitySet
+  private int anonymitySet;
 
   private Mix currentMix;
   private InputPool mustMixQueue;
@@ -29,10 +26,7 @@ public class Pool {
       long minerFeeMax,
       int minMustMix,
       int minLiquidity,
-      int targetAnonymitySet,
-      int minAnonymitySet,
-      int maxAnonymitySet,
-      long timeoutAdjustAnonymitySet) {
+      int anonymitySet) {
     this.poolId = poolId;
     this.denomination = denomination;
     this.poolFee = poolFee;
@@ -41,10 +35,7 @@ public class Pool {
     this.minerFeeMax = minerFeeMax;
     this.minMustMix = minMustMix;
     this.minLiquidity = minLiquidity;
-    this.targetAnonymitySet = targetAnonymitySet;
-    this.minAnonymitySet = minAnonymitySet;
-    this.maxAnonymitySet = maxAnonymitySet;
-    this.timeoutAdjustAnonymitySet = timeoutAdjustAnonymitySet;
+    this.anonymitySet = anonymitySet;
     this.mustMixQueue = new InputPool();
     this.liquidityQueue = new InputPool();
   }
@@ -114,20 +105,8 @@ public class Pool {
     return minLiquidity;
   }
 
-  public int getTargetAnonymitySet() {
-    return targetAnonymitySet;
-  }
-
-  public int getMinAnonymitySet() {
-    return minAnonymitySet;
-  }
-
-  public int getMaxAnonymitySet() {
-    return maxAnonymitySet;
-  }
-
-  public long getTimeoutAdjustAnonymitySet() {
-    return timeoutAdjustAnonymitySet;
+  public int getAnonymitySet() {
+    return anonymitySet;
   }
 
   public Mix getCurrentMix() {
