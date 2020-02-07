@@ -66,6 +66,8 @@ public class StatusWebController {
               poolAttributes.put("minerFeeMin", pool.getMinerFeeMin());
               poolAttributes.put("minerFeeCap", pool.getMinerFeeCap());
               poolAttributes.put("minerFeeMax", pool.getMinerFeeMax());
+              poolAttributes.put("minerFeeMix", pool.getMinerFeeMix());
+              poolAttributes.put("minerFeeAccumulated", mix.computeMinerFeeAccumulated());
               poolAttributes.put("nbInputs", mix.getNbInputs());
               poolAttributes.put("nbInputsMustMix", mix.getNbInputsMustMix());
               poolAttributes.put("nbInputsLiquidities", mix.getNbInputsLiquidities());

@@ -9,6 +9,7 @@ public class Pool {
   private long minerFeeMin; // in satoshis
   private long minerFeeCap; // in satoshis
   private long minerFeeMax; // in satoshis
+  private long minerFeeMix; // in satoshis
   private int minMustMix;
   private int minLiquidity;
   private int anonymitySet;
@@ -24,6 +25,7 @@ public class Pool {
       long minerFeeMin,
       long minerFeeCap,
       long minerFeeMax,
+      long minerFeeMix,
       int minMustMix,
       int minLiquidity,
       int anonymitySet) {
@@ -33,6 +35,7 @@ public class Pool {
     this.minerFeeMin = minerFeeMin;
     this.minerFeeCap = minerFeeCap;
     this.minerFeeMax = minerFeeMax;
+    this.minerFeeMix = minerFeeMix;
     this.minMustMix = minMustMix;
     this.minLiquidity = minLiquidity;
     this.anonymitySet = anonymitySet;
@@ -95,6 +98,10 @@ public class Pool {
 
   public long getMinerFeeMax() {
     return minerFeeMax;
+  }
+
+  public long getMinerFeeMix() {
+    return minerFeeMix;
   }
 
   public int getMinMustMix() {

@@ -46,6 +46,7 @@
                 <td>
                     <strong><span th:text="${pool.nbInputs}"/> / <span th:text="${pool.anonymitySet}"/> confirmed</strong><br/>
                     <span th:text="${pool.nbInputsMustMix}" style="font-weight:bold"/> / <span th:text="${pool.minMustMix}"/> mustMix<br/>
+                    <strong><span th:text="${pool.minerFeeAccumulated}" style="font-weight:bold"/></strong> / <span th:text="${pool.minerFeeMix}"/> miner fee<br/>
                     <span th:text="${pool.nbInputsLiquidities}" style="font-weight:bold"/> / <span th:text="${pool.minLiquidity}"/> liquidities + <span th:text="${pool.liquiditiesQueued}" style="font-weight:bold"/> queued
                 </td>
                 <td><span th:text="${pool.elapsedTime/1000}"/>s</td>

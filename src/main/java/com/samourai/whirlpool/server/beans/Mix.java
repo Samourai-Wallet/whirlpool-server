@@ -93,8 +93,17 @@ public class Mix {
     return Optional.ofNullable(mixTO);
   }
 
-  public boolean hasMinMustMixReached() {
-    return getNbInputsMustMix() >= pool.getMinMustMix();
+  public boolean hasMinMustMixAndFeeReached() {
+    // verify minMustMix
+    if (getNbInputsMustMix() < pool.getMinMustMix()) {
+      return false;
+    }
+
+    // verify minerFeeMix
+    if (computeMinerFeeAccumulated() < pool.getMinerFeeMix()) {
+      return false;
+    }
+    return true;
   }
 
   public boolean hasMinLiquidityMixReached() {
@@ -225,6 +234,14 @@ public class Mix {
             .count();
   }
 
+  public long computeMinerFeeAccumulated() {
+    return getInputs()
+        .parallelStream()
+        .filter(input -> !input.getRegisteredInput().isLiquidity())
+        .map(input -> input.getRegisteredInput().getOutPoint().getValue() - pool.getDenomination())
+        .reduce(0L, Long::sum);
+  }
+
   public synchronized void registerInput(ConfirmedInput confirmedInput)
       throws IllegalInputException {
     String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getOutPoint());
@@ -323,7 +340,7 @@ public class Mix {
   }
 
   public boolean isRegisterLiquiditiesOpen() {
-    if (!hasMinMustMixReached()) {
+    if (!hasMinMustMixAndFeeReached()) {
       // wait to get enough mustMix before accepting liquidities
       return false;
     }

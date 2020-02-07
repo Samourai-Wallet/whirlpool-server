@@ -114,6 +114,12 @@ public class MixService {
         throw new IllegalInputException(
             "Current mix not opened to liquidities yet"); // should not happen
       }
+      // verify minMustMix
+      int mustMixSlotsAvailable = pool.getAnonymitySet() - (mix.getNbInputsLiquidities() + 1);
+      if (mustMixSlotsAvailable < pool.getMinMustMix()) {
+        throw new QueueInputException(
+            "Current mix is full for liquidity", registeredInput, pool.getPoolId());
+      }
     } else {
       // mustMix: verify minLiquidity
       int liquiditySlotsAvailable = pool.getAnonymitySet() - (mix.getNbInputsMustMix() + 1);
@@ -287,7 +293,7 @@ public class MixService {
     if (mix.getNbInputs() == 0) {
       return false;
     }
-    if (!mix.hasMinMustMixReached()) {
+    if (!mix.hasMinMustMixAndFeeReached()) {
       return false;
     }
     if (!mix.hasMinLiquidityMixReached()) {

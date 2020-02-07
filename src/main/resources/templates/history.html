@@ -26,6 +26,7 @@
                 <th scope="col">AnonymitySet</th>
                 <th scope="col">Status</th>
                 <th scope="col">Fees</th>
+                <th scope="col">sat/B</th>
                 <th scope="col">Duration</th>
                 <th scope="col">Volume</th>
                 <th scope="col">Txid</th>
@@ -44,8 +45,10 @@
                         <a th:if="${mix.failInfo != null}" href="#" data-toggle="popover" title="Mix failed" th:data-content="${mix.failInfo}" onclick="return false"><span data-feather="code" /></a>
                     </td>
                     <td class="fees">
-                        <span th:text="${mix.feesAmount != null ? @templateUtil.satoshisToBtc(mix.feesAmount) : ''}"/><br/>
-                        <span th:text="${mix.feesPrice != null ? '('+mix.feesPrice+'sat/B)' : ''}"/>
+                        <span th:text="${mix.feesAmount != null ? mix.feesAmount : ''}"/>
+                    </td>
+                    <td class="feesSatPerB">
+                        <span th:text="${mix.feesPrice != null ? mix.feesPrice : ''}"/>
                     </td>
                     <td class="duration"><span th:text="${mix.mixDuration}"/>s</td>
                     <td class="mixed"><span th:text="${@templateUtil.satoshisToBtc(mix.amountOut)}"/>btc</td>

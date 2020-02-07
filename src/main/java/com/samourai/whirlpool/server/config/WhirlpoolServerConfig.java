@@ -298,6 +298,7 @@ public class WhirlpoolServerConfig extends ServerConfig {
     private long minerFeeMin;
     private long minerFeeCap;
     private long minerFeeMax;
+    private long minerFeeMix;
     private int mustMixMin;
     private int liquidityMin;
     private int anonymitySet;
@@ -356,6 +357,14 @@ public class WhirlpoolServerConfig extends ServerConfig {
 
     public void setMinerFeeMax(long minerFeeMax) {
       this.minerFeeMax = minerFeeMax;
+    }
+
+    public long getMinerFeeMix() {
+      return minerFeeMix;
+    }
+
+    public void setMinerFeeMix(long minerFeeMix) {
+      this.minerFeeMix = minerFeeMix;
     }
 
     public int getMustMixMin() {
@@ -619,6 +628,8 @@ public class WhirlpoolServerConfig extends ServerConfig {
               + poolConfig.getMinerFeeMax()
               + ", cap="
               + poolConfig.getMinerFeeCap()
+              + ", mix="
+              + poolConfig.getMinerFeeMix()
               + "]";
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);
     }
