@@ -36,9 +36,9 @@
             <tbody>
                 <tr th:each="mix : ${page.content}">
                     <td class="updated"><span th:text="${#dates.format(mix.updated, 'dd-MMM-yyyy HH:mm:ss')}"/></td>
-                    <td class="poolId"><pre><code th:text="${mix.poolId}"/></pre></td>
-                    <td class="mixId"><pre><code th:text="${mix.mixId}"/></pre></td>
-                    <td class="denomination"><pre><code th:text="${@templateUtil.satoshisToBtc(mix.denomination)}"/></pre></td>
+                    <td class="poolId"><span th:text="${mix.poolId}"/></td>
+                    <td class="mixId"><small th:text="${mix.mixId}"/></td>
+                    <td class="denomination"><span th:text="${@templateUtil.satoshisToBtc(mix.denomination)}"/></td>
                     <td class="anonymitySet"><span th:text="${mix.anonymitySet}" title="mustMix + liquidities"/> (<span th:text="${mix.nbMustMix}" title="mustMix"/> + <span th:text="${mix.nbLiquidities}" title="liquidities"/>)</td>
                     <td class="status">
                         <span th:text="${mix.mixStatus}"/> <span th:text="${mix.failReason != null} ? ${'(' + mix.failReason + ')'} : ''"/>
@@ -50,10 +50,10 @@
                     <td class="feesSatPerB">
                         <span th:text="${mix.feesPrice != null ? mix.feesPrice : ''}"/>
                     </td>
-                    <td class="duration"><span th:text="${mix.mixDuration}"/>s</td>
+                    <td class="duration"><span th:text="${@templateUtil.duration(mix.mixDuration)}"/></td>
                     <td class="mixed"><span th:text="${@templateUtil.satoshisToBtc(mix.amountOut)}"/>btc</td>
                     <td class="txid">
-                        <a th:if="${mix.mixLog != null && mix.mixLog.txid != null}" th:href="${urlExplorer + mix.mixLog.txid}" target="_blank"><pre><code th:text="${mix.mixLog.txid}"/></pre></a>
+                        <a th:if="${mix.mixLog != null && mix.mixLog.txid != null}" th:href="${urlExplorer + mix.mixLog.txid}" target="_blank"><small th:text="${mix.mixLog.txid}"/></a>
                         <span th:if="${mix.mixLog == null || mix.mixLog.txid == null}">...</span>
                     </td>
                     <td class="rawTx">

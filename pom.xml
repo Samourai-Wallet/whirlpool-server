@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>com.github.Samourai-Wallet</groupId>
 			<artifactId>java-server</artifactId>
-			<version>1.0.0</version>
+			<version>develop-SNAPSHOT</version>
 		</dependency>
         <dependency>
             <groupId>com.github.Samourai-Wallet</groupId>

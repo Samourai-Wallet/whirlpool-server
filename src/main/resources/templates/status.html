@@ -49,7 +49,7 @@
                     <strong><span th:text="${pool.minerFeeAccumulated}" style="font-weight:bold"/></strong> / <span th:text="${pool.minerFeeMix}"/> miner fee<br/>
                     <span th:text="${pool.nbInputsLiquidities}" style="font-weight:bold"/> / <span th:text="${pool.minLiquidity}"/> liquidities + <span th:text="${pool.liquiditiesQueued}" style="font-weight:bold"/> queued
                 </td>
-                <td><span th:text="${pool.elapsedTime/1000}"/>s</td>
+                <td><span th:text="${@templateUtil.duration(pool.elapsedTime/1000)}"/></td>
                 <td>
                     Pool fee: <span th:text="${@templateUtil.satoshisToBtc(pool.feeValue)}"/><br/>
                     Miner fee: <span th:text="${pool.minerFeeMin}" title="minerFeeMin"/>-<span th:text="${pool.minerFeeMax}" title="minerFeeMax"/> (cap <span th:text="${pool.minerFeeCap}" title="minerFeeMaxCap"/>)<br/>

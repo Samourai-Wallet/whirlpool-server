@@ -61,6 +61,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .hasAnyAuthority(WhirlpoolPrivilege.CONFIG.toString(), WhirlpoolPrivilege.ALL.toString())
         .antMatchers(BanWebController.ENDPOINT)
         .hasAnyAuthority(WhirlpoolPrivilege.BAN.toString(), WhirlpoolPrivilege.ALL.toString())
+        .antMatchers(SystemWebController.ENDPOINT)
+        .hasAnyAuthority(WhirlpoolPrivilege.SYSTEM.toString(), WhirlpoolPrivilege.ALL.toString())
 
         // reject others
         .anyRequest()

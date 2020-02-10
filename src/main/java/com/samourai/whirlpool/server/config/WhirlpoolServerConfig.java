@@ -622,14 +622,14 @@ public class WhirlpoolServerConfig extends ServerConfig {
               + ", liquidityMin="
               + poolConfig.getLiquidityMin();
       poolInfo +=
-          ", minerFee=["
+          ", minerFee="
+              + poolConfig.getMinerFeeMix()
+              + "["
               + poolConfig.minerFeeMin
               + "-"
               + poolConfig.getMinerFeeMax()
               + ", cap="
               + poolConfig.getMinerFeeCap()
-              + ", mix="
-              + poolConfig.getMinerFeeMix()
               + "]";
       configInfo.put("pools[" + poolConfig.id + "]", poolInfo);
     }

@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.BlameReason;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
 import com.samourai.whirlpool.server.beans.FailReason;
@@ -30,7 +29,6 @@ public class MixLimitsService {
   private WhirlpoolServerConfig whirlpoolServerConfig;
 
   private Map<String, TimeoutWatcher> limitsWatchers;
-  private Map<String, TimeoutWatcher> liquidityWatchers;
 
   @Autowired
   public MixLimitsService(
@@ -54,11 +52,6 @@ public class MixLimitsService {
     return limitsWatchers.get(mixId);
   }
 
-  private TimeoutWatcher getLiquidityWatcher(Mix mix) {
-    String mixId = mix.getMixId();
-    return liquidityWatchers.get(mixId);
-  }
-
   public void unmanage(Mix mix) {
     String mixId = mix.getMixId();
 
@@ -67,12 +60,6 @@ public class MixLimitsService {
       limitsWatcher.stop();
       limitsWatchers.remove(mixId);
     }
-
-    TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
-    if (liquidityWatcher != null) {
-      liquidityWatcher.stop();
-      liquidityWatchers.remove(mixId);
-    }
   }
 
   public void onMixStatusChange(Mix mix) {
@@ -80,25 +67,6 @@ public class MixLimitsService {
     TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
     if (limitsWatcher != null) { // may be null for tests
       limitsWatcher.resetTimeout();
-    }
-
-    // clear liquidityWatcher when CONFIRM_INPUT completed
-    if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
-      TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
-      if (liquidityWatcher != null) {
-        String mixId = mix.getMixId();
-
-        liquidityWatcher.stop();
-        liquidityWatchers.remove(mixId);
-
-        if (log.isDebugEnabled()) {
-          log.debug(
-              "stopped liquidityWatcher for mixId="
-                  + mix.getMixId()
-                  + ": liquidityWatchers="
-                  + liquidityWatchers);
-        }
-      }
     }
   }
 
@@ -111,6 +79,12 @@ public class MixLimitsService {
 
             Long timeToWait = null;
             switch (mix.getMixStatus()) {
+              case CONFIRM_INPUT:
+                // timeout before adding more liquidities
+                long waitTime = whirlpoolServerConfig.getRegisterInput().getLiquidityInterval();
+                timeToWait = waitTime * 1000 - elapsedTime;
+                break;
+
               case REGISTER_OUTPUT:
                 timeToWait =
                     whirlpoolServerConfig.getRegisterOutput().getTimeout() * 1000 - elapsedTime;
@@ -143,6 +117,11 @@ public class MixLimitsService {
               log.debug("limitsWatcher.onTimeout");
             }
             switch (mix.getMixStatus()) {
+              case CONFIRM_INPUT:
+                // add more liquidities
+                addLiquidities(mix);
+                break;
+
               case REGISTER_OUTPUT:
                 mixService.onTimeoutRegisterOutput(mix);
                 break;
@@ -167,63 +146,14 @@ public class MixLimitsService {
     return mixLimitsWatcher;
   }
 
-  private TimeoutWatcher computeLiquidityWatcher(Mix mix) {
-    ITimeoutWatcherListener listener =
-        new ITimeoutWatcherListener() {
-          @Override
-          public Long computeTimeToWait(TimeoutWatcher timeoutWatcher) {
-            long elapsedTime = timeoutWatcher.computeElapsedTime();
-
-            // timeout before adding more liquidities
-            long waitTime = whirlpoolServerConfig.getRegisterInput().getLiquidityInterval();
-            long timeToWait = waitTime * 1000 - elapsedTime;
-            return timeToWait;
-          }
-
-          @Override
-          public void onTimeout(TimeoutWatcher timeoutWatcher) {
-            if (!MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
-              if (log.isDebugEnabled()) {
-                log.debug(
-                    "liquidityWatcher.onTimeout => ignored: mixStatus="
-                        + mix.getMixStatus()
-                        + ", liquidityWatchers="
-                        + liquidityWatchers);
-              }
-
-              // stop
-              String mixId = mix.getMixId();
-              timeoutWatcher.stop();
-              liquidityWatchers.remove(mixId);
-
-              if (log.isDebugEnabled()) {
-                log.debug(
-                    "stopped liquidityWatcher for mixId="
-                        + mix.getMixId()
-                        + ": liquidityWatchers="
-                        + liquidityWatchers);
-              }
-              return;
-            }
-            // add more liquidities
-            addLiquidities(mix);
-          }
-        };
-    TimeoutWatcher liquidityWatcher = new TimeoutWatcher(listener);
-    return liquidityWatcher;
-  }
-
   // CONFIRM_INPUT
 
   public synchronized void onInputConfirmed(Mix mix) {
-    // first mustMix registered => instanciate limitsWatcher & liquidityWatcher
-    if (mix.getNbInputs() == 1) {
-      String mixId = mix.getMixId();
+    // first mustMix registered => instanciate limitsWatcher
+    String mixId = mix.getMixId();
+    if (this.limitsWatchers.get(mixId) == null) {
       TimeoutWatcher limitsWatcher = computeLimitsWatcher(mix);
       this.limitsWatchers.put(mixId, limitsWatcher);
-
-      TimeoutWatcher liquidityWatcher = computeLiquidityWatcher(mix);
-      this.liquidityWatchers.put(mixId, liquidityWatcher);
     }
   }
 
@@ -293,22 +223,13 @@ public class MixLimitsService {
     log.info("__simulateElapsedTime for mixId=" + mixId);
     TimeoutWatcher limitsWatcher = getLimitsWatcher(mix);
     limitsWatcher.__simulateElapsedTime(elapsedTimeSeconds);
-
-    TimeoutWatcher liquidityWatcher = getLiquidityWatcher(mix);
-    if (liquidityWatcher != null) {
-      liquidityWatcher.__simulateElapsedTime(elapsedTimeSeconds);
-    }
   }
 
   public void __reset() {
-    if (liquidityWatchers != null) {
-      liquidityWatchers.values().forEach(watcher -> watcher.stop());
-    }
     if (limitsWatchers != null) {
       limitsWatchers.values().forEach(watcher -> watcher.stop());
     }
 
     this.limitsWatchers = new ConcurrentHashMap<>();
-    this.liquidityWatchers = new ConcurrentHashMap<>();
   }
 }

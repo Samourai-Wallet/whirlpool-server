@@ -7,7 +7,6 @@ import com.samourai.whirlpool.server.persistence.to.BanTO;
 import com.samourai.whirlpool.server.persistence.to.shared.EntityCreatedTO;
 import com.samourai.whirlpool.server.services.BanService;
 import java.lang.invoke.MethodHandles;
-import java.sql.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +52,6 @@ public class BanWebController {
     model.addAttribute("page", page);
     model.addAttribute("urlExplorer", explorerApi.getUrlTx());
     model.addAttribute("ENDPOINT", ENDPOINT);
-    model.addAttribute("now", new Timestamp(System.currentTimeMillis()));
     model.addAttribute("banConfig", serverConfig.getBan());
 
     // getters used in template

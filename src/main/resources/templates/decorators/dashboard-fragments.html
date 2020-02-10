@@ -18,15 +18,21 @@
         </a>
     </li>
     <li class="nav-item">
+        <a th:class="${currentPage == 'ban'} ? 'nav-link active' : 'nav-link'" href="/status/ban">
+            <span data-feather="slash"></span>
+            Banned inputs
+        </a>
+    </li>
+    <li class="nav-item">
         <a th:class="${currentPage == 'config'} ? 'nav-link active' : 'nav-link'" href="/status/config">
             <span data-feather="settings"></span>
             Configuration
         </a>
     </li>
     <li class="nav-item">
-        <a th:class="${currentPage == 'ban'} ? 'nav-link active' : 'nav-link'" href="/status/ban">
-            <span data-feather="slash"></span>
-            Banned inputs
+        <a th:class="${currentPage == 'system'} ? 'nav-link active' : 'nav-link'" href="/status/system">
+            <span data-feather="activity"></span>
+            System
         </a>
     </li>
 </ul>
