@@ -142,7 +142,8 @@ public class MixLimitsService {
           }
         };
 
-    TimeoutWatcher mixLimitsWatcher = new TimeoutWatcher(listener);
+    TimeoutWatcher mixLimitsWatcher =
+        new TimeoutWatcher(listener, "limitsWatcher-" + mix.getMixId());
     return mixLimitsWatcher;
   }
 

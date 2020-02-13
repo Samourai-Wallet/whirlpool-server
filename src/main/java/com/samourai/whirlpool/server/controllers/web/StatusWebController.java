@@ -145,7 +145,7 @@ public class StatusWebController {
           currentStepElapsedTime + "s elapsed, " + currentStepRemainingTime + "s remaining ";
       switch (mixStatus) {
         case CONFIRM_INPUT:
-          progressLabel += "before anonymitySet adjustment";
+          progressLabel = null; // ignore progressLabel for adding liquidities
           break;
         case REGISTER_OUTPUT:
           progressLabel += "to register outputs";

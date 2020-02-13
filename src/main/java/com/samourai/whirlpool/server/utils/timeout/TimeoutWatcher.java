@@ -12,14 +12,14 @@ public class TimeoutWatcher implements Runnable {
   private boolean running;
   private Thread thread;
 
-  public TimeoutWatcher(ITimeoutWatcherListener listener) {
+  public TimeoutWatcher(ITimeoutWatcherListener listener, String threadName) {
     this.listener = listener;
 
     this.waitSince = System.currentTimeMillis();
     this.running = true;
 
     // run
-    this.thread = new Thread(this);
+    this.thread = new Thread(this, threadName);
     this.thread.start();
   }
 
