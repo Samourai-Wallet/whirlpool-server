@@ -53,6 +53,10 @@ public class Tx0Controller extends AbstractRestController {
     // prevent bruteforce attacks
     Thread.sleep(1000);
 
+    if (StringUtils.isEmpty(scode) || "null".equals(scode)) {
+      scode = null;
+    }
+
     PoolFee poolFee = poolService.getPool(poolId).getPoolFee();
 
     String feePaymentCode = feeValidationService.getFeePaymentCode();
@@ -77,7 +81,7 @@ public class Tx0Controller extends AbstractRestController {
       feeDiscountPercent = 0;
       message = null;
 
-      if (!StringUtils.isEmpty(scode)) {
+      if (scode != null) {
         log.warn("Invalid SCODE: " + scode);
       }
     }

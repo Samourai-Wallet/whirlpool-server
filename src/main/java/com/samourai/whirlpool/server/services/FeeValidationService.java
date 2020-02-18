@@ -19,7 +19,6 @@ import com.samourai.xmanager.protocol.XManagerService;
 import java.lang.invoke.MethodHandles;
 import java.util.Map.Entry;
 import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutPoint;

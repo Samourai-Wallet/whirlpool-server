@@ -20,11 +20,17 @@ public class BackendApiTest extends AbstractIntegrationTest {
   private BackendApi backendApi;
 
   public BackendApiTest() {
+  }
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+
     backendApi =
-        new BackendApi(
-            new JavaHttpClientService(serverConfig),
-            BackendServer.TESTNET.getBackendUrlClear(),
-            Optional.empty());
+            new BackendApi(
+                    new JavaHttpClientService(serverConfig),
+                    BackendServer.TESTNET.getBackendUrlClear(),
+                    Optional.empty());
   }
 
   @Test
