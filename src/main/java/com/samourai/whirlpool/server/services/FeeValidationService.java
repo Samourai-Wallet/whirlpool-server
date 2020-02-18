@@ -19,6 +19,8 @@ import com.samourai.xmanager.protocol.XManagerService;
 import java.lang.invoke.MethodHandles;
 import java.util.Map.Entry;
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionOutPoint;
 import org.bitcoinj.core.TransactionOutput;
@@ -278,7 +280,7 @@ public class FeeValidationService {
 
   public WhirlpoolServerConfig.ScodeSamouraiFeeConfig getScodeConfigByScode(
       String scode, long tx0Time) {
-    String scodeUpperCase = (scode != null ? scode.toUpperCase() : null);
+    String scodeUpperCase = (!StringUtils.isEmpty(scode) ? scode.toUpperCase() : null);
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
         serverConfig.getSamouraiFees().getScodes().get(scodeUpperCase);
     if (scodeConfig == null) {

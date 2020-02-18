@@ -77,7 +77,7 @@ public class Tx0Controller extends AbstractRestController {
       feeDiscountPercent = 0;
       message = null;
 
-      if (scode != null) {
+      if (!StringUtils.isEmpty(scode)) {
         log.warn("Invalid SCODE: " + scode);
       }
     }

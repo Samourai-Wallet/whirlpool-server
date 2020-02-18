@@ -362,15 +362,6 @@ public class MixService {
             + " liquidities + "
             + mustMixQueued
             + " mustMixs)");
-
-    // update mix status in database
-    if (mix.getNbInputsMustMix() > 0) {
-      try {
-        dbService.saveMix(mix);
-      } catch (Exception e) {
-        log.error("", e);
-      }
-    }
   }
 
   protected synchronized boolean isRegisterOutputReady(Mix mix) {
@@ -540,11 +531,6 @@ public class MixService {
 
       // update mix status
       mix.setMixStatusAndTime(mixStatus);
-      try {
-        dbService.saveMix(mix);
-      } catch (Exception e) {
-        log.error("", e);
-      }
       mixLimitsService.onMixStatusChange(mix);
 
       // notify users (ConfirmInputResponse was already sent when user joined mix)
@@ -562,14 +548,14 @@ public class MixService {
           log.error("", e);
         }
 
-        __nextMix(mix.getPool());
+        onMixOver(mix);
       } else if (mixStatus == MixStatus.FAIL) {
-        __nextMix(mix.getPool());
+        onMixOver(mix);
       }
     } catch (MixException e) {
       log.error("Unexpected mix error", e);
       if (mix != null) {
-        __nextMix(mix.getPool());
+        onMixOver(mix);
       }
     }
   }
@@ -755,14 +741,10 @@ public class MixService {
     mix.setFailReason(failReason);
     mix.setFailInfo(failInfo);
     changeMixStatus(mix.getMixId(), MixStatus.FAIL);
-
-    exportService.exportMix(mix);
   }
 
   public void goSuccess(Mix mix) {
     changeMixStatus(mix.getMixId(), MixStatus.SUCCESS);
-
-    exportService.exportMix(mix);
   }
 
   private synchronized void onClientDisconnect(String username) {
@@ -833,11 +815,36 @@ public class MixService {
     return mix;
   }
 
+  private void onMixOver(Mix mix) {
+    // unmanage
+    try {
+      mixLimitsService.unmanage(mix);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+
+    // save in database
+    try {
+      dbService.saveMix(mix);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+
+    // export to CSV
+    try {
+      exportService.exportMix(mix);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+
+    // start new mix
+    __nextMix(mix.getPool());
+  }
+
   private synchronized void startMix(Mix mix) {
     Pool pool = mix.getPool();
     Mix currentMix = pool.getCurrentMix();
     if (currentMix != null) {
-      mixLimitsService.unmanage(currentMix);
       currentMixs.remove(currentMix.getMixId());
       // TODO disconnect all clients (except liquidities?)
     }
