@@ -93,7 +93,15 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
     try {
       // getTxOut only returns unspent outputs
       BitcoindRpcClient.TxOut txOut = rpcClient.getTxOut(txid, index, true);
+      // returns empty TxOut object when spent ({m: null})
       if (txOut != null) {
+
+        // TODO https://github.com/Polve/bitcoin-rpc-client/pull/109
+        try {
+          txOut.value();
+        } catch (NullPointerException e) {
+          return false;
+        }
         return true;
       }
     } catch (Exception e) {

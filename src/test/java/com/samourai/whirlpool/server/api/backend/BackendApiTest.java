@@ -19,18 +19,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class BackendApiTest extends AbstractIntegrationTest {
   private BackendApi backendApi;
 
-  public BackendApiTest() {
-  }
+  public BackendApiTest() {}
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
     backendApi =
-            new BackendApi(
-                    new JavaHttpClientService(serverConfig),
-                    BackendServer.TESTNET.getBackendUrlClear(),
-                    Optional.empty());
+        new BackendApi(
+            new JavaHttpClientService(serverConfig),
+            BackendServer.TESTNET.getBackendUrlClear(),
+            Optional.empty());
   }
 
   @Test
