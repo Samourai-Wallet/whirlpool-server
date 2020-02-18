@@ -5,7 +5,6 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.ConfirmInputRequest;
 import com.samourai.whirlpool.server.services.ConfirmInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 import org.slf4j.Logger;
@@ -38,13 +37,7 @@ public class ConfirmInputController extends AbstractWebSocketController {
 
     String username = principal.getName();
     if (log.isDebugEnabled()) {
-      log.debug(
-          "["
-              + username
-              + "] "
-              + headers.getDestination()
-              + " payload="
-              + Utils.toJsonString(payload));
+      log.debug("(<) [" + payload.mixId + "] " + username + " " + headers.getDestination());
     }
 
     // confirm input and send back signed bordereau, or enqueue back to pool

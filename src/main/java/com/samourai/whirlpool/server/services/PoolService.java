@@ -168,12 +168,12 @@ public class PoolService {
     }
 
     log.info(
-        " • ["
+        "["
             + pool.getPoolId()
-            + "] queueing to pool "
-            + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
-            + ": "
-            + registeredInput.getOutPoint());
+            + "] "
+            + registeredInput.getUsername()
+            + " queueing to pool "
+            + (registeredInput.isLiquidity() ? "liquidity" : "mustMix"));
 
     // queue input
     queue.register(registeredInput);
@@ -181,9 +181,11 @@ public class PoolService {
 
   private void inviteToMix(Mix mix, RegisteredInput registeredInput) {
     log.info(
-        " • ["
+        "["
             + mix.getMixId()
-            + "] inviting "
+            + "] "
+            + registeredInput.getUsername()
+            + " inviting "
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + " to mix: "
             + registeredInput.getOutPoint());
@@ -255,14 +257,13 @@ public class PoolService {
       // remove queued liquidity
       boolean liquidityRemoved = pool.getLiquidityQueue().removeByUsername(username).isPresent();
       if (liquidityRemoved) {
-        log.info(
-            " • [" + pool.getPoolId() + "] removed 1 liquidity from pool, username=" + username);
+        log.info("[" + pool.getPoolId() + "] " + username + " removed 1 liquidity from pool");
       }
 
       // remove queued mustMix
       boolean mustMixRemoved = pool.getMustMixQueue().removeByUsername(username).isPresent();
       if (mustMixRemoved) {
-        log.info(" • [" + pool.getPoolId() + "] removed 1 mustMix from pool, username=" + username);
+        log.info("[" + pool.getPoolId() + "] " + username + " removed 1 mustMix from pool");
       }
     }
   }

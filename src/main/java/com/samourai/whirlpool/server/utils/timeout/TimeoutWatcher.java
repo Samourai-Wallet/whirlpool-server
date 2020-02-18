@@ -52,6 +52,9 @@ public class TimeoutWatcher implements Runnable {
   }
 
   public void stop() {
+    if (log.isDebugEnabled()) {
+      log.debug("Stopping timeoutWatcher: " + thread.getName());
+    }
     running = false;
     resumeThread();
   }

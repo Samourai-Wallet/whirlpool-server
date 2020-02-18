@@ -204,7 +204,9 @@ public class MixService {
     // add to mix inputs
     mix.registerInput(confirmedInput);
     log.info(
-        " • registered "
+        "["
+            + mixId
+            + "] registered "
             + (registeredInput.isLiquidity() ? "liquidity" : "mustMix")
             + ": "
             + registeredInput.getOutPoint());
@@ -324,7 +326,7 @@ public class MixService {
       throw new IllegalInputException("receiveAddress already registered as input");
     }
 
-    log.info(" • registered output: " + receiveAddress);
+    log.info("[" + mix.getMixId() + "] registered output: " + receiveAddress);
     mix.registerOutput(receiveAddress);
 
     if (isRegisterOutputReady(mix)) {
@@ -337,7 +339,10 @@ public class MixService {
     int liquiditiesQueued = mix.getPool().getLiquidityQueue().getSize();
     int mustMixQueued = mix.getPool().getMustMixQueue().getSize();
     log.info(
-        mix.getNbInputsMustMix()
+        "["
+            + mix.getMixId()
+            + "] "
+            + mix.getNbInputsMustMix()
             + "/"
             + mix.getPool().getMinMustMix()
             + " mustMix, "
@@ -348,7 +353,11 @@ public class MixService {
             + mix.getNbInputs()
             + "/"
             + mix.getPool().getAnonymitySet()
-            + " anonymitySet (pool: "
+            + " anonymitySet, "
+            + mix.computeMinerFeeAccumulated()
+            + "/"
+            + mix.getPool().getMinerFeeMix()
+            + "sat (pool: "
             + liquiditiesQueued
             + " liquidities + "
             + mustMixQueued
@@ -433,7 +442,7 @@ public class MixService {
     }
 
     mix.addRevealedOutput(username, receiveAddress);
-    log.info(" • revealed output: username=" + username);
+    log.info("[" + mixId + "] " + username + " revealed output");
 
     if (isRevealOutputReady(mix)) {
       blameForRevealOutputAndResetMix(mix);
@@ -477,7 +486,7 @@ public class MixService {
     // signature success
     mix.setTx(tx);
     mix.setSignedByUsername(username);
-    log.info(" • registered signature: username=" + username);
+    log.info("[" + mixId + "]  " + username + " registered signature");
 
     if (isRegisterSignaturesReady(mix)) {
       // check final transaction
@@ -704,7 +713,9 @@ public class MixService {
     } else {
       // we have legit output registered => go REVEAL_OUTPUT to blame the others
       log.info(
-          " • REGISTER_OUTPUT time over (mix failed, blaming users who didn't register output...)");
+          "["
+              + mix.getMixId()
+              + "] REGISTER_OUTPUT time over (mix failed, blaming users who didn't register output...)");
       changeMixStatus(mix.getMixId(), MixStatus.REVEAL_OUTPUT);
     }
   }
@@ -762,11 +773,7 @@ public class MixService {
       mix.removeConfirmingInputByUsername(username)
           .ifPresent(
               confirmInput ->
-                  log.info(
-                      " • ["
-                          + mixId
-                          + "] unregistered from confirming inputs, username="
-                          + username));
+                  log.info("[" + mixId + "] " + username + " unregistered from confirming inputs"));
 
       // remove from confirmed inputs
       List<ConfirmedInput> confirmedInputs =
@@ -830,7 +837,7 @@ public class MixService {
     Pool pool = mix.getPool();
     Mix currentMix = pool.getCurrentMix();
     if (currentMix != null) {
-      mixLimitsService.unmanage(mix);
+      mixLimitsService.unmanage(currentMix);
       currentMixs.remove(currentMix.getMixId());
       // TODO disconnect all clients (except liquidities?)
     }

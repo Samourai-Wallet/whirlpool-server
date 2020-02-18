@@ -252,7 +252,12 @@ public class Mix {
   }
 
   public synchronized void unregisterInput(ConfirmedInput confirmedInput) {
-    log.info(" • [" + mixId + "] unregistering a CONFIRMED input: " + confirmedInput);
+    log.info(
+        "["
+            + mixId
+            + "] "
+            + confirmedInput.getRegisteredInput().getUsername()
+            + " unregistering a CONFIRMED input");
     String inputId = Utils.computeInputId(confirmedInput.getRegisteredInput().getOutPoint());
     inputsById.remove(inputId);
   }

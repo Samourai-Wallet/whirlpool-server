@@ -121,7 +121,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
   public void handleSubscribeEvent(SessionSubscribeEvent event) {
     String username = event.getUser() != null ? event.getUser().getName() : "unknown";
     if (log.isDebugEnabled()) {
-      log.debug("[event] subscribe: username=" + username + ", event=" + event);
+      log.debug("(<) " + username + " subscribe");
     }
   }
 
@@ -129,7 +129,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
   public void handleConnectEvent(SessionConnectEvent event) {
     String username = event.getUser() != null ? event.getUser().getName() : "unknown";
     if (log.isDebugEnabled()) {
-      log.debug("[event] connect: username=" + username + ", event=" + event);
+      log.debug("(<) " + username + " connect");
     }
     webSocketSessionService.onConnect(username);
   }
@@ -138,7 +138,7 @@ public class WebSocketConfig extends WebSocketMessageBrokerConfigurationSupport
   public void handleDisconnectEvent(SessionDisconnectEvent event) {
     String username = event.getUser() != null ? event.getUser().getName() : "unknown";
     if (log.isDebugEnabled()) {
-      log.debug("[event] disconnect: username=" + username + ", event=" + event);
+      log.debug("(<) " + username + " disconnect");
     }
     webSocketSessionService.onDisconnect(username);
   }

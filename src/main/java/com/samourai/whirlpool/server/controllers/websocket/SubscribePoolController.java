@@ -38,7 +38,7 @@ public class SubscribePoolController extends AbstractWebSocketController {
 
     String username = principal.getName();
     if (log.isTraceEnabled()) {
-      log.trace("[" + username + "] " + headers.getDestination());
+      log.trace("(<) [" + username + "] " + headers.getDestination());
     }
 
     // validate poolId & reply poolStatusNotification

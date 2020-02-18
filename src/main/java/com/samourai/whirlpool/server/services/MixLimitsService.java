@@ -113,8 +113,8 @@ public class MixLimitsService {
 
           @Override
           public void onTimeout(TimeoutWatcher timeoutWatcher) {
-            if (log.isDebugEnabled()) {
-              log.debug("limitsWatcher.onTimeout");
+            if (log.isTraceEnabled()) {
+              log.trace("limitsWatcher.onTimeout: " + mix.getMixId() + " " + mix.getMixStatus());
             }
             switch (mix.getMixStatus()) {
               case CONFIRM_INPUT:
@@ -183,7 +183,10 @@ public class MixLimitsService {
   }
 
   public void blameForSigningAndResetMix(Mix mix) {
-    log.info(" • SIGNING time over (mix failed, blaming users who didn't sign...)");
+    log.info(
+        "["
+            + mix.getMixId()
+            + "] SIGNING time over (mix failed, blaming users who didn't sign...)");
     String mixId = mix.getMixId();
 
     // blame users who didn't sign

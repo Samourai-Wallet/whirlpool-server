@@ -5,7 +5,6 @@ import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputRequest;
 import com.samourai.whirlpool.server.config.websocket.IpHandshakeInterceptor;
 import com.samourai.whirlpool.server.services.RegisterInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
 import org.slf4j.Logger;
@@ -44,12 +43,16 @@ public class RegisterInputController extends AbstractWebSocketController {
     String ip = IpHandshakeInterceptor.getIp(messageHeaderAccessor);
     if (log.isDebugEnabled()) {
       log.debug(
-          "["
-              + username
+          "(<) ["
+              + payload.poolId
               + "] "
+              + username
+              + " "
               + headers.getDestination()
-              + " payload="
-              + Utils.toJsonString(payload));
+              + " "
+              + payload.utxoHash
+              + ":"
+              + payload.utxoIndex);
     }
 
     // register input in pool

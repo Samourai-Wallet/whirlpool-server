@@ -36,14 +36,8 @@ public class WebSocketService {
   }
 
   public void sendPrivate(Collection<String> usernames, Object payload) {
-    if (log.isDebugEnabled()) {
-      log.debug(
-          "(--> ["
-              + usernames.size()
-              + "]"
-              + String.join(",", usernames)
-              + ") : "
-              + Utils.toJsonString(payload));
+    if (log.isTraceEnabled()) {
+      log.trace("(>) " + String.join(",", usernames) + ": " + Utils.toJsonString(payload));
     }
     usernames.forEach(
         username -> {
@@ -58,7 +52,7 @@ public class WebSocketService {
   }
 
   public void sendPrivateError(String username, String message) {
-    log.warn("sendPrivateError (-> " + username + "): " + message);
+    log.warn("(>) " + username + " sendPrivateError: " + message);
     ErrorResponse errorResponse = new ErrorResponse(message);
     sendPrivate(username, errorResponse);
   }

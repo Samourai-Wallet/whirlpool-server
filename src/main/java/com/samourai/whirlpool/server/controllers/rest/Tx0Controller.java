@@ -153,13 +153,6 @@ public class Tx0Controller extends AbstractRestController {
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig = Utils.getRandomEntry(nonZeroScodes);
     int feeValuePercent = scodeConfig.getFeeValuePercent();
     long feeValue = poolFee.computeFeeValue(feeValuePercent);
-    if (log.isDebugEnabled()) {
-      log.debug(
-          "changeValue: random scode => feeValuePercent="
-              + feeValuePercent
-              + ", feeValue="
-              + feeValue);
-    }
     return feeValue;
   }
 }

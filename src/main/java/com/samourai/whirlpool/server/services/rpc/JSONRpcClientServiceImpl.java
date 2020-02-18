@@ -63,13 +63,7 @@ public class JSONRpcClientServiceImpl implements RpcClientService {
                 + blockHeight);
         return false;
       }
-      log.info(
-          "Connected to bitcoin node: url="
-              + nodeUrl
-              + ", chain="
-              + rpcClient.getBlockChainInfo().chain()
-              + ", blockHeight="
-              + blockHeight);
+      log.info("Connected to bitcoin node, blockHeight=" + blockHeight);
       return true;
     } catch (Exception e) {
       log.info("Error connecting to bitcoin node: url=" + nodeUrl + ", error=" + e.getMessage());

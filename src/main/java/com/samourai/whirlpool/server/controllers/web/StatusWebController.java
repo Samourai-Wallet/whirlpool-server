@@ -84,6 +84,10 @@ public class StatusWebController {
                               / (currentStepElapsedTime + currentStepRemainingTime)
                               * 100)
                       : null;
+              if (MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())) {
+                // ignore progressLabel for CONFIRM_INPUT (liquidities)
+                currentStepProgress = null;
+              }
               poolAttributes.put("currentStepProgress", currentStepProgress);
 
               String currentStepProgressLabel =
@@ -144,9 +148,6 @@ public class StatusWebController {
       progressLabel =
           currentStepElapsedTime + "s elapsed, " + currentStepRemainingTime + "s remaining ";
       switch (mixStatus) {
-        case CONFIRM_INPUT:
-          progressLabel = null; // ignore progressLabel for adding liquidities
-          break;
         case REGISTER_OUTPUT:
           progressLabel += "to register outputs";
           break;

@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server;
 
 import com.samourai.javaserver.config.ServerConfig;
 import com.samourai.javaserver.run.ServerApplication;
+import com.samourai.javaserver.utils.LogbackUtils;
 import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
@@ -11,6 +12,7 @@ import com.samourai.xmanager.protocol.XManagerService;
 import com.samourai.xmanager.protocol.rest.AddressIndexResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -56,5 +58,10 @@ public class Application extends ServerApplication {
   @Override
   protected void setLoggerDebug() {
     Utils.setLoggerDebug();
+
+    // skip noisy logs
+    LogbackUtils.setLogLevel(
+        "org.springframework.web.socket.config.WebSocketMessageBrokerStats",
+        Level.ERROR.toString());
   }
 }

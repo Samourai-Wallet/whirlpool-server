@@ -6,7 +6,6 @@ import com.samourai.whirlpool.protocol.rest.RegisterOutputRequest;
 import com.samourai.whirlpool.server.services.BlameService;
 import com.samourai.whirlpool.server.services.DbService;
 import com.samourai.whirlpool.server.services.RegisterOutputService;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +33,7 @@ public class RegisterOutputController extends AbstractRestController {
   @RequestMapping(value = WhirlpoolEndpoint.REST_REGISTER_OUTPUT, method = RequestMethod.POST)
   public void registerOutput(@RequestBody RegisterOutputRequest payload) throws Exception {
     if (log.isDebugEnabled()) {
-      log.debug(
-          "[controller] "
-              + WhirlpoolEndpoint.REST_REGISTER_OUTPUT
-              + ": payload="
-              + Utils.toJsonString(payload));
+      log.debug("(<) " + WhirlpoolEndpoint.REST_REGISTER_OUTPUT);
     }
 
     // register output

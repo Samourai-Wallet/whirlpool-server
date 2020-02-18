@@ -69,8 +69,8 @@ public class InputValidationService {
       // this is a tx0 => mustMix
       String feePayloadHex =
           feeData.getFeePayload() != null ? Hex.toHexString(feeData.getFeePayload()) : "null";
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (log.isTraceEnabled()) {
+        log.trace(
             "Validating input: txid="
                 + tx.getHashAsString()
                 + ", value="
