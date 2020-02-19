@@ -315,9 +315,9 @@ public class FeeValidationServiceTest extends AbstractIntegrationTest {
 
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     byte[] feePayload = null; // no feePayload
-    String feeAddress = "tb1qav0v5yvxlq0j70e3ygdsy04k6n6mndxl8733zu";
+    String feeAddress = "tb1qcaerxclcmu9llc7ugh65hemqg6raaz4sul535f";
 
-    int feeIndex = 123456;
+    int feeIndex = 1;
 
     Tx0Data tx0Data =
         new Tx0Data(feePaymentCode, FEES_VALID, 0, 0, feePayload, feeAddress, feeIndex);

@@ -33,6 +33,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long minerFeeMin = 100;
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
+    long minerFeeMix = 510;
     int mustMixMin = 1;
     int liquidityMin = 0;
     int anonymitySet = 2;
@@ -43,9 +44,12 @@ public class MixServiceTest extends AbstractIntegrationTest {
             minerFeeMin,
             minerFeeCap,
             minerFeeMax,
+            minerFeeMix,
             mustMixMin,
             liquidityMin,
             anonymitySet);
+
+    long mustMixValue = 200000400;
 
     // 0 mustMix => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -53,7 +57,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 1 mustMix => false
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("mustMix1", false, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHash1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -61,7 +65,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 2 mustMix => true
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("mustMix2", false, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("mustMix2", false, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHash2"));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
@@ -75,6 +79,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long minerFeeMin = 100;
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
+    long minerFeeMix = 510;
     int mustMixMin = 1;
     int liquidityMin = 0;
     int anonymitySet = 2;
@@ -85,9 +90,12 @@ public class MixServiceTest extends AbstractIntegrationTest {
             minerFeeMin,
             minerFeeCap,
             minerFeeMax,
+            minerFeeMix,
             mustMixMin,
             liquidityMin,
             anonymitySet);
+
+    long mustMixValue = 200000255;
 
     // 0 liquidity => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -95,7 +103,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 1 liquidity => false
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("liquidity1", true, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("liquidity1", true, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHashL1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -103,17 +111,25 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 2 liquidity => false : minMustMix not reached
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("liquidity2", true, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("liquidity2", true, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHashL2"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
-    // 1 mustMix => true : minMustMix reached
+    // 1 mustMix => false : minMustMix reached but minerFeeMix not reached
     mix.registerInput(
         new ConfirmedInput(
-            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("mustMix1", false, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHashM1"));
+    Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
+
+    // 2 mustMix => true : minerFeeMix reached
+    mix.registerInput(
+        new ConfirmedInput(
+            new RegisteredInput("mustMix2", false, generateOutPoint(mustMixValue), "127.0.0.1"),
+            null,
+            "userHashM2"));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
 
@@ -127,6 +143,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     long minerFeeMin = 100;
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
+    long minerFeeMix = 510;
     int mustMixMin = 1;
     int liquidityMin = 0;
     int anonymitySet = 2;
@@ -137,9 +154,12 @@ public class MixServiceTest extends AbstractIntegrationTest {
             minerFeeMin,
             minerFeeCap,
             minerFeeMax,
+            minerFeeMix,
             mustMixMin,
             liquidityMin,
             anonymitySet);
+
+    long mustMixValue = 200000400;
 
     // 0 mustMix => false
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -147,7 +167,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 1 mustMix => false
     ConfirmedInput mustMix1 =
         new ConfirmedInput(
-            new RegisteredInput("mustMix1", false, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("mustMix1", false, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHash1");
     mix.registerInput(mustMix1);
@@ -156,7 +176,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 2 mustMix => true
     ConfirmedInput mustMix2 =
         new ConfirmedInput(
-            new RegisteredInput("mustMix2", false, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("mustMix2", false, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHash2");
     mix.registerInput(mustMix2);
@@ -179,7 +199,7 @@ public class MixServiceTest extends AbstractIntegrationTest {
     // 2 mustMix => true
     ConfirmedInput mustMix3 =
         new ConfirmedInput(
-            new RegisteredInput("mustMix3", false, generateOutPoint(), "127.0.0.1"),
+            new RegisteredInput("mustMix3", false, generateOutPoint(mustMixValue), "127.0.0.1"),
             null,
             "userHash3");
     mix.registerInput(mustMix3);
@@ -205,12 +225,12 @@ public class MixServiceTest extends AbstractIntegrationTest {
     Assert.assertEquals(dbService.findBlames(blameIdentifierMustMix3).size(), 1);
   }
 
-  private TxOutPoint generateOutPoint() {
+  private TxOutPoint generateOutPoint(long value) {
     TxOutPoint txOutPoint =
         new TxOutPoint(
             Utils.getRandomString(65),
             0,
-            99999,
+            value,
             99,
             null,
             testUtils.generateSegwitAddress().getBech32AsString());

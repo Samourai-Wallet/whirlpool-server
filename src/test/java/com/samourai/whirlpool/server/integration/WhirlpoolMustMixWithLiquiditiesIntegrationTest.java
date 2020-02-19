@@ -41,6 +41,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
     long minerFeeMin = 100;
     long minerFeeCap = 9500;
     long minerFeeMax = 10000;
+    long minerFeeMix = 510;
     Mix mix =
         __nextMix(
             denomination,
@@ -48,6 +49,7 @@ public class WhirlpoolMustMixWithLiquiditiesIntegrationTest extends AbstractInte
             minerFeeMin,
             minerFeeCap,
             minerFeeMax,
+            minerFeeMix,
             mustMixMin,
             liquidityMin,
             anonymitySet);

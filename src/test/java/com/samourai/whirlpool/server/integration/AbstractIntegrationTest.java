@@ -137,6 +137,7 @@ public abstract class AbstractIntegrationTest {
       long minerFeeMin,
       long minerFeeCap,
       long minerFeeMax,
+      long minerFeeMix,
       int mustMixMin,
       int liquidityMin,
       int anonymitySet)
@@ -149,6 +150,7 @@ public abstract class AbstractIntegrationTest {
     poolConfig.setMinerFeeMin(minerFeeMin);
     poolConfig.setMinerFeeCap(minerFeeCap);
     poolConfig.setMinerFeeMax(minerFeeMax);
+    poolConfig.setMinerFeeMix(minerFeeMix);
     poolConfig.setMustMixMin(mustMixMin);
     poolConfig.setLiquidityMin(liquidityMin);
     poolConfig.setAnonymitySet(anonymitySet);

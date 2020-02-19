@@ -25,6 +25,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -287,6 +288,7 @@ public class Whirlpool5WalletsProceduralIntegrationTest extends WhirlpoolSimpleI
     return expectedToUTXO;
   }
 
+  @Ignore
   @Test
   public void whirlpool_procedural() throws Exception {
     Map<String, String> expectedMixables = expectedMixables();

@@ -82,7 +82,7 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
   @Test
   public void checkInput_noFeePayload() throws Exception {
     // register as valid whirlpool txid
-    String txid = "7aa680b658cf26aa94944875d31dcd60db204e1e746dfd36cfcd677494ca89a4";
+    String txid = "6588946af1d9d92b402fd672360fd12217abfaf6382ce644d358e8174781f0ce";
     long FEES_VALID_TX = 50000;
 
     // accept when valid mustMix, paid exact fee
@@ -96,13 +96,30 @@ public class InputValidationServiceTest extends AbstractIntegrationTest {
     for (int i = 2; i < 8; i++) {
       thrown.expect(IllegalInputException.class);
       thrown.expectMessage(
-          "Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
+          "Input rejected (invalid fee for tx0=" + txid + ", x=0, feePayloadHex=null)");
       doCheckInput(txid, i, poolFee);
     }
 
     // reject when paid less than fee
     poolFee = new PoolFee(FEES_VALID_TX + 1, null);
     for (int i = 2; i < 8; i++) {
+      thrown.expect(IllegalInputException.class);
+      thrown.expectMessage(
+          "Input rejected (invalid fee for tx0=" + txid + ", x=0, feePayloadHex=null)");
+      doCheckInput(txid, i, poolFee);
+    }
+  }
+
+  @Test
+  public void checkInput_noFeePayload_invalidAddress() throws Exception {
+    // register as valid whirlpool txid
+    String txid = "7aa680b658cf26aa94944875d31dcd60db204e1e746dfd36cfcd677494ca89a4";
+    long FEES_VALID_TX = 50000;
+
+    // valid mustMix, paid exact fee
+    PoolFee poolFee = new PoolFee(FEES_VALID_TX, null);
+    for (int i = 2; i < 8; i++) {
+      // invalid fee address
       thrown.expect(IllegalInputException.class);
       thrown.expectMessage(
           "Input rejected (invalid fee for tx0=" + txid + ", x=643, feePayloadHex=null)");
