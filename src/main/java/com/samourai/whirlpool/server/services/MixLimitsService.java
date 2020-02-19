@@ -1,9 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.whirlpool.server.beans.BlameReason;
-import com.samourai.whirlpool.server.beans.ConfirmedInput;
-import com.samourai.whirlpool.server.beans.FailReason;
-import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.*;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.utils.timeout.ITimeoutWatcherListener;
 import com.samourai.whirlpool.server.utils.timeout.TimeoutWatcher;
@@ -170,7 +167,7 @@ public class MixLimitsService {
     if (liquiditiesToAdd > 0) {
       // add queued liquidities if any
       liquiditiesToAdd++; // invite one more liquidity to prevent more waiting if one disconnects
-      poolService.inviteToMix(mix, true, liquiditiesToAdd);
+      poolService.inviteToMix(mix, true, liquiditiesToAdd, mixService);
     } else {
       if (log.isDebugEnabled()) {
         log.debug(

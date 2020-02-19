@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,19 +201,27 @@ public class PoolService {
     webSocketService.sendPrivate(registeredInput.getUsername(), confirmInputMixStatusNotification);
   }
 
-  public int inviteToMixAll(Mix mix, boolean liquidity) {
-    return inviteToMix(mix, liquidity, null);
+  public int inviteToMixAll(Mix mix, boolean liquidity, MixService mixService) {
+    return inviteToMix(mix, liquidity, null, mixService);
   }
 
-  public synchronized int inviteToMix(Mix mix, boolean liquidity, Integer maxInvites) {
+  public synchronized int inviteToMix(
+      Mix mix, boolean liquidity, Integer maxInvites, MixService mixService) {
+    Predicate<Map.Entry<String, RegisteredInput>> filterInputMixable =
+        mixService.computeFilterInputMixable(mix);
     InputPool queue =
         (liquidity ? mix.getPool().getLiquidityQueue() : mix.getPool().getMustMixQueue());
-    Optional<RegisteredInput> registeredInput;
     int nbInvited = 0;
-    while ((registeredInput = queue.removeRandom()).isPresent()) {
+    while (true) {
       // stop when enough invites
       if (maxInvites != null && nbInvited >= maxInvites) {
-        return nbInvited;
+        break;
+      }
+
+      // stop when no more input to invite
+      Optional<RegisteredInput> registeredInput = queue.removeRandom(filterInputMixable);
+      if (!registeredInput.isPresent()) {
+        break;
       }
 
       // invite one more
@@ -220,6 +229,11 @@ public class PoolService {
       nbInvited++;
     }
     return nbInvited;
+  }
+
+  public void resetLastUserHash(Mix mix) {
+    mix.getPool().getLiquidityQueue().resetLastUserHash();
+    mix.getPool().getMustMixQueue().resetLastUserHash();
   }
 
   private boolean isUtxoConfirmed(TxOutPoint txOutPoint, boolean liquidity) {

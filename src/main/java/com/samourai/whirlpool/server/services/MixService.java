@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.bitcoinj.core.*;
@@ -92,9 +93,9 @@ public class MixService {
   }
 
   /** Last input validations when adding it to a mix (not when queueing it) */
-  private synchronized void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
+  private synchronized void validateOnConfirmInput(
+      Mix mix, RegisteredInput registeredInput, String userHashOrNull)
       throws QueueInputException, IllegalInputException {
-    RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
     Pool pool = mix.getPool();
 
     // check mix didn't start yet
@@ -131,23 +132,25 @@ public class MixService {
 
     // verify unique userHash
     int maxInputsSameUserHash = whirlpoolServerConfig.getRegisterInput().getMaxInputsSameUserHash();
-    long countInputSameUserHash =
-        mix.getInputs()
-            .parallelStream()
-            .filter(input -> input.getUserHash().equals(confirmedInput.getUserHash()))
-            .count();
-    if ((countInputSameUserHash + 1) > maxInputsSameUserHash) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            "already "
-                + countInputSameUserHash
-                + " inputs with same userHash in "
-                + mix.getMixId()
-                + ": "
-                + confirmedInput.getUserHash());
+    if (userHashOrNull != null) {
+      long countInputSameUserHash =
+          mix.getInputs()
+              .parallelStream()
+              .filter(input -> input.getUserHash().equals(userHashOrNull))
+              .count();
+      if ((countInputSameUserHash + 1) > maxInputsSameUserHash) {
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "already "
+                  + countInputSameUserHash
+                  + " inputs with same userHash in "
+                  + mix.getMixId()
+                  + ": "
+                  + userHashOrNull);
+        }
+        throw new QueueInputException(
+            "Your wallet already registered for this mix", registeredInput, pool.getPoolId());
       }
-      throw new QueueInputException(
-          "Your wallet already registered for this mix", registeredInput, pool.getPoolId());
     }
 
     // verify max-inputs-same-hash
@@ -167,7 +170,7 @@ public class MixService {
     }
 
     // verify no input address reuse with other inputs
-    String inputAddress = confirmedInput.getRegisteredInput().getOutPoint().getToAddress();
+    String inputAddress = registeredInput.getOutPoint().getToAddress();
     if (mix.getInputByAddress(inputAddress).isPresent()) {
       throw new QueueInputException(
           "Current mix is full for inputs with same address", registeredInput, pool.getPoolId());
@@ -181,6 +184,18 @@ public class MixService {
     }
   }
 
+  public synchronized void validateForConfirmInput(Mix mix, RegisteredInput registeredInput)
+      throws QueueInputException, IllegalInputException {
+    String userHash = registeredInput.getLastUserHash(); // may be null
+    validateOnConfirmInput(mix, registeredInput, userHash);
+  }
+
+  private synchronized void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
+      throws QueueInputException, IllegalInputException {
+    RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
+    validateOnConfirmInput(mix, registeredInput, confirmedInput.getUserHash());
+  }
+
   public synchronized byte[] confirmInput(
       String mixId, String username, byte[] blindedBordereau, String userHash)
       throws IllegalInputException, MixException, QueueInputException {
@@ -192,6 +207,9 @@ public class MixService {
             .orElseThrow(
                 () ->
                     new IllegalInputException("Confirming input not found: username=" + username));
+
+    // set lastUserHash
+    registeredInput.setLastUserHash(userHash);
 
     ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, blindedBordereau, userHash);
 
@@ -837,6 +855,9 @@ public class MixService {
       log.error("", e);
     }
 
+    // reset lastUserHash
+    poolService.resetLastUserHash(mix);
+
     // start new mix
     __nextMix(mix.getPool());
   }
@@ -857,7 +878,19 @@ public class MixService {
     logMixStatus(mix);
 
     // add queued mustMixs if any
-    poolService.inviteToMixAll(mix, false);
+    poolService.inviteToMixAll(mix, false, this);
+  }
+
+  public Predicate<Map.Entry<String, RegisteredInput>> computeFilterInputMixable(Mix mix) {
+    return entry -> {
+      RegisteredInput registeredInput = entry.getValue();
+      try {
+        validateForConfirmInput(mix, registeredInput);
+        return true; // mixable
+      } catch (Exception e) {
+        return false; // not mixable
+      }
+    };
   }
 
   public MixLimitsService __getMixLimitsService() {
