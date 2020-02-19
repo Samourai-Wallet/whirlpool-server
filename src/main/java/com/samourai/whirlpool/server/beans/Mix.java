@@ -281,10 +281,7 @@ public class Mix {
   }
 
   public long getElapsedTime() {
-    // return elapsed time since first mustMix confirmed, otherwise return mix start time
-    long timeStarted =
-        getTimeStatus().getOrDefault(MixStatus.CONFIRM_INPUT, getTimeStarted()).getTime();
-    long elapsedTime = System.currentTimeMillis() - timeStarted;
+    long elapsedTime = System.currentTimeMillis() - getTimeStarted().getTime();
     return elapsedTime;
   }
 
