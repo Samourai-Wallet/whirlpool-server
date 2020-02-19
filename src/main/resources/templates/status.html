@@ -36,8 +36,10 @@
                 <td><span th:text="${@templateUtil.satoshisToBtc(pool.denomination)}"/></td>
                 <td>
                     <span th:text="${pool.mixStatus}"/><br/>
-                    <div th:if="${pool.currentStepProgress != null}" class="progress" style="height:10px">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+pool.currentStepProgress+'%'}"></div>
+                    <div th:if="${pool.currentStepProgress != null}">
+                        <div class="progress" style="height:10px">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" th:style="${'width: '+pool.currentStepProgress+'%'}"></div>
+                        </div>
                         <div th:if="${pool.currentStepProgressLabel != null}" class="text-center">
                             <small><span th:text="${pool.currentStepProgressLabel}"/></small>
                         </div>
