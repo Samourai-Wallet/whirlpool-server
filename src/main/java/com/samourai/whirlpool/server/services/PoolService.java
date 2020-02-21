@@ -120,7 +120,8 @@ public class PoolService {
       boolean liquidity,
       TxOutPoint txOutPoint,
       boolean inviteIfPossible,
-      String ip)
+      String ip,
+      String lastUserHash)
       throws IllegalInputException {
     Pool pool = getPool(poolId);
 
@@ -139,7 +140,8 @@ public class PoolService {
               + ")");
     }
 
-    RegisteredInput registeredInput = new RegisteredInput(username, liquidity, txOutPoint, ip);
+    RegisteredInput registeredInput =
+        new RegisteredInput(username, liquidity, txOutPoint, ip, lastUserHash);
 
     // verify confirmations
     if (!isUtxoConfirmed(txOutPoint, liquidity)) {
@@ -227,6 +229,18 @@ public class PoolService {
       // invite one more
       inviteToMix(mix, registeredInput.get());
       nbInvited++;
+    }
+    if (nbInvited > 0) {
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "["
+                + mix.getMixId()
+                + "] invited "
+                + nbInvited
+                + "/"
+                + (maxInvites != null ? maxInvites : "all")
+                + " liquidities");
+      }
     }
     return nbInvited;
   }

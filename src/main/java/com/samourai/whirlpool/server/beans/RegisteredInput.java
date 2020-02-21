@@ -9,12 +9,13 @@ public class RegisteredInput {
   private String ip;
   private String lastUserHash; // unknown until confirmInput attempt
 
-  public RegisteredInput(String username, boolean liquidity, TxOutPoint outPoint, String ip) {
+  public RegisteredInput(
+      String username, boolean liquidity, TxOutPoint outPoint, String ip, String lastUserHash) {
     this.username = username;
     this.liquidity = liquidity;
     this.outPoint = outPoint;
     this.ip = ip;
-    this.lastUserHash = null;
+    this.lastUserHash = lastUserHash;
   }
 
   public void changeUsername(String username) {
@@ -54,6 +55,8 @@ public class RegisteredInput {
         + ", username="
         + username
         + ", ip="
-        + ip;
+        + ip
+        + ",lastUserHash="
+        + (lastUserHash != null ? lastUserHash : "null");
   }
 }

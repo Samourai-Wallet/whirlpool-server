@@ -139,8 +139,8 @@ public class MixService {
               .filter(input -> input.getUserHash().equals(userHashOrNull))
               .count();
       if ((countInputSameUserHash + 1) > maxInputsSameUserHash) {
-        if (log.isDebugEnabled()) {
-          log.debug(
+        if (log.isTraceEnabled()) {
+          log.trace(
               "already "
                   + countInputSameUserHash
                   + " inputs with same userHash in "
@@ -162,8 +162,8 @@ public class MixService {
             .filter(input -> input.getRegisteredInput().getOutPoint().getHash().equals(inputHash))
             .count();
     if ((countInputsSameHash + 1) > maxInputsSameHash) {
-      if (log.isDebugEnabled()) {
-        log.debug("already " + countInputsSameHash + " inputs with same hash: " + inputHash);
+      if (log.isTraceEnabled()) {
+        log.trace("already " + countInputsSameHash + " inputs with same hash: " + inputHash);
       }
       throw new QueueInputException(
           "Current mix is full for inputs with same hash", registeredInput, pool.getPoolId());

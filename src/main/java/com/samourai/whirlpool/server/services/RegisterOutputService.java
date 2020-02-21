@@ -45,8 +45,8 @@ public class RegisterOutputService {
 
   private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
     // verify bordereau
-    if (log.isDebugEnabled()) {
-      log.debug(
+    if (log.isTraceEnabled()) {
+      log.trace(
           "Verifying unblindedSignedBordereau for receiveAddress: "
               + receiveAddress
               + " : "

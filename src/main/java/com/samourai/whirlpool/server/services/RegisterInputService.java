@@ -94,7 +94,7 @@ public class RegisterInputService {
       }
 
       // register input to pool
-      poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip);
+      poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip, null);
     } catch (NotifiableException e) { // validation error or input rejected
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;

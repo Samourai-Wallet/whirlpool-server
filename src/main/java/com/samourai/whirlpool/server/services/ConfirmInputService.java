@@ -49,7 +49,8 @@ public class ConfirmInputService {
           registeredInput.isLiquidity(),
           registeredInput.getOutPoint(),
           false,
-          registeredInput.getIp());
+          registeredInput.getIp(),
+          userHash);
       return Optional.empty();
     }
   }
