@@ -34,7 +34,7 @@ public class RegisterOutputService {
   public synchronized void registerOutput(
       String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
     // validate
-    validate(unblindedSignedBordereau, receiveAddress);
+    validate(receiveAddress);
 
     // register
     mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
@@ -43,16 +43,7 @@ public class RegisterOutputService {
     dbService.saveMixOutput(receiveAddress);
   }
 
-  private void validate(byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
-    // verify bordereau
-    if (log.isTraceEnabled()) {
-      log.trace(
-          "Verifying unblindedSignedBordereau for receiveAddress: "
-              + receiveAddress
-              + " : "
-              + WhirlpoolProtocol.encodeBytes(unblindedSignedBordereau));
-    }
-
+  private void validate(String receiveAddress) throws Exception {
     // verify output
     if (!formatsUtil.isValidBech32(receiveAddress)) {
       throw new IllegalInputException("Invalid receiveAddress");

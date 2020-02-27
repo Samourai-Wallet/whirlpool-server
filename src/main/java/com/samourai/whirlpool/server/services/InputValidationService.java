@@ -95,8 +95,8 @@ public class InputValidationService {
       return false; // mustMix
     } else {
       // this is not a valid tx0 => liquidity coming from a previous whirlpool tx
-      if (log.isDebugEnabled()) {
-        log.debug(
+      if (log.isTraceEnabled()) {
+        log.trace(
             "Validating input: txid="
                 + tx.getHashAsString()
                 + ", value="
