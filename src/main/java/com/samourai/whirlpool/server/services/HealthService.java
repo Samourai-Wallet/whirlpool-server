@@ -1,7 +1,5 @@
 package com.samourai.whirlpool.server.services;
 
-import com.samourai.http.client.CliHttpClient;
-import com.samourai.http.client.IHttpClient;
 import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.stomp.client.IStompClientService;
 import com.samourai.whirlpool.cli.config.CliConfig;
@@ -15,7 +13,6 @@ import com.samourai.whirlpool.client.mix.listener.MixFailReason;
 import com.samourai.whirlpool.client.wallet.beans.WhirlpoolServer;
 import com.samourai.whirlpool.client.wallet.persist.WhirlpoolWalletPersistHandler;
 import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientConfig;
-import com.samourai.whirlpool.client.whirlpool.WhirlpoolClientImpl;
 import com.samourai.whirlpool.client.whirlpool.listener.AbstractWhirlpoolClientListener;
 import com.samourai.whirlpool.client.whirlpool.listener.WhirlpoolClientListener;
 import com.samourai.whirlpool.protocol.beans.Utxo;
@@ -39,6 +36,7 @@ public class HealthService {
   private WhirlpoolServerConfig whirlpoolServerConfig;
   private SimpUserRegistry simpUserRegistry;
   private String lastError;
+  private WhirlpoolClientConfig whirlpoolClientConfig;
 
   @Autowired
   public HealthService(
@@ -46,12 +44,13 @@ public class HealthService {
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.simpUserRegistry = simpUserRegistry;
     this.lastError = null;
+    this.whirlpoolClientConfig = null;
   }
 
   @Scheduled(fixedDelay = 120000)
   public void scheduleConnectCheck() {
     try {
-      WhirlpoolClient whirlpoolClient = computeWhirlpoolClient();
+      WhirlpoolClient whirlpoolClient = computeWhirlpoolClientConfig().newClient();
       MixParams mixParams = computeMixParams();
       String EXPECTED_ERROR = "Invalid utxoHash";
       WhirlpoolClientListener listener =
@@ -95,26 +94,27 @@ public class HealthService {
     }
   }
 
-  private WhirlpoolClient computeWhirlpoolClient() {
-    CliConfig cliConfig = new CliConfig();
-    cliConfig.setServer(
-        whirlpoolServerConfig.isTestnet() ? WhirlpoolServer.TESTNET : WhirlpoolServer.MAINNET);
+  private WhirlpoolClientConfig computeWhirlpoolClientConfig() {
+    if (whirlpoolClientConfig == null) {
+      CliConfig cliConfig = new CliConfig();
+      cliConfig.setServer(
+          whirlpoolServerConfig.isTestnet() ? WhirlpoolServer.TESTNET : WhirlpoolServer.MAINNET);
 
-    CliTorClientService cliTorClientService = new CliTorClientService(cliConfig);
-    JavaHttpClientService httpClientService =
-        new JavaHttpClientService(cliTorClientService, cliConfig);
-    IHttpClient httpClient = new CliHttpClient(cliTorClientService, cliConfig);
-    IStompClientService stompClientService =
-        new JavaStompClientService(cliTorClientService, cliConfig, httpClientService);
-    WhirlpoolWalletPersistHandler persistHandler = new MemoryWalletPersistHandler();
+      CliTorClientService cliTorClientService = new CliTorClientService(cliConfig);
+      JavaHttpClientService httpClientService =
+          new JavaHttpClientService(cliTorClientService, cliConfig);
+      IStompClientService stompClientService =
+          new JavaStompClientService(cliTorClientService, cliConfig, httpClientService);
+      WhirlpoolWalletPersistHandler persistHandler = new MemoryWalletPersistHandler();
 
-    String serverUrl = cliConfig.getServer().getServerUrlClear();
-    NetworkParameters params = whirlpoolServerConfig.getNetworkParameters();
-    boolean mobile = false;
-    WhirlpoolClientConfig whirlpoolClientConfig =
-        new WhirlpoolClientConfig(
-            httpClient, stompClientService, persistHandler, serverUrl, params, mobile);
-    return WhirlpoolClientImpl.newClient(whirlpoolClientConfig);
+      String serverUrl = cliConfig.getServer().getServerUrlClear();
+      NetworkParameters params = whirlpoolServerConfig.getNetworkParameters();
+      boolean mobile = false;
+      whirlpoolClientConfig =
+          new WhirlpoolClientConfig(
+              httpClientService, stompClientService, persistHandler, serverUrl, params, mobile);
+    }
+    return whirlpoolClientConfig;
   }
 
   private MixParams computeMixParams() {

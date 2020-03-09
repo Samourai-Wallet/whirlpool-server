@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.beans;
 
 import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
+import com.samourai.whirlpool.server.exceptions.AlreadyRegisteredInputException;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
@@ -32,7 +33,8 @@ public class InputPool {
             "Username already registered another input: " + username); // shouldn't happen...
       }
     } else {
-      throw new NotifiableException("Input already registered: " + registeredInput.getOutPoint());
+      throw new AlreadyRegisteredInputException(
+          "Input already registered: " + registeredInput.getOutPoint());
     }
   }
 

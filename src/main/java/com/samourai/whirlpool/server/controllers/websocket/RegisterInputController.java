@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.controllers.websocket;
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputRequest;
 import com.samourai.whirlpool.server.config.websocket.IpHandshakeInterceptor;
+import com.samourai.whirlpool.server.exceptions.AlreadyRegisteredInputException;
 import com.samourai.whirlpool.server.services.RegisterInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
@@ -56,14 +57,19 @@ public class RegisterInputController extends AbstractWebSocketController {
     }
 
     // register input in pool
-    registerInputService.registerInput(
-        payload.poolId,
-        username,
-        payload.signature,
-        payload.utxoHash,
-        payload.utxoIndex,
-        payload.liquidity,
-        ip);
+    try {
+      registerInputService.registerInput(
+          payload.poolId,
+          username,
+          payload.signature,
+          payload.utxoHash,
+          payload.utxoIndex,
+          payload.liquidity,
+          ip);
+    } catch (AlreadyRegisteredInputException e) {
+      // silent error
+      log.warn("", e);
+    }
   }
 
   @MessageExceptionHandler
