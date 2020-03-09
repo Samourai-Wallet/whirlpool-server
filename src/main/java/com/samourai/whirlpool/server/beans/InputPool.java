@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
@@ -20,24 +21,18 @@ public class InputPool {
     this.inputsById = new ConcurrentHashMap<>();
   }
 
-  public synchronized void register(RegisteredInput registeredInput) {
+  public synchronized void register(RegisteredInput registeredInput) throws NotifiableException {
     if (!hasInput(registeredInput.getOutPoint())) {
       String username = registeredInput.getUsername();
       if (!findByUsername(username).isPresent()) {
         String inputId = Utils.computeInputId(registeredInput.getOutPoint());
         inputsById.put(inputId, registeredInput);
       } else {
-        log.error(
-            "WEIRD: not queueing input, another one was already queued for this username:"
-                + username); // shouldn't happen...
+        throw new NotifiableException(
+            "Username already registered another input: " + username); // shouldn't happen...
       }
     } else {
-      log.warn("not queueing input, it was already queued: " + registeredInput.getOutPoint());
-      if (log.isDebugEnabled()) { // TODO
-        inputsById
-            .values()
-            .forEach(i -> log.debug("input: " + i.getOutPoint() + ", username=" + i.getUsername()));
-      }
+      throw new NotifiableException("Input already registered: " + registeredInput.getOutPoint());
     }
   }
 

@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.ConfirmInputMixStatusNotification;
@@ -122,7 +123,7 @@ public class PoolService {
       boolean inviteIfPossible,
       String ip,
       String lastUserHash)
-      throws IllegalInputException {
+      throws NotifiableException {
     Pool pool = getPool(poolId);
 
     // verify balance
@@ -160,7 +161,7 @@ public class PoolService {
     }
   }
 
-  private void queueToPool(Pool pool, RegisteredInput registeredInput) {
+  private void queueToPool(Pool pool, RegisteredInput registeredInput) throws NotifiableException {
     InputPool queue;
     if (registeredInput.isLiquidity()) {
       // liquidity
@@ -182,7 +183,7 @@ public class PoolService {
     queue.register(registeredInput);
   }
 
-  private void inviteToMix(Mix mix, RegisteredInput registeredInput) {
+  private void inviteToMix(Mix mix, RegisteredInput registeredInput) throws NotifiableException {
     log.info(
         "["
             + mix.getMixId()
@@ -227,8 +228,12 @@ public class PoolService {
       }
 
       // invite one more
-      inviteToMix(mix, registeredInput.get());
-      nbInvited++;
+      try {
+        inviteToMix(mix, registeredInput.get());
+        nbInvited++;
+      } catch (Exception e) {
+        log.error("inviteToMix failed", e);
+      }
     }
     if (nbInvited > 0) {
       if (log.isDebugEnabled()) {

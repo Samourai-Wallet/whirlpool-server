@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.beans.Utxo;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
@@ -166,7 +167,8 @@ public class Mix {
     return confirmingInputs.hasInput(txOutPoint);
   }
 
-  public synchronized void registerConfirmingInput(RegisteredInput registeredInput) {
+  public synchronized void registerConfirmingInput(RegisteredInput registeredInput)
+      throws NotifiableException {
     confirmingInputs.register(registeredInput);
     if (this.created == null) {
       timeStatus.put(MixStatus.CONFIRM_INPUT, new Timestamp(System.currentTimeMillis()));

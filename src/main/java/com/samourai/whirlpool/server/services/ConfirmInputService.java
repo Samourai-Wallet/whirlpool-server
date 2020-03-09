@@ -1,7 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import java.lang.invoke.MethodHandles;
@@ -26,7 +26,7 @@ public class ConfirmInputService {
 
   public synchronized Optional<byte[]> confirmInputOrQueuePool(
       String mixId, String username, byte[] blindedBordereau, String userHash)
-      throws IllegalInputException, MixException {
+      throws NotifiableException, MixException {
     try {
       // add input to mix & reply confirmInputResponse
       return Optional.of(mixService.confirmInput(mixId, username, blindedBordereau, userHash));

@@ -26,6 +26,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -33,13 +34,14 @@ import org.springframework.stereotype.Service;
 public class HealthService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private WhirlpoolServerConfig whirlpoolServerConfig;
-  private TaskService taskService;
+  private SimpUserRegistry simpUserRegistry;
   private Exception lastError;
 
   @Autowired
-  public HealthService(WhirlpoolServerConfig whirlpoolServerConfig, TaskService taskService) {
+  public HealthService(
+      WhirlpoolServerConfig whirlpoolServerConfig, SimpUserRegistry simpUserRegistry) {
     this.whirlpoolServerConfig = whirlpoolServerConfig;
-    this.taskService = taskService;
+    this.simpUserRegistry = simpUserRegistry;
     this.lastError = null;
   }
 
@@ -67,14 +69,16 @@ public class HealthService {
       whirlpoolClient.whirlpool(mixParams, new LoggingWhirlpoolClientListener("healthCheck"));
     } catch (Exception e) {
       log.error("", e);
-      if (false) {
+      if (e.getMessage().contains("foooooooo")) {
         if (log.isDebugEnabled()) {
           log.debug("healthCheck success");
         }
         lastError = null;
       } else {
-        log.error("healthCheck ERROR");
-        this.lastError = lastError;
+        log.error("healthCheck ERROR", e);
+        log.info("Active users: " + simpUserRegistry.getUserCount());
+        logThreads();
+        this.lastError = e;
       }
     }
   }
