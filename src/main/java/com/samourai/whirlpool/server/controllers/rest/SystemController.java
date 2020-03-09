@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
+import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.server.controllers.rest.beans.HealthResponse;
 import com.samourai.whirlpool.server.services.HealthService;
 import java.lang.invoke.MethodHandles;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SystemController extends AbstractRestController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String ENDPOINT_HEALTH = WhirlpoolEndpoint.REST_PREFIX + "system/health";
+
   private HealthService healthService;
 
   @Autowired
@@ -20,11 +23,11 @@ public class SystemController extends AbstractRestController {
     this.healthService = healthService;
   }
 
-  @RequestMapping(value = "/rest/system/health", method = RequestMethod.GET)
+  @RequestMapping(value = ENDPOINT_HEALTH, method = RequestMethod.GET)
   public HealthResponse health() {
-    Exception lastError = healthService.getLastError();
+    String lastError = healthService.getLastError();
     if (lastError != null) {
-      return HealthResponse.error(lastError.getMessage());
+      return HealthResponse.error(lastError);
     }
     return HealthResponse.ok();
   }

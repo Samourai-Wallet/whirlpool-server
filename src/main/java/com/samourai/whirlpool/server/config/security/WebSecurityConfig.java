@@ -3,6 +3,7 @@ package com.samourai.whirlpool.server.config.security;
 import com.samourai.javaserver.config.ServerServicesConfig;
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.server.config.websocket.WebSocketConfig;
+import com.samourai.whirlpool.server.controllers.rest.SystemController;
 import com.samourai.whirlpool.server.controllers.web.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       new String[] {
         WhirlpoolEndpoint.REST_POOLS,
         WhirlpoolEndpoint.REST_REGISTER_OUTPUT,
-        WhirlpoolEndpoint.REST_TX0_DATA
+        WhirlpoolEndpoint.REST_TX0_DATA,
+        SystemController.ENDPOINT_HEALTH
       };
 
   @Override
