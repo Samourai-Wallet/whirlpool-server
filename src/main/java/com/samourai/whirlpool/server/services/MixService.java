@@ -391,7 +391,7 @@ public class MixService {
   }
 
   protected boolean revalidateInputsForSpent(Mix mix) {
-    boolean mixAlreadyStarted = mixAlreadyStarted(mix);
+    boolean mixAlreadyStarted = mix.isAlreadyStarted();
     List<ConfirmedInput> spentInputs = new ArrayList<>();
 
     // check for spent inputs
@@ -519,7 +519,7 @@ public class MixService {
     return (mix.getNbSignatures() == mix.getNbInputs());
   }
 
-  public void changeMixStatus(String mixId, MixStatus mixStatus) {
+  public synchronized void changeMixStatus(String mixId, MixStatus mixStatus) {
     log.info("[MIX " + mixId + "] => " + mixStatus);
     Mix mix = null;
     try {
@@ -765,50 +765,21 @@ public class MixService {
     changeMixStatus(mix.getMixId(), MixStatus.SUCCESS);
   }
 
-  private synchronized void onClientDisconnect(String username) {
+  private void onClientDisconnect(String username) {
     for (Mix mix : getCurrentMixs()) {
-      String mixId = mix.getMixId();
-
-      // remove from confirming inputs
-      mix.removeConfirmingInputByUsername(username)
-          .ifPresent(
-              confirmInput ->
-                  log.info("[" + mixId + "] " + username + " unregistered from confirming inputs"));
-
-      // remove from confirmed inputs
-      List<ConfirmedInput> confirmedInputs =
-          mix.getInputs()
-              .parallelStream()
-              .filter(
-                  confirmedInput ->
-                      confirmedInput.getRegisteredInput().getUsername().equals(username))
-              .collect(Collectors.toList());
-      if (!confirmedInputs.isEmpty()) {
-        boolean mixAlreadyStarted = mixAlreadyStarted(mix);
-
-        confirmedInputs.forEach(
+      Collection<ConfirmedInput> confirmedInputsToBlame = mix.onDisconnect(username);
+      if (!confirmedInputsToBlame.isEmpty()) {
+        confirmedInputsToBlame.forEach(
             confirmedInput -> {
-              mix.unregisterInput(confirmedInput);
-
-              if (mixAlreadyStarted) {
-                // blame
-                blameService.blame(confirmedInput, BlameReason.DISCONNECT, mixId);
-              }
+              // blame
+              blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix.getMixId());
             });
 
-        if (mixAlreadyStarted) {
-          // restart mix
-          String outpointKeysToBlame = computeOutpointKeysToBlame(confirmedInputs);
-          goFail(mix, FailReason.DISCONNECT, outpointKeysToBlame);
-        }
+        // restart mix
+        String outpointKeysToBlame = computeOutpointKeysToBlame(confirmedInputsToBlame);
+        goFail(mix, FailReason.DISCONNECT, outpointKeysToBlame);
       }
     }
-  }
-
-  private boolean mixAlreadyStarted(Mix mix) {
-    return !MixStatus.CONFIRM_INPUT.equals(mix.getMixStatus())
-        && !MixStatus.FAIL.equals(mix.getMixStatus())
-        && !MixStatus.SUCCESS.equals(mix.getMixStatus());
   }
 
   private Collection<Mix> getCurrentMixs() {

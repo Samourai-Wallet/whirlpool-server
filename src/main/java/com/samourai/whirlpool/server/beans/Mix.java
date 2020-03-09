@@ -175,7 +175,11 @@ public class Mix {
   }
 
   public synchronized Optional<RegisteredInput> removeConfirmingInputByUsername(String username) {
-    return confirmingInputs.removeByUsername(username);
+    Optional<RegisteredInput> confirmingInput = confirmingInputs.removeByUsername(username);
+    if (confirmingInput.isPresent()) {
+      log.info("[" + mixId + "] " + username + " unregistered from confirming inputs");
+    }
+    return confirmingInput;
   }
 
   public boolean hasPendingConfirmingInputs() {
@@ -367,5 +371,38 @@ public class Mix {
     }
     int mixDuration = (int) ((System.currentTimeMillis() - created) / 1000);
     return mixDuration;
+  }
+
+  public boolean isAlreadyStarted() {
+    return !MixStatus.CONFIRM_INPUT.equals(getMixStatus())
+        && !MixStatus.FAIL.equals(getMixStatus())
+        && !MixStatus.SUCCESS.equals(getMixStatus());
+  }
+
+  public Collection<ConfirmedInput> onDisconnect(String username) {
+    // remove from confirming inputs
+    removeConfirmingInputByUsername(username);
+
+    // remove from confirmed inputs
+    List<ConfirmedInput> confirmedInputs =
+        getInputs()
+            .parallelStream()
+            .filter(
+                confirmedInput ->
+                    confirmedInput.getRegisteredInput().getUsername().equals(username))
+            .collect(Collectors.toList());
+    if (!confirmedInputs.isEmpty()) {
+      boolean mixAlreadyStarted = this.isAlreadyStarted();
+      confirmedInputs.forEach(
+          confirmedInput -> {
+            unregisterInput(confirmedInput);
+          });
+
+      if (mixAlreadyStarted) {
+        // blame confirmed inputs & restart mix
+        return confirmedInputs;
+      }
+    }
+    return new LinkedList<>();
   }
 }

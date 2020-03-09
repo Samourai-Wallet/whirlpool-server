@@ -1,7 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.FormatsUtilGeneric;
-import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;

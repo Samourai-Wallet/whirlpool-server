@@ -280,7 +280,7 @@ public class PoolService {
     return true;
   }
 
-  private synchronized void onClientDisconnect(String username) {
+  private void onClientDisconnect(String username) {
     for (Pool pool : getPools()) {
       // remove queued liquidity
       boolean liquidityRemoved = pool.getLiquidityQueue().removeByUsername(username).isPresent();
