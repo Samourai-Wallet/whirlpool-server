@@ -1,6 +1,5 @@
 package com.samourai.whirlpool.server.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
@@ -18,7 +17,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
-import org.bitcoinj.core.*;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.TransactionWitness;
 import org.bitcoinj.script.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +28,6 @@ import org.slf4j.LoggerFactory;
 public class Utils {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private static final SecureRandom secureRandom = new SecureRandom();
-  private static final ObjectMapper objectMapper = new ObjectMapper();
   private static final ServerUtils serverUtils = ServerUtils.getInstance();
 
   private static int BTC_TO_SATOSHIS = 100000000;
@@ -90,15 +91,6 @@ public class Utils {
 
   public static String computeInputId(String utxoHash, long utxoIndex) {
     return utxoHash + ":" + utxoIndex;
-  }
-
-  public static String toJsonString(Object o) {
-    try {
-      return objectMapper.writeValueAsString(o);
-    } catch (Exception e) {
-      log.error("", e);
-    }
-    return null;
   }
 
   public static void setLoggerDebug() {

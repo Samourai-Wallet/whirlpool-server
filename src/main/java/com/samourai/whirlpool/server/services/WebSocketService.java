@@ -1,8 +1,8 @@
 package com.samourai.whirlpool.server.services;
 
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.ErrorResponse;
-import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 import org.slf4j.Logger;
@@ -37,7 +37,11 @@ public class WebSocketService {
 
   public void sendPrivate(Collection<String> usernames, Object payload) {
     if (log.isTraceEnabled()) {
-      log.trace("(>) " + String.join(",", usernames) + ": " + Utils.toJsonString(payload));
+      log.trace(
+          "(>) "
+              + String.join(",", usernames)
+              + ": "
+              + ServerUtils.getInstance().toJsonString(payload));
     }
     usernames.forEach(
         username -> {

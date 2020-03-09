@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.beans;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.services.rpc.RpcRawTransactionResponse;
@@ -70,8 +71,7 @@ public class RpcTransactionTest extends AbstractIntegrationTest {
 
       // verify RpcTransaction structure
       String expectedRpcTransactionJson = expectedJson.get(txid);
-      String rpcTransactionJson =
-          com.samourai.whirlpool.server.utils.Utils.toJsonString(rpcTransaction);
+      String rpcTransactionJson = ServerUtils.getInstance().toJsonString(rpcTransaction);
       Assert.assertEquals(expectedRpcTransactionJson, rpcTransactionJson);
     }
   }
