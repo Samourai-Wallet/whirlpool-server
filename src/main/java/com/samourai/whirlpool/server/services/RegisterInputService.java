@@ -41,7 +41,7 @@ public class RegisterInputService {
     this.dbService = dbService;
   }
 
-  public synchronized void registerInput(
+  public void registerInput(
       String poolId,
       String username,
       String signature,

@@ -93,7 +93,7 @@ public class MixService {
   }
 
   /** Last input validations when adding it to a mix (not when queueing it) */
-  private synchronized void validateOnConfirmInput(
+  private void validateOnConfirmInput(
       Mix mix, RegisteredInput registeredInput, String userHashOrNull)
       throws QueueInputException, IllegalInputException {
     Pool pool = mix.getPool();
@@ -184,13 +184,13 @@ public class MixService {
     }
   }
 
-  public synchronized void validateForConfirmInput(Mix mix, RegisteredInput registeredInput)
+  public void validateForConfirmInput(Mix mix, RegisteredInput registeredInput)
       throws QueueInputException, IllegalInputException {
     String userHash = registeredInput.getLastUserHash(); // may be null
     validateOnConfirmInput(mix, registeredInput, userHash);
   }
 
-  private synchronized void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
+  private void validateOnConfirmInput(Mix mix, ConfirmedInput confirmedInput)
       throws QueueInputException, IllegalInputException {
     RegisteredInput registeredInput = confirmedInput.getRegisteredInput();
     validateOnConfirmInput(mix, registeredInput, confirmedInput.getUserHash());
