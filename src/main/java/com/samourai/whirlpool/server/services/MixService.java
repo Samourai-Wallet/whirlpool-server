@@ -549,6 +549,13 @@ public class MixService {
 
       // update mix status
       mix.setMixStatusAndTime(mixStatus);
+
+      boolean mixOver = (mixStatus == MixStatus.SUCCESS || mixStatus == MixStatus.FAIL);
+      // save mix before notifying users
+      if (mixOver) {
+        saveMixResult(mix, mixStatus);
+      }
+
       mixLimitsService.onMixStatusChange(mix);
 
       // notify users (ConfirmInputResponse was already sent when user joined mix)
@@ -557,17 +564,8 @@ public class MixService {
         sendToMixingUsers(mix, mixStatusNotification);
       }
 
-      // start next mix (after notifying clients for success)
-      if (mixStatus == MixStatus.SUCCESS) {
-        // save mix txid
-        try {
-          dbService.saveMixTxid(mix.getTx().getHashAsString(), mix.getPool().getDenomination());
-        } catch (Exception e) {
-          log.error("", e);
-        }
-
-        onMixOver(mix);
-      } else if (mixStatus == MixStatus.FAIL) {
+      // start next mix
+      if (mixOver) {
         onMixOver(mix);
       }
     } catch (MixException e) {
@@ -804,14 +802,7 @@ public class MixService {
     return mix;
   }
 
-  private void onMixOver(Mix mix) {
-    // unmanage
-    try {
-      mixLimitsService.unmanage(mix);
-    } catch (Exception e) {
-      log.error("", e);
-    }
-
+  private void saveMixResult(Mix mix, MixStatus mixStatus) {
     // save in database
     try {
       dbService.saveMix(mix);
@@ -822,6 +813,24 @@ public class MixService {
     // export to CSV
     try {
       exportService.exportMix(mix);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+
+    if (mixStatus == MixStatus.SUCCESS) {
+      // save mix txid
+      try {
+        dbService.saveMixTxid(mix.getTx().getHashAsString(), mix.getPool().getDenomination());
+      } catch (Exception e) {
+        log.error("", e);
+      }
+    }
+  }
+
+  private void onMixOver(Mix mix) {
+    // unmanage
+    try {
+      mixLimitsService.unmanage(mix);
     } catch (Exception e) {
       log.error("", e);
     }
