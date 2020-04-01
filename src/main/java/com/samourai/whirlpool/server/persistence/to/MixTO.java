@@ -59,6 +59,14 @@ public class MixTO extends EntityCreatedUpdatedTO {
     this.mixLog.update(mix, this);
   }
 
+  public void fix(int nbMustMix, int nbLiquidities, long amountIn, long amountOut) {
+    this.anonymitySet = nbMustMix + nbLiquidities;
+    this.nbMustMix = nbMustMix;
+    this.nbLiquidities = nbLiquidities;
+    this.amountIn = amountIn;
+    this.amountOut = amountOut;
+  }
+
   public String getPoolId() {
     return poolId;
   }
@@ -117,5 +125,21 @@ public class MixTO extends EntityCreatedUpdatedTO {
 
   public MixLogTO getMixLog() {
     return mixLog;
+  }
+
+  @Override
+  public String toString() {
+    return "txid="
+        + getMixLog().getTxid()
+        + ", anonymitySet="
+        + anonymitySet
+        + ", nbMustMix="
+        + nbMustMix
+        + ", nbLiquidities="
+        + nbLiquidities
+        + ", amountIn="
+        + amountIn
+        + ", amountOut="
+        + amountOut;
   }
 }

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.Samourai-Wallet</groupId>
 	<artifactId>whirlpool-server</artifactId>
-	<version>develop-SNAPSHOT</version>
+	<version>develop-fixhistory</version>
 	<name>whirlpool-server</name>
 	<properties>
 		<spring-boot.version>2.1.6.RELEASE</spring-boot.version>
@@ -29,6 +29,10 @@
 					<groupId>com.github.Samourai-Wallet</groupId>
 					<artifactId>extlibj</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-web</artifactId>
+				</exclusion>
             </exclusions>
         </dependency>
 		<dependency>
@@ -38,14 +42,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
+			<artifactId>spring-boot-starter</artifactId>
 			<version>${spring-boot.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-messaging</artifactId>
-			<version>${spring-security.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

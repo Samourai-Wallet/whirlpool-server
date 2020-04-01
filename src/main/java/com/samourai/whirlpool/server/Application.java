@@ -5,6 +5,7 @@ import com.samourai.javaserver.run.ServerApplication;
 import com.samourai.javaserver.utils.LogbackUtils;
 import com.samourai.javaserver.utils.ServerUtils;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.services.DbService;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
 import com.samourai.xmanager.client.XManagerClient;
@@ -30,6 +31,7 @@ public class Application extends ServerApplication {
   @Autowired private WhirlpoolServerConfig serverConfig;
 
   @Autowired private XManagerClient xManagerClient;
+  @Autowired private DbService dbService;
 
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
@@ -48,6 +50,9 @@ public class Application extends ServerApplication {
     log.info("XM index: " + addressIndexResponse.index);
 
     // server starting...
+    dbService.fixMixHistory();
+
+    exit();
   }
 
   @Override
