@@ -8,6 +8,10 @@ import com.samourai.whirlpool.server.services.RegisterInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +46,7 @@ public class RegisterInputController extends AbstractWebSocketController {
 
     String username = principal.getName();
     String ip = IpHandshakeInterceptor.getIp(messageHeaderAccessor);
+    String httpHeaders = computeHttpHeaders(messageHeaderAccessor);
     if (log.isDebugEnabled()) {
       log.debug(
           "(<) ["
@@ -65,11 +70,28 @@ public class RegisterInputController extends AbstractWebSocketController {
           payload.utxoHash,
           payload.utxoIndex,
           payload.liquidity,
-          ip);
+          ip,
+          httpHeaders);
     } catch (AlreadyRegisteredInputException e) {
       // silent error
       log.warn("", e);
     }
+  }
+
+  private String computeHttpHeaders(SimpMessageHeaderAccessor messageHeaderAccessor) {
+    Map<String, List<String>> nativeHeaders =
+        (Map) messageHeaderAccessor.getHeader("nativeHeaders");
+    if (nativeHeaders == null) {
+      return null;
+    }
+    String[] ignoreHeaders = new String[] {"content-type", "content-length"};
+    return nativeHeaders
+        .entrySet()
+        .stream()
+        .filter(e -> !ArrayUtils.contains(ignoreHeaders, e.getKey()))
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .collect(Collectors.toList())
+        .toString();
   }
 
   @MessageExceptionHandler

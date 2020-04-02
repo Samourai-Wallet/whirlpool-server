@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.beans;
 
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 
 public class RegisteredInput {
@@ -18,8 +19,18 @@ public class RegisteredInput {
     this.lastUserHash = lastUserHash;
   }
 
-  public void changeUsername(String username) {
-    this.username = username;
+  public ActivityCsv toActivity(Activity activity, String poolId, String headers) {
+    return new ActivityCsv(
+        activity,
+        poolId,
+        outPoint.getHash() + ":" + outPoint.getIndex(),
+        outPoint.getValue(),
+        outPoint.getConfirmations(),
+        liquidity,
+        username,
+        lastUserHash,
+        ip,
+        headers);
   }
 
   public String getUsername() {

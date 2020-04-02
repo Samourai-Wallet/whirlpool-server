@@ -125,7 +125,7 @@ public class TestUtils {
     RegisteredInput registeredInput =
         new RegisteredInput("foo", liquidity, outPoint, "127.0.0.1", null);
     ConfirmedInput confirmedInput =
-        new ConfirmedInput(registeredInput, null, "userHash" + utxoHash + utxoIndex);
+        new ConfirmedInput(registeredInput, "userHash" + utxoHash + utxoIndex);
     return confirmedInput;
   }
 

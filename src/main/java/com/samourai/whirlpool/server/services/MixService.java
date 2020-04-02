@@ -8,6 +8,7 @@ import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.ConfirmInputResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.*;
 import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.BroadcastException;
@@ -211,7 +212,7 @@ public class MixService {
     // set lastUserHash
     registeredInput.setLastUserHash(userHash);
 
-    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, blindedBordereau, userHash);
+    ConfirmedInput confirmedInput = new ConfirmedInput(registeredInput, userHash);
 
     // last input validations
     validateOnConfirmInput(mix, confirmedInput);
@@ -229,6 +230,13 @@ public class MixService {
             + ": "
             + registeredInput.getOutPoint());
     logMixStatus(mix);
+
+    // log activity
+    ActivityCsv activityCsv =
+        confirmedInput
+            .getRegisteredInput()
+            .toActivity(Activity.REGISTER_INPUT, mix.getPool().getPoolId(), null);
+    exportService.exportActivity(activityCsv);
 
     // reply confirmInputResponse with signedBordereau
     String signedBordereau64 = WhirlpoolProtocol.encodeBytes(signedBordereau);

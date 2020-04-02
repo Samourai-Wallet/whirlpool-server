@@ -1,7 +1,10 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.javaserver.exceptions.NotifiableException;
+import com.samourai.whirlpool.server.beans.Activity;
 import com.samourai.whirlpool.server.beans.Pool;
+import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.BannedInputException;
@@ -24,6 +27,7 @@ public class RegisterInputService {
   private InputValidationService inputValidationService;
   private BanService banService;
   private DbService dbService;
+  private ExportService exportService;
 
   @Autowired
   public RegisterInputService(
@@ -32,13 +36,15 @@ public class RegisterInputService {
       BlockchainDataService blockchainDataService,
       InputValidationService inputValidationService,
       BanService banService,
-      DbService dbService) {
+      DbService dbService,
+      ExportService exportService) {
     this.poolService = poolService;
     this.cryptoService = cryptoService;
     this.blockchainDataService = blockchainDataService;
     this.inputValidationService = inputValidationService;
     this.banService = banService;
     this.dbService = dbService;
+    this.exportService = exportService;
   }
 
   public void registerInput(
@@ -48,7 +54,8 @@ public class RegisterInputService {
       String utxoHash,
       long utxoIndex,
       boolean liquidity,
-      String ip)
+      String ip,
+      String headers)
       throws NotifiableException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
       throw new IllegalInputException("Invalid utxoHash");
@@ -94,7 +101,13 @@ public class RegisterInputService {
       }
 
       // register input to pool
-      poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip, null);
+      RegisteredInput registeredInput =
+          poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip, null);
+
+      // log
+      ActivityCsv activityCsv =
+          registeredInput.toActivity(Activity.REGISTER_INPUT, poolId, headers);
+      exportService.exportActivity(activityCsv);
     } catch (NotifiableException e) { // validation error or input rejected
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;

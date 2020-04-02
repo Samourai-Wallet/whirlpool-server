@@ -117,7 +117,6 @@ public class SigningServiceTest extends AbstractIntegrationTest {
     mix.registerInput(
         new ConfirmedInput(
             new RegisteredInput(firstUsername, false, firstTxOutPoint, "127.0.0.1", null),
-            new byte[] {},
             "userHash1"));
     mix.registerOutput(testUtils.generateSegwitAddress().getBech32AsString());
 
@@ -241,7 +240,8 @@ public class SigningServiceTest extends AbstractIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         liquidity,
-        "127.0.0.1");
+        "127.0.0.1",
+        "headers");
 
     // confirm input
     RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();

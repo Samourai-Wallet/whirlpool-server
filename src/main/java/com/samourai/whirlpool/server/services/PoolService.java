@@ -6,6 +6,7 @@ import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
 import com.samourai.whirlpool.protocol.websocket.notifications.ConfirmInputMixStatusNotification;
 import com.samourai.whirlpool.protocol.websocket.notifications.MixStatus;
 import com.samourai.whirlpool.server.beans.*;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
@@ -28,6 +29,7 @@ public class PoolService {
   private WhirlpoolServerConfig whirlpoolServerConfig;
   private CryptoService cryptoService;
   private WebSocketService webSocketService;
+  private ExportService exportService;
   private Map<String, Pool> pools;
 
   @Autowired
@@ -35,10 +37,12 @@ public class PoolService {
       WhirlpoolServerConfig whirlpoolServerConfig,
       CryptoService cryptoService,
       WebSocketService webSocketService,
+      ExportService exportService,
       WebSocketSessionService webSocketSessionService) {
     this.whirlpoolServerConfig = whirlpoolServerConfig;
     this.cryptoService = cryptoService;
     this.webSocketService = webSocketService;
+    this.exportService = exportService;
     __reset();
 
     // listen websocket onDisconnect
@@ -115,7 +119,7 @@ public class PoolService {
     return poolStatusNotification;
   }
 
-  public synchronized void registerInput(
+  public synchronized RegisteredInput registerInput(
       String poolId,
       String username,
       boolean liquidity,
@@ -159,6 +163,8 @@ public class PoolService {
       // enqueue mustMix/liquidity in pool
       queueToPool(pool, registeredInput);
     }
+
+    return registeredInput;
   }
 
   private void queueToPool(Pool pool, RegisteredInput registeredInput) throws NotifiableException {
@@ -288,15 +294,26 @@ public class PoolService {
   private void onClientDisconnect(String username) {
     for (Pool pool : getPools()) {
       // remove queued liquidity
-      boolean liquidityRemoved = pool.getLiquidityQueue().removeByUsername(username).isPresent();
-      if (liquidityRemoved) {
+      Optional<RegisteredInput> liquidityRemoved =
+          pool.getLiquidityQueue().removeByUsername(username);
+      if (liquidityRemoved.isPresent()) {
         log.info("[" + pool.getPoolId() + "] " + username + " removed 1 liquidity from pool");
+
+        // log activity
+        ActivityCsv activityCsv =
+            liquidityRemoved.get().toActivity(Activity.DISCONNECT, pool.getPoolId(), null);
+        exportService.exportActivity(activityCsv);
       }
 
       // remove queued mustMix
-      boolean mustMixRemoved = pool.getMustMixQueue().removeByUsername(username).isPresent();
-      if (mustMixRemoved) {
+      Optional<RegisteredInput> mustMixRemoved = pool.getMustMixQueue().removeByUsername(username);
+      if (mustMixRemoved.isPresent()) {
         log.info("[" + pool.getPoolId() + "] " + username + " removed 1 mustMix from pool");
+
+        // log activity
+        ActivityCsv activityCsv =
+            liquidityRemoved.get().toActivity(Activity.DISCONNECT, pool.getPoolId(), null);
+        exportService.exportActivity(activityCsv);
       }
     }
   }

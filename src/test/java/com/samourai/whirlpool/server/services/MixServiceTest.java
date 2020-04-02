@@ -59,7 +59,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix1", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHash1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
@@ -68,7 +67,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix2", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHash2"));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
@@ -107,7 +105,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "liquidity1", true, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHashL1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
@@ -116,7 +113,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "liquidity2", true, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHashL2"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
@@ -125,7 +121,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix1", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHashM1"));
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
 
@@ -134,7 +129,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix2", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHashM2"));
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
   }
@@ -175,7 +169,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix1", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHash1");
     mix.registerInput(mustMix1);
     Assert.assertFalse(spyMixService.isRegisterInputReady(mix));
@@ -185,7 +178,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix2", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHash2");
     mix.registerInput(mustMix2);
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));
@@ -209,7 +201,6 @@ public class MixServiceTest extends AbstractIntegrationTest {
         new ConfirmedInput(
             new RegisteredInput(
                 "mustMix3", false, generateOutPoint(mustMixValue), "127.0.0.1", null),
-            null,
             "userHash3");
     mix.registerInput(mustMix3);
     Assert.assertTrue(spyMixService.isRegisterInputReady(mix));

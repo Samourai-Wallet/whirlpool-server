@@ -259,6 +259,7 @@ public class WhirlpoolServerConfig extends ServerConfig {
 
   public static class ExportConfig {
     private ExportItemConfig mixs;
+    private ExportItemConfig activity;
 
     public ExportItemConfig getMixs() {
       return mixs;
@@ -266,6 +267,14 @@ public class WhirlpoolServerConfig extends ServerConfig {
 
     public void setMixs(ExportItemConfig mixs) {
       this.mixs = mixs;
+    }
+
+    public ExportItemConfig getActivity() {
+      return activity;
+    }
+
+    public void setActivity(ExportItemConfig activity) {
+      this.activity = activity;
     }
   }
 
