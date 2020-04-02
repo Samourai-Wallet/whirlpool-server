@@ -52,13 +52,12 @@ public class HealthService {
     try {
       WhirlpoolClient whirlpoolClient = computeWhirlpoolClientConfig().newClient();
       MixParams mixParams = computeMixParams();
-      String EXPECTED_ERROR = "Invalid utxoHash";
       WhirlpoolClientListener listener =
           new AbstractWhirlpoolClientListener() {
             @Override
             public void fail(MixFailReason reason, String notifiableError) {
               super.fail(reason, notifiableError);
-              if (notifiableError.contains(EXPECTED_ERROR)) {
+              if (notifiableError.contains(RegisterInputService.ERROR_INVALID_HASH)) {
                 // expected response
                 if (log.isTraceEnabled()) {
                   log.trace("healthCheck SUCCESS");

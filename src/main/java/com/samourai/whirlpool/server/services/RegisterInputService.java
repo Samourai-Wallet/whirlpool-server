@@ -1,10 +1,8 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.javaserver.exceptions.NotifiableException;
-import com.samourai.whirlpool.server.beans.Activity;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
-import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.exceptions.BannedInputException;
@@ -20,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RegisterInputService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+  public static final String ERROR_INVALID_HASH = "Invalid utxoHash";
 
   private PoolService poolService;
   private CryptoService cryptoService;
@@ -47,18 +46,17 @@ public class RegisterInputService {
     this.exportService = exportService;
   }
 
-  public void registerInput(
+  public RegisteredInput registerInput(
       String poolId,
       String username,
       String signature,
       String utxoHash,
       long utxoIndex,
       boolean liquidity,
-      String ip,
-      String headers)
+      String ip)
       throws NotifiableException {
     if (!cryptoService.isValidTxHash(utxoHash)) {
-      throw new IllegalInputException("Invalid utxoHash");
+      throw new IllegalInputException(ERROR_INVALID_HASH);
     }
     if (utxoIndex < 0) {
       throw new IllegalInputException("Invalid utxoIndex");
@@ -103,11 +101,7 @@ public class RegisterInputService {
       // register input to pool
       RegisteredInput registeredInput =
           poolService.registerInput(poolId, username, liquidity, txOutPoint, true, ip, null);
-
-      // log
-      ActivityCsv activityCsv =
-          registeredInput.toActivity(Activity.REGISTER_INPUT, poolId, headers);
-      exportService.exportActivity(activityCsv);
+      return registeredInput;
     } catch (NotifiableException e) { // validation error or input rejected
       log.warn("Input rejected (" + utxoHash + ":" + utxoIndex + "): " + e.getMessage());
       throw e;

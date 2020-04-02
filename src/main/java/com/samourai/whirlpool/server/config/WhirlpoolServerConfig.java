@@ -609,6 +609,8 @@ public class WhirlpoolServerConfig extends ServerConfig {
     configInfo.put("timeouts", timeoutInfo);
     configInfo.put("export.mixs", export.mixs.directory + " -> " + export.mixs.filename);
     configInfo.put(
+        "export.activity", export.activity.directory + " -> " + export.activity.filename);
+    configInfo.put(
         "ban",
         "blames="
             + String.valueOf(ban.blames)

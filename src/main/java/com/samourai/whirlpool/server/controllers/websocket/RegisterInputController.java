@@ -2,16 +2,16 @@ package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.websocket.messages.RegisterInputRequest;
+import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.config.websocket.IpHandshakeInterceptor;
 import com.samourai.whirlpool.server.exceptions.AlreadyRegisteredInputException;
+import com.samourai.whirlpool.server.services.ExportService;
 import com.samourai.whirlpool.server.services.RegisterInputService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +30,10 @@ public class RegisterInputController extends AbstractWebSocketController {
 
   @Autowired
   public RegisterInputController(
-      WebSocketService webSocketService, RegisterInputService registerInputService) {
-    super(webSocketService);
+      WebSocketService webSocketService,
+      ExportService exportService,
+      RegisterInputService registerInputService) {
+    super(webSocketService, exportService);
     this.registerInputService = registerInputService;
   }
 
@@ -46,7 +48,6 @@ public class RegisterInputController extends AbstractWebSocketController {
 
     String username = principal.getName();
     String ip = IpHandshakeInterceptor.getIp(messageHeaderAccessor);
-    String httpHeaders = computeHttpHeaders(messageHeaderAccessor);
     if (log.isDebugEnabled()) {
       log.debug(
           "(<) ["
@@ -63,39 +64,30 @@ public class RegisterInputController extends AbstractWebSocketController {
 
     // register input in pool
     try {
-      registerInputService.registerInput(
-          payload.poolId,
-          username,
-          payload.signature,
-          payload.utxoHash,
-          payload.utxoIndex,
-          payload.liquidity,
-          ip,
-          httpHeaders);
+      RegisteredInput registeredInput =
+          registerInputService.registerInput(
+              payload.poolId,
+              username,
+              payload.signature,
+              payload.utxoHash,
+              payload.utxoIndex,
+              payload.liquidity,
+              ip);
+
+      // log activity
+      Map<String, String> clientDetails = computeClientDetails(messageHeaderAccessor);
+      ActivityCsv activityCsv =
+          new ActivityCsv("REGISTER_INPUT", payload.poolId, registeredInput, null, clientDetails);
+      getExportService().exportActivity(activityCsv);
     } catch (AlreadyRegisteredInputException e) {
       // silent error
       log.warn("", e);
     }
   }
 
-  private String computeHttpHeaders(SimpMessageHeaderAccessor messageHeaderAccessor) {
-    Map<String, List<String>> nativeHeaders =
-        (Map) messageHeaderAccessor.getHeader("nativeHeaders");
-    if (nativeHeaders == null) {
-      return null;
-    }
-    String[] ignoreHeaders = new String[] {"content-type", "content-length"};
-    return nativeHeaders
-        .entrySet()
-        .stream()
-        .filter(e -> !ArrayUtils.contains(ignoreHeaders, e.getKey()))
-        .map(e -> e.getKey() + "=" + e.getValue())
-        .collect(Collectors.toList())
-        .toString();
-  }
-
   @MessageExceptionHandler
-  public void handleException(Exception exception, Principal principal) {
-    super.handleException(exception, principal);
+  public void handleException(
+      Exception exception, Principal principal, SimpMessageHeaderAccessor messageHeaderAccessor) {
+    super.handleException(exception, principal, messageHeaderAccessor, "REGISTER_INPUT:ERROR");
   }
 }

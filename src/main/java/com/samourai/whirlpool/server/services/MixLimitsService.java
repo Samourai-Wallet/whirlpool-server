@@ -184,7 +184,6 @@ public class MixLimitsService {
         "["
             + mix.getMixId()
             + "] SIGNING time over (mix failed, blaming users who didn't sign...)");
-    String mixId = mix.getMixId();
 
     // blame users who didn't sign
     Set<ConfirmedInput> confirmedInputsToBlame =
@@ -194,7 +193,7 @@ public class MixLimitsService {
             .collect(Collectors.toSet());
     List<String> outpointKeysToBlame = new ArrayList<>();
     for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
-      blameService.blame(confirmedInputToBlame, BlameReason.SIGNING, mixId);
+      blameService.blame(confirmedInputToBlame, BlameReason.SIGNING, mix);
       outpointKeysToBlame.add(confirmedInputToBlame.getRegisteredInput().getOutPoint().toKey());
     }
 

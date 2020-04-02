@@ -18,7 +18,7 @@ public class IpHandshakeInterceptor implements HandshakeInterceptor {
       throws Exception {
 
     // Set ip attribute to WebSocket session
-    attributes.put(ATTR_IP, request.getRemoteAddress().toString());
+    attributes.put(ATTR_IP, request.getRemoteAddress().getAddress().getHostAddress());
     return true;
   }
 

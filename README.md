@@ -82,10 +82,16 @@ At the beginning of the mix, only mustMix can register up, to *anonymity-set - l
 Liquidities are added as soon as *must-mix-min* and *miner-fee-mix* are reached, up to *anonymity-set* inputs for the mix.
 
 ### Exports
-Each mix success/fail is appended to a CSV file:
+Mixs are exported to a CSV file:
 ```
 server.export.mixs.directory
 server.export.mixs.filename
+```
+
+Activity is exported to a CSV file:
+```
+server.export.activity.directory
+server.export.activity.filename
 ```
 
 ### Testing

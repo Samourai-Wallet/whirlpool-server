@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.websocket.messages.RevealOutputRequest;
+import com.samourai.whirlpool.server.services.ExportService;
 import com.samourai.whirlpool.server.services.MixService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
@@ -22,8 +24,9 @@ public class RevealOutputController extends AbstractWebSocketController {
   private MixService mixService;
 
   @Autowired
-  public RevealOutputController(WebSocketService webSocketService, MixService mixService) {
-    super(webSocketService);
+  public RevealOutputController(
+      WebSocketService webSocketService, ExportService exportService, MixService mixService) {
+    super(webSocketService, exportService);
     this.mixService = mixService;
   }
 
@@ -43,7 +46,8 @@ public class RevealOutputController extends AbstractWebSocketController {
   }
 
   @MessageExceptionHandler
-  public void handleException(Exception exception, Principal principal) {
-    super.handleException(exception, principal);
+  public void handleException(
+      Exception exception, Principal principal, SimpMessageHeaderAccessor messageHeaderAccessor) {
+    super.handleException(exception, principal, messageHeaderAccessor, "REVEAL_OUTPUT:ERROR");
   }
 }

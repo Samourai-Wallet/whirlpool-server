@@ -4,6 +4,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 import com.samourai.whirlpool.server.beans.BlameReason;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.integration.AbstractIntegrationTest;
 import com.samourai.whirlpool.server.persistence.repositories.BlameRepository;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -36,6 +37,7 @@ public class BanServiceTest extends AbstractIntegrationTest {
     // server.ban.blames = 2
     // server.ban.period = 1OO
     // server.ban.expiration = 1OOO
+    Mix mix = __getCurrentMix();
 
     final String UTXO_HASH = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
     final long UTXO_INDEX = 2;
@@ -48,11 +50,11 @@ public class BanServiceTest extends AbstractIntegrationTest {
     Assert.assertFalse(banService.findActiveBan(UTXO_HASH, UTXO_INDEX).isPresent());
 
     // blame 1/2 => not banned yet
-    blameService.blame(confirmedInput, BlameReason.DISCONNECT, "foo");
+    blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix);
     Assert.assertFalse(banService.findActiveBan(UTXO_HASH, UTXO_INDEX).isPresent());
 
     // blame 2/2 => banned
-    blameService.blame(confirmedInput, BlameReason.DISCONNECT, "foo");
+    blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix);
     Assert.assertTrue(banService.findActiveBan(UTXO_HASH, UTXO_INDEX).isPresent());
 
     // inputs from same HASH are banned too
@@ -86,6 +88,7 @@ public class BanServiceTest extends AbstractIntegrationTest {
     // server.ban.blames = 2
     // server.ban.period = 1OO
     // server.ban.duration = 1OOO
+    Mix mix = __getCurrentMix();
 
     final String UTXO_HASH = "cb2fad88ae75fdabb2bcc131b2f4f0ff2c82af22b6dd804dc341900195fb6187";
     final long UTXO_INDEX = 2;
@@ -98,11 +101,11 @@ public class BanServiceTest extends AbstractIntegrationTest {
     Assert.assertFalse(banService.findActiveBan(UTXO_HASH, UTXO_INDEX).isPresent());
 
     // blame 1/2 => not banned yet
-    blameService.blame(confirmedInput, BlameReason.DISCONNECT, "foo");
+    blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix);
     Assert.assertFalse(banService.findActiveBan(UTXO_HASH, UTXO_INDEX).isPresent());
 
     // blame 2/2 => banned
-    blameService.blame(confirmedInput, BlameReason.DISCONNECT, "foo");
+    blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix);
     Assert.assertTrue(banService.findActiveBan(UTXO_HASH, UTXO_INDEX).isPresent());
 
     // other inputs are not banned

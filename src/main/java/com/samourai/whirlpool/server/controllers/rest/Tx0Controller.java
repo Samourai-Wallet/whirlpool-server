@@ -1,10 +1,13 @@
 package com.samourai.whirlpool.server.controllers.rest;
 
+import com.google.common.collect.ImmutableMap;
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.rest.Tx0DataResponse;
 import com.samourai.whirlpool.server.beans.PoolFee;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.services.ExportService;
 import com.samourai.whirlpool.server.services.FeeValidationService;
 import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.utils.Utils;
@@ -13,7 +16,9 @@ import com.samourai.xmanager.protocol.XManagerService;
 import com.samourai.xmanager.protocol.rest.AddressIndexResponse;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +34,7 @@ public class Tx0Controller extends AbstractRestController {
 
   private PoolService poolService;
   private FeeValidationService feeValidationService;
+  private ExportService exportService;
   private WhirlpoolServerConfig serverConfig;
   private XManagerClient xManagerClient;
 
@@ -36,16 +42,19 @@ public class Tx0Controller extends AbstractRestController {
   public Tx0Controller(
       PoolService poolService,
       FeeValidationService feeValidationService,
+      ExportService exportService,
       WhirlpoolServerConfig serverConfig,
       XManagerClient xManagerClient) {
     this.poolService = poolService;
     this.feeValidationService = feeValidationService;
+    this.exportService = exportService;
     this.serverConfig = serverConfig;
     this.xManagerClient = xManagerClient;
   }
 
   @RequestMapping(value = WhirlpoolEndpoint.REST_TX0_DATA, method = RequestMethod.GET)
   public Tx0DataResponse tx0Data(
+      HttpServletRequest request,
       @RequestParam(value = "poolId", required = true) String poolId,
       @RequestParam(value = "scode", required = false) String scode)
       throws Exception {
@@ -120,6 +129,11 @@ public class Tx0Controller extends AbstractRestController {
               + ", feeAddress="
               + (feeAddress != null ? feeAddress : ""));
     }
+
+    // log activity
+    Map<String, String> details = ImmutableMap.of("scode", (scode != null ? scode : "null"));
+    ActivityCsv activityCsv = new ActivityCsv("TX0", poolId, null, details, request);
+    exportService.exportActivity(activityCsv);
 
     Tx0DataResponse tx0DataResponse =
         new Tx0DataResponse(

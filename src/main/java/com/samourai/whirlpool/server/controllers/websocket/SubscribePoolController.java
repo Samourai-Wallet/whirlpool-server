@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
+import com.samourai.whirlpool.server.services.ExportService;
 import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
@@ -25,8 +27,11 @@ public class SubscribePoolController extends AbstractWebSocketController {
 
   @Autowired
   public SubscribePoolController(
-      PoolService poolService, WebSocketService webSocketService, TaskExecutor taskExecutor) {
-    super(webSocketService);
+      PoolService poolService,
+      ExportService exportService,
+      WebSocketService webSocketService,
+      TaskExecutor taskExecutor) {
+    super(webSocketService, exportService);
     this.poolService = poolService;
     this.taskExecutor = taskExecutor;
   }
@@ -65,7 +70,8 @@ public class SubscribePoolController extends AbstractWebSocketController {
   }
 
   @MessageExceptionHandler
-  public void handleException(Exception exception, Principal principal) {
-    super.handleException(exception, principal);
+  public void handleException(
+      Exception exception, Principal principal, SimpMessageHeaderAccessor messageHeaderAccessor) {
+    super.handleException(exception, principal, messageHeaderAccessor, "SUBSCRIBE:ERROR");
   }
 }

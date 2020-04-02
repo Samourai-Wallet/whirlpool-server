@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.exceptions.MixException;
 import com.samourai.whirlpool.server.exceptions.QueueInputException;
 import java.lang.invoke.MethodHandles;
@@ -17,11 +18,14 @@ public class ConfirmInputService {
 
   private MixService mixService;
   private PoolService poolService;
+  private ExportService exportService;
 
   @Autowired
-  public ConfirmInputService(MixService mixService, PoolService poolService) {
+  public ConfirmInputService(
+      MixService mixService, PoolService poolService, ExportService exportService) {
     this.mixService = mixService;
     this.poolService = poolService;
+    this.exportService = exportService;
   }
 
   public synchronized Optional<byte[]> confirmInputOrQueuePool(
@@ -43,6 +47,12 @@ public class ConfirmInputService {
                 + ", reason="
                 + e.getMessage());
       }
+
+      // log activity
+      ActivityCsv activityCsv =
+          new ActivityCsv("CONFIRM_INPUT:QUEUED", poolId, registeredInput, null, null);
+      exportService.exportActivity(activityCsv);
+
       poolService.registerInput(
           poolId,
           registeredInput.getUsername(),

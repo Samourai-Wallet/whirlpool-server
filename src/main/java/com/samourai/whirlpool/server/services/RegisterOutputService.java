@@ -1,6 +1,7 @@
 package com.samourai.whirlpool.server.services;
 
 import com.samourai.wallet.util.FormatsUtilGeneric;
+import com.samourai.whirlpool.server.beans.Mix;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
 import java.lang.invoke.MethodHandles;
@@ -30,16 +31,17 @@ public class RegisterOutputService {
     this.serverConfig = serverConfig;
   }
 
-  public synchronized void registerOutput(
+  public synchronized Mix registerOutput(
       String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
     // validate
     validate(receiveAddress);
 
     // register
-    mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
+    Mix mix = mixService.registerOutput(inputsHash, unblindedSignedBordereau, receiveAddress);
 
     // revoke output
     dbService.saveMixOutput(receiveAddress);
+    return mix;
   }
 
   private void validate(String receiveAddress) throws Exception {

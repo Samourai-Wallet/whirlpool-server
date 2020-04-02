@@ -1,7 +1,10 @@
 package com.samourai.whirlpool.server.services;
 
+import com.google.common.collect.ImmutableMap;
 import com.samourai.whirlpool.server.beans.BlameReason;
 import com.samourai.whirlpool.server.beans.ConfirmedInput;
+import com.samourai.whirlpool.server.beans.Mix;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.persistence.to.BlameTO;
 import com.samourai.whirlpool.server.utils.Utils;
 import java.lang.invoke.MethodHandles;
@@ -16,16 +19,28 @@ public class BlameService {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
   private DbService dbService;
   private BanService banService;
+  private ExportService exportService;
 
   @Autowired
-  public BlameService(DbService dbService, BanService banService) {
+  public BlameService(DbService dbService, BanService banService, ExportService exportService) {
     this.dbService = dbService;
     this.banService = banService;
+    this.exportService = exportService;
   }
 
-  public void blame(ConfirmedInput confirmedInput, BlameReason reason, String mixId) {
+  public void blame(ConfirmedInput confirmedInput, BlameReason reason, Mix mix) {
     String identifier = Utils.computeBlameIdentitifer(confirmedInput);
-    blame(identifier, reason, mixId, confirmedInput.getRegisteredInput().getIp());
+    blame(identifier, reason, mix.getMixId(), confirmedInput.getRegisteredInput().getIp());
+
+    // log activity
+    ActivityCsv activityCsv =
+        new ActivityCsv(
+            "BLAME",
+            mix.getPool().getPoolId(),
+            confirmedInput.getRegisteredInput(),
+            ImmutableMap.of("reason", reason.name()),
+            null);
+    exportService.exportActivity(activityCsv);
   }
 
   private BlameTO blame(String identifier, BlameReason reason, String mixId, String ip) {

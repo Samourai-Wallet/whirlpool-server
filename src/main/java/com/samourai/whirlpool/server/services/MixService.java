@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.google.common.collect.ImmutableMap;
 import com.samourai.wallet.bip69.BIP69InputComparator;
 import com.samourai.wallet.bip69.BIP69OutputComparator;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
@@ -233,9 +234,7 @@ public class MixService {
 
     // log activity
     ActivityCsv activityCsv =
-        confirmedInput
-            .getRegisteredInput()
-            .toActivity(Activity.REGISTER_INPUT, mix.getPool().getPoolId(), null);
+        new ActivityCsv("CONFIRM_INPUT", mix.getPool().getPoolId(), registeredInput, null, null);
     exportService.exportActivity(activityCsv);
 
     // reply confirmInputResponse with signedBordereau
@@ -337,7 +336,7 @@ public class MixService {
     return true;
   }
 
-  public synchronized void registerOutput(
+  public synchronized Mix registerOutput(
       String inputsHash, byte[] unblindedSignedBordereau, String receiveAddress) throws Exception {
     Mix mix = getMixByInputsHash(inputsHash, MixStatus.REGISTER_OUTPUT);
 
@@ -359,6 +358,7 @@ public class MixService {
       String mixId = mix.getMixId();
       changeMixStatus(mixId, MixStatus.SIGNING);
     }
+    return mix;
   }
 
   private void logMixStatus(Mix mix) {
@@ -426,7 +426,7 @@ public class MixService {
 
       if (mixAlreadyStarted) {
         // blame
-        blameService.blame(spentInput, BlameReason.SPENT, mix.getMixId());
+        blameService.blame(spentInput, BlameReason.SPENT, mix);
       }
     }
     if (mixAlreadyStarted) {
@@ -735,8 +735,6 @@ public class MixService {
   }
 
   private void blameForRevealOutputAndResetMix(Mix mix) {
-    String mixId = mix.getMixId();
-
     // blame users who didn't register outputs
     Set<ConfirmedInput> confirmedInputsToBlame =
         mix.getInputs()
@@ -745,7 +743,7 @@ public class MixService {
                 input -> !mix.hasRevealedOutputUsername(input.getRegisteredInput().getUsername()))
             .collect(Collectors.toSet());
     for (ConfirmedInput confirmedInputToBlame : confirmedInputsToBlame) {
-      blameService.blame(confirmedInputToBlame, BlameReason.REGISTER_OUTPUT, mixId);
+      blameService.blame(confirmedInputToBlame, BlameReason.REGISTER_OUTPUT, mix);
     }
     // reset mix
     String outpointKeysToBlameStr = computeOutpointKeysToBlame(confirmedInputsToBlame);
@@ -772,13 +770,25 @@ public class MixService {
   }
 
   private void onClientDisconnect(String username) {
+    Map<String, String> clientDetails = ImmutableMap.of("u", username);
+
     for (Mix mix : getCurrentMixs()) {
       Collection<ConfirmedInput> confirmedInputsToBlame = mix.onDisconnect(username);
       if (!confirmedInputsToBlame.isEmpty()) {
         confirmedInputsToBlame.forEach(
             confirmedInput -> {
               // blame
-              blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix.getMixId());
+              blameService.blame(confirmedInput, BlameReason.DISCONNECT, mix);
+
+              // log activity
+              ActivityCsv activityCsv =
+                  new ActivityCsv(
+                      "DISCONNECT",
+                      mix.getPool().getPoolId(),
+                      confirmedInput.getRegisteredInput(),
+                      null,
+                      clientDetails);
+              exportService.exportActivity(activityCsv);
             });
 
         // restart mix

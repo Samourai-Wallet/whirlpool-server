@@ -1,5 +1,6 @@
 package com.samourai.whirlpool.server.services;
 
+import com.google.common.collect.ImmutableMap;
 import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
 import com.samourai.whirlpool.protocol.websocket.messages.SubscribePoolResponse;
@@ -292,6 +293,8 @@ public class PoolService {
   }
 
   private void onClientDisconnect(String username) {
+    Map<String, String> clientDetails = ImmutableMap.of("u", username);
+
     for (Pool pool : getPools()) {
       // remove queued liquidity
       Optional<RegisteredInput> liquidityRemoved =
@@ -301,7 +304,8 @@ public class PoolService {
 
         // log activity
         ActivityCsv activityCsv =
-            liquidityRemoved.get().toActivity(Activity.DISCONNECT, pool.getPoolId(), null);
+            new ActivityCsv(
+                "DISCONNECT", pool.getPoolId(), liquidityRemoved.get(), null, clientDetails);
         exportService.exportActivity(activityCsv);
       }
 
@@ -312,7 +316,8 @@ public class PoolService {
 
         // log activity
         ActivityCsv activityCsv =
-            liquidityRemoved.get().toActivity(Activity.DISCONNECT, pool.getPoolId(), null);
+            new ActivityCsv(
+                "DISCONNECT", pool.getPoolId(), mustMixRemoved.get(), null, clientDetails);
         exportService.exportActivity(activityCsv);
       }
     }

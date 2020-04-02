@@ -4,7 +4,9 @@ import com.samourai.javaserver.config.ServerConfig;
 import com.samourai.javaserver.run.ServerApplication;
 import com.samourai.javaserver.utils.LogbackUtils;
 import com.samourai.javaserver.utils.ServerUtils;
+import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
+import com.samourai.whirlpool.server.services.ExportService;
 import com.samourai.whirlpool.server.services.rpc.RpcClientService;
 import com.samourai.whirlpool.server.utils.Utils;
 import com.samourai.xmanager.client.XManagerClient;
@@ -27,6 +29,8 @@ public class Application extends ServerApplication {
 
   @Autowired private RpcClientService rpcClientService;
 
+  @Autowired private ExportService exportService;
+
   @Autowired private WhirlpoolServerConfig serverConfig;
 
   @Autowired private XManagerClient xManagerClient;
@@ -46,6 +50,10 @@ public class Application extends ServerApplication {
     AddressIndexResponse addressIndexResponse =
         xManagerClient.getAddressIndexOrDefault(XManagerService.WHIRLPOOL);
     log.info("XM index: " + addressIndexResponse.index);
+
+    // log activity
+    ActivityCsv activityCsv = new ActivityCsv("STARTUP", null, null, null, null, null);
+    exportService.exportActivity(activityCsv);
 
     // server starting...
   }

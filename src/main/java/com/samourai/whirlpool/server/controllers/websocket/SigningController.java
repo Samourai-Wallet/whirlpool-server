@@ -2,6 +2,7 @@ package com.samourai.whirlpool.server.controllers.websocket;
 
 import com.samourai.whirlpool.protocol.WhirlpoolEndpoint;
 import com.samourai.whirlpool.protocol.websocket.messages.SigningRequest;
+import com.samourai.whirlpool.server.services.ExportService;
 import com.samourai.whirlpool.server.services.SigningService;
 import com.samourai.whirlpool.server.services.WebSocketService;
 import java.lang.invoke.MethodHandles;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
@@ -22,8 +24,11 @@ public class SigningController extends AbstractWebSocketController {
   private SigningService signingService;
 
   @Autowired
-  public SigningController(WebSocketService webSocketService, SigningService signingService) {
-    super(webSocketService);
+  public SigningController(
+      WebSocketService webSocketService,
+      ExportService exportService,
+      SigningService signingService) {
+    super(webSocketService, exportService);
     this.signingService = signingService;
   }
 
@@ -43,7 +48,8 @@ public class SigningController extends AbstractWebSocketController {
   }
 
   @MessageExceptionHandler
-  public void handleException(Exception exception, Principal principal) {
-    super.handleException(exception, principal);
+  public void handleException(
+      Exception exception, Principal principal, SimpMessageHeaderAccessor messageHeaderAccessor) {
+    super.handleException(exception, principal, messageHeaderAccessor, "SIGNING:ERROR");
   }
 }
