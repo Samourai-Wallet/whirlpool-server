@@ -240,8 +240,7 @@ public class SigningServiceTest extends AbstractIntegrationTest {
         txOutPoint.getHash(),
         txOutPoint.getIndex(),
         liquidity,
-        "127.0.0.1",
-        "headers");
+        "127.0.0.1");
 
     // confirm input
     RSAKeyParameters serverPublicKey = (RSAKeyParameters) mix.getKeyPair().getPublic();
