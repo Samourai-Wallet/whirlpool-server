@@ -84,7 +84,8 @@ public abstract class AbstractWebSocketController {
     if (nativeHeaders == null) {
       return null;
     }
-    String[] ignoreHeaders = new String[] {"content-type", "content-length", "destination"};
+    String[] ignoreHeaders =
+        new String[] {"content-type", "content-length", "destination", "protocolVersion"};
 
     Map<String, String> clientDetails = new LinkedHashMap<>();
     nativeHeaders

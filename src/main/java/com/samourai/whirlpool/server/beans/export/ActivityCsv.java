@@ -96,7 +96,6 @@ public class ActivityCsv {
     }
     details.put("confs", Integer.toString(outPoint.getConfirmations()));
     details.put("value", Long.toString(outPoint.getValue()));
-    details.put("liquidity", Boolean.toString(registeredInput.isLiquidity()));
 
     // clientDetails
     if (clientDetails == null) {

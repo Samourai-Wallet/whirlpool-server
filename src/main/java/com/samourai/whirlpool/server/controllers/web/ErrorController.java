@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.ModelAndView;
 
 @RestController
 public class ErrorController extends AbstractErrorWebController {
@@ -27,13 +28,13 @@ public class ErrorController extends AbstractErrorWebController {
   }
 
   @RequestMapping(value = ENDPOINT)
-  public String errorHtml(
+  public ModelAndView errorHtml(
       WebRequest request,
       HttpServletRequest httpRequest,
       HttpServletResponse response,
       Model model) {
     ErrorTemplateModel errorTemplateModel = new ErrorTemplateModel(serverConfig.getName());
-    String result = super.errorHtml(request, response, model, errorTemplateModel);
+    ModelAndView result = super.errorHtml(request, response, model, errorTemplateModel);
 
     String errorMsg = errorTemplateModel.errorMessage; // was set by super.errorHtml()
 

@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @ControllerAdvice
 public class RestExceptionHandler extends AbstractRestExceptionHandler {
@@ -23,13 +25,14 @@ public class RestExceptionHandler extends AbstractRestExceptionHandler {
   }
 
   @Override
-  protected Object handleError(
-      com.samourai.javaserver.exceptions.NotifiableException e, HttpServletRequest request) {
+  protected Object handleError(com.samourai.javaserver.exceptions.NotifiableException e) {
     log.warn("RestException -> " + e.getMessage());
 
+    HttpServletRequest request =
+        ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+
     // log activity
-    ActivityCsv activityCsv =
-        new ActivityCsv("REST:ERROR", request.getRequestURI(), e.getMessage(), null, request);
+    ActivityCsv activityCsv = new ActivityCsv("REST:ERROR", null, e.getMessage(), null, request);
     exportService.exportActivity(activityCsv);
 
     return new RestErrorResponse(e.getMessage());

@@ -54,7 +54,7 @@ public class RegisterOutputController extends AbstractRestController {
 
     // log activity
     String poolId = mix.getPool().getPoolId();
-    ActivityCsv activityCsv = new ActivityCsv("TX0", poolId, null, null, request);
+    ActivityCsv activityCsv = new ActivityCsv("REGISTER_OUTPUT", poolId, null, null, request);
     exportService.exportActivity(activityCsv);
   }
 }
