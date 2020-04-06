@@ -3,13 +3,17 @@ package com.samourai.whirlpool.server.beans.export;
 import com.opencsv.bean.CsvBindByPosition;
 import com.samourai.whirlpool.server.beans.RegisteredInput;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
+import java.lang.invoke.MethodHandles;
 import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ActivityCsv {
+  private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   public static final String[] HEADERS =
       new String[] {"date", "activity", "poolId", "arg", "details", "ip", "clientDetails"};
@@ -42,7 +46,70 @@ public class ActivityCsv {
       Map<String, String> details,
       String ip,
       Map<String, String> clientDetails) {
-    init(activity, poolId, arg, details, ip, clientDetails);
+    try {
+      init(activity, poolId, arg, details, ip, clientDetails);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+  }
+
+  public ActivityCsv(
+      String activity,
+      String poolId,
+      String arg,
+      Map<String, String> details,
+      HttpServletRequest request) {
+    try {
+      this.clientDetails = computeClientDetails(request).toString();
+      init(activity, poolId, arg, details, request != null ? request.getRemoteAddr() : null, null);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+  }
+
+  public ActivityCsv(
+      String activity,
+      String poolId,
+      Map<String, String> details,
+      String ip,
+      Map<String, String> clientDetails) {
+    try {
+      init(activity, poolId, null, details, ip, clientDetails);
+    } catch (Exception e) {
+      log.error("", e);
+    }
+  }
+
+  public ActivityCsv(
+      String activity,
+      String poolId,
+      RegisteredInput registeredInput,
+      Map<String, String> details,
+      Map<String, String> clientDetailsParam) {
+    try {
+      // arg
+      TxOutPoint outPoint = registeredInput.getOutPoint();
+      String arg = outPoint.getHash() + ":" + outPoint.getIndex();
+
+      // details
+      if (details == null) {
+        details = new LinkedHashMap<>();
+      }
+      details.put("confs", Integer.toString(outPoint.getConfirmations()));
+      details.put("value", Long.toString(outPoint.getValue()));
+
+      // clientDetails
+      Map<String, String> clientDetails = new LinkedHashMap<>();
+      clientDetails.putAll(clientDetailsParam);
+      clientDetails.put("u", registeredInput.getUsername());
+      if (registeredInput.getLastUserHash() != null) {
+        clientDetails.put("uh", registeredInput.getLastUserHash());
+      }
+
+      init(activity, poolId, arg, details, registeredInput.getIp(), clientDetails);
+    } catch (Exception e) {
+      log.error("", e);
+    }
   }
 
   private void init(
@@ -59,54 +126,6 @@ public class ActivityCsv {
     this.details = details != null ? details.toString() : null;
     this.ip = ip;
     this.clientDetails = clientDetails != null ? clientDetails.toString() : null;
-  }
-
-  public ActivityCsv(
-      String activity,
-      String poolId,
-      String arg,
-      Map<String, String> details,
-      HttpServletRequest request) {
-    this.clientDetails = computeClientDetails(request).toString();
-    init(activity, poolId, arg, details, request != null ? request.getRemoteAddr() : null, null);
-  }
-
-  public ActivityCsv(
-      String activity,
-      String poolId,
-      Map<String, String> details,
-      String ip,
-      Map<String, String> clientDetails) {
-    init(activity, poolId, null, details, ip, clientDetails);
-  }
-
-  public ActivityCsv(
-      String activity,
-      String poolId,
-      RegisteredInput registeredInput,
-      Map<String, String> details,
-      Map<String, String> clientDetails) {
-    // arg
-    TxOutPoint outPoint = registeredInput.getOutPoint();
-    String arg = outPoint.getHash() + ":" + outPoint.getIndex();
-
-    // details
-    if (details == null) {
-      details = new LinkedHashMap<>();
-    }
-    details.put("confs", Integer.toString(outPoint.getConfirmations()));
-    details.put("value", Long.toString(outPoint.getValue()));
-
-    // clientDetails
-    if (clientDetails == null) {
-      clientDetails = new LinkedHashMap<>();
-    }
-    clientDetails.put("u", registeredInput.getUsername());
-    if (registeredInput.getLastUserHash() != null) {
-      clientDetails.put("userHash", registeredInput.getLastUserHash());
-    }
-
-    init(activity, poolId, arg, details, registeredInput.getIp(), clientDetails);
   }
 
   private Map<String, String> computeClientDetails(HttpServletRequest request) {
