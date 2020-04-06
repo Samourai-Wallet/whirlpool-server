@@ -84,7 +84,7 @@ public class ActivityCsv {
       String activity,
       String poolId,
       RegisteredInput registeredInput,
-      Map<String, String> details,
+      Map<String, String> detailsParam,
       Map<String, String> clientDetailsParam) {
     try {
       // arg
@@ -92,18 +92,21 @@ public class ActivityCsv {
       String arg = outPoint.getHash() + ":" + outPoint.getIndex();
 
       // details
-      if (details == null) {
-        details = new LinkedHashMap<>();
-      }
+      Map<String, String> details = new LinkedHashMap<>();
       details.put("confs", Integer.toString(outPoint.getConfirmations()));
       details.put("value", Long.toString(outPoint.getValue()));
+      if (detailsParam != null) {
+        details.putAll(detailsParam);
+      }
 
       // clientDetails
       Map<String, String> clientDetails = new LinkedHashMap<>();
-      clientDetails.putAll(clientDetailsParam);
       clientDetails.put("u", registeredInput.getUsername());
       if (registeredInput.getLastUserHash() != null) {
         clientDetails.put("uh", registeredInput.getLastUserHash());
+      }
+      if (clientDetailsParam != null) {
+        clientDetails.putAll(clientDetailsParam);
       }
 
       init(activity, poolId, arg, details, registeredInput.getIp(), clientDetails);
