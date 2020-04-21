@@ -8,17 +8,13 @@ import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.export.ActivityCsv;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.services.ExportService;
+import com.samourai.whirlpool.server.services.FeePayloadService;
 import com.samourai.whirlpool.server.services.FeeValidationService;
 import com.samourai.whirlpool.server.services.PoolService;
 import com.samourai.whirlpool.server.utils.Utils;
 import com.samourai.xmanager.client.XManagerClient;
 import com.samourai.xmanager.protocol.XManagerService;
 import com.samourai.xmanager.protocol.rest.AddressIndexResponse;
-import java.lang.invoke.MethodHandles;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +24,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import java.lang.invoke.MethodHandles;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @RestController
 public class Tx0Controller extends AbstractRestController {
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
   private PoolService poolService;
   private FeeValidationService feeValidationService;
-  private ExportService exportService;
+    private FeePayloadService feePayloadService;
+    private ExportService exportService;
   private WhirlpoolServerConfig serverConfig;
   private XManagerClient xManagerClient;
 
@@ -42,11 +45,13 @@ public class Tx0Controller extends AbstractRestController {
   public Tx0Controller(
       PoolService poolService,
       FeeValidationService feeValidationService,
+      FeePayloadService feePayloadService,
       ExportService exportService,
       WhirlpoolServerConfig serverConfig,
       XManagerClient xManagerClient) {
     this.poolService = poolService;
     this.feeValidationService = feeValidationService;
+    this.feePayloadService = feePayloadService;
     this.exportService = exportService;
     this.serverConfig = serverConfig;
     this.xManagerClient = xManagerClient;
@@ -71,21 +76,21 @@ public class Tx0Controller extends AbstractRestController {
     String feePaymentCode = feeValidationService.getFeePaymentCode();
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
         feeValidationService.getScodeConfigByScode(scode, System.currentTimeMillis());
-    String feePayload64;
+    short scodePayload;
+    short partnerPayload = 0;
     long feeValue;
     int feeDiscountPercent;
     String message;
 
     if (scodeConfig != null) {
       // scode found => scodeConfig.feeValuePercent
-      byte[] feePayload = Utils.feePayloadShortToBytes(scodeConfig.getPayload());
-      feePayload64 = WhirlpoolProtocol.encodeBytes(feePayload);
+      scodePayload = scodeConfig.getPayload();
       feeValue = poolFee.computeFeeValue(scodeConfig.getFeeValuePercent());
       feeDiscountPercent = 100 - scodeConfig.getFeeValuePercent();
       message = scodeConfig.getMessage();
     } else {
       // no SCODE => 100% fee
-      feePayload64 = null;
+      scodePayload = 0;
       feeValue = poolFee.getFeeValue();
       feeDiscountPercent = 0;
       message = null;
@@ -112,6 +117,9 @@ public class Tx0Controller extends AbstractRestController {
       feeAddress = null;
       feeChange = computeRandomFeeChange(poolFee);
     }
+
+    byte[] feePayload = feePayloadService.encodeFeePayload(feeIndex, scodePayload, partnerPayload);
+    String feePayload64 = WhirlpoolProtocol.encodeBytes(feePayload);
 
     if (log.isDebugEnabled()) {
       String scodeStr = !StringUtils.isEmpty(scode) ? scode : "null";
@@ -143,8 +151,7 @@ public class Tx0Controller extends AbstractRestController {
             feeDiscountPercent,
             message,
             feePayload64,
-            feeAddress,
-            feeIndex);
+            feeAddress);
     return tx0DataResponse;
   }
 

@@ -7,12 +7,11 @@ import com.samourai.wallet.hd.java.HD_WalletFactoryJava;
 import com.samourai.wallet.segwit.bech32.Bech32UtilGeneric;
 import com.samourai.wallet.util.Callback;
 import com.samourai.wallet.util.TxUtil;
-import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
-import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig.SecretWalletConfig;
+import com.samourai.whirlpool.server.services.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.utils.Utils;
 import com.samourai.xmanager.client.XManagerClient;
 import com.samourai.xmanager.protocol.XManagerService;
@@ -41,7 +40,7 @@ public class FeeValidationService {
   private BIP47Account secretAccountBip47;
   private TxUtil txUtil;
   private BlockchainDataService blockchainDataService;
-  private WhirlpoolFee whirlpoolFee;
+  private FeePayloadService feePayloadService;
   private XManagerClient xManagerClient;
 
   public FeeValidationService(
@@ -51,7 +50,7 @@ public class FeeValidationService {
       HD_WalletFactoryJava hdWalletFactory,
       TxUtil txUtil,
       BlockchainDataService blockchainDataService,
-      WhirlpoolFee whirlpoolFee,
+      FeePayloadService feePayloadService,
       XManagerClient xManagerClient)
       throws Exception {
     this.cryptoService = cryptoService;
@@ -61,7 +60,7 @@ public class FeeValidationService {
     this.secretAccountBip47 = computeSecretAccount();
     this.txUtil = txUtil;
     this.blockchainDataService = blockchainDataService;
-    this.whirlpoolFee = whirlpoolFee;
+    this.feePayloadService = feePayloadService;
     this.xManagerClient = xManagerClient;
   }
 
@@ -90,7 +89,8 @@ public class FeeValidationService {
         computeCallbackFetchOutpointScriptBytes(input0OutPoint); // needed for P2PK
     byte[] input0Pubkey = txUtil.findInputPubkey(tx, 0, fetchInputOutpointScriptBytes);
     WhirlpoolFeeData feeData =
-        whirlpoolFee.decode(opReturnMaskedValue, secretAccountBip47, input0OutPoint, input0Pubkey);
+        feePayloadService.decode(
+            opReturnMaskedValue, secretAccountBip47, input0OutPoint, input0Pubkey);
     return feeData;
   }
 
@@ -103,7 +103,7 @@ public class FeeValidationService {
       throws NotifiableException {
     // validate feePayload
     WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig =
-        validateFeePayload(feeData.getFeePayload(), tx0Time);
+        validateScodePayload(feeData.getScodePayload(), tx0Time);
     int feePercent = (scodeConfig != null ? scodeConfig.getFeeValuePercent() : 100);
     if (feePercent == 0) {
       // no fee
@@ -219,14 +219,10 @@ public class FeeValidationService {
     return null;
   }
 
-  private WhirlpoolServerConfig.ScodeSamouraiFeeConfig validateFeePayload(
-      byte[] feePayload, long tx0Time) {
-    if (feePayload == null || feePayload.length != WhirlpoolFee.FEE_PAYLOAD_LENGTH) {
-      return null;
-    }
-
+  private WhirlpoolServerConfig.ScodeSamouraiFeeConfig validateScodePayload(
+      short scodePayload, long tx0Time) {
     // search in configuration
-    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig = getScodeByFeePayload(feePayload);
+    WhirlpoolServerConfig.ScodeSamouraiFeeConfig scodeConfig = getScodeByScodePayload(scodePayload);
     if (scodeConfig == null) {
       // scode not found
       return null;
@@ -259,19 +255,19 @@ public class FeeValidationService {
     return true;
   }
 
-  protected WhirlpoolServerConfig.ScodeSamouraiFeeConfig getScodeByFeePayload(byte[] feePayload) {
-    short feePayloadAsShort = Utils.feePayloadBytesToShort(feePayload);
+  protected WhirlpoolServerConfig.ScodeSamouraiFeeConfig getScodeByScodePayload(
+      short scodePayload) {
     Optional<Entry<String, WhirlpoolServerConfig.ScodeSamouraiFeeConfig>> feePayloadEntry =
         serverConfig
             .getSamouraiFees()
             .getScodes()
             .entrySet()
             .stream()
-            .filter(e -> e.getValue().getPayload() == feePayloadAsShort)
+            .filter(e -> e.getValue().getPayload() == scodePayload)
             .findFirst();
     if (!feePayloadEntry.isPresent()) {
       // scode not found
-      log.warn("No SCode found for payload=" + Utils.feePayloadBytesToShort(feePayload));
+      log.warn("No SCode found for payload=" + scodePayload);
       return null;
     }
     return feePayloadEntry.get().getValue();

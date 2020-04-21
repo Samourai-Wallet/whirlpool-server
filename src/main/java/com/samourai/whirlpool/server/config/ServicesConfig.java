@@ -12,7 +12,7 @@ import com.samourai.wallet.util.FormatsUtilGeneric;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
 import com.samourai.wallet.util.TxUtil;
 import com.samourai.whirlpool.protocol.WhirlpoolProtocol;
-import com.samourai.whirlpool.protocol.fee.WhirlpoolFee;
+import com.samourai.whirlpool.protocol.util.XorMask;
 import com.samourai.whirlpool.server.services.JavaHttpClientService;
 import com.samourai.xmanager.client.XManagerClient;
 import java.lang.invoke.MethodHandles;
@@ -59,8 +59,8 @@ public class ServicesConfig extends ServerServicesConfig {
   }
 
   @Bean
-  WhirlpoolFee whirlpoolFee(ISecretPointFactory secretPointFactory) {
-    return WhirlpoolFee.getInstance(secretPointFactory);
+  XorMask xorMask(ISecretPointFactory secretPointFactory) {
+    return XorMask.getInstance(secretPointFactory);
   }
 
   @Bean

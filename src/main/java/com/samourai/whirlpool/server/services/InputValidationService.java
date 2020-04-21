@@ -2,17 +2,16 @@ package com.samourai.whirlpool.server.services;
 
 import com.samourai.javaserver.exceptions.NotifiableException;
 import com.samourai.wallet.util.MessageSignUtilGeneric;
-import com.samourai.whirlpool.protocol.fee.WhirlpoolFeeData;
 import com.samourai.whirlpool.server.beans.Pool;
 import com.samourai.whirlpool.server.beans.PoolFee;
 import com.samourai.whirlpool.server.beans.rpc.RpcTransaction;
 import com.samourai.whirlpool.server.beans.rpc.TxOutPoint;
 import com.samourai.whirlpool.server.config.WhirlpoolServerConfig;
 import com.samourai.whirlpool.server.exceptions.IllegalInputException;
+import com.samourai.whirlpool.server.services.fee.WhirlpoolFeeData;
 import java.lang.invoke.MethodHandles;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
-import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -67,8 +66,7 @@ public class InputValidationService {
     WhirlpoolFeeData feeData = feeValidationService.decodeFeeData(tx);
     if (feeData != null) {
       // this is a tx0 => mustMix
-      String feePayloadHex =
-          feeData.getFeePayload() != null ? Hex.toHexString(feeData.getFeePayload()) : "null";
+      short scodePayload = feeData.getScodePayload();
       if (log.isTraceEnabled()) {
         log.trace(
             "Validating input: txid="
@@ -77,8 +75,8 @@ public class InputValidationService {
                 + inputValue
                 + ": feeIndice="
                 + feeData.getFeeIndice()
-                + ", feePayloadHex="
-                + feePayloadHex);
+                + ", scodePayload="
+                + scodePayload);
       }
 
       // check fees paid
@@ -88,8 +86,8 @@ public class InputValidationService {
                 + tx.getHashAsString()
                 + ", x="
                 + feeData.getFeeIndice()
-                + ", feePayloadHex="
-                + feePayloadHex
+                + ", scodePayload="
+                + scodePayload
                 + ")");
       }
       return false; // mustMix

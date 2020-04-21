@@ -86,6 +86,8 @@ public abstract class AbstractIntegrationTest {
 
   @Autowired protected BlameService blameService;
 
+  @Autowired protected FeePayloadService feePayloadService;
+
   protected MessageSignUtilGeneric messageSignUtil = MessageSignUtilGeneric.getInstance();
 
   protected MixLimitsService mixLimitsService;
